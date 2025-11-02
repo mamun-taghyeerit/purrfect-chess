@@ -393,24 +393,22 @@ function updateArrowPreview(event) {
   }
 
   const targetPoint = pointFromClient(event.clientX, event.clientY);
+  const targetSquare = squareFromClient(event.clientX, event.clientY);
+  let pathData = null;
   if (!targetPoint) {
     preview.style.display = "none";
   } else {
-    const previewPath = buildPreviewPath(fromPoint, targetPoint);
-    if (previewPath) {
-      preview.setAttribute("d", previewPath);
+    if (targetSquare) {
+      drag.currentSquare = targetSquare;
+      pathData = buildArrowPath(drag.fromSquare, targetSquare);
+    } else {
+      pathData = buildPreviewPath(fromPoint, targetPoint);
+    }
+    if (pathData) {
+      preview.setAttribute("d", pathData);
       preview.style.display = "block";
     } else {
       preview.style.display = "none";
-    }
-  }
-
-  const targetSquare = squareFromClient(event.clientX, event.clientY);
-  if (targetSquare) {
-    drag.currentSquare = targetSquare;
-    const pathData = buildArrowPath(drag.fromSquare, targetSquare);
-    if (pathData) {
-      preview.setAttribute("d", pathData);
     }
   }
   const distance = Math.hypot(
