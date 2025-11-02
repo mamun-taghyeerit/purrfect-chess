@@ -28,6 +28,8 @@ const ARROW_HEAD_SIZE = 0.35;
 const ARROW_HEAD_LENGTH = 0.1;
 const ARROW_TAIL_OFFSET = 0.32;
 const ARROW_DRAG_THRESHOLD = 6;
+const ARROW_HIT_TOLERANCE = 0.22;
+const ARROW_ORIGIN_PROTECT_RADIUS = 0.35;
 
 const boardState = {
   root: null,
@@ -151,14 +153,13 @@ function buildPreviewPath(fromPoint, toPoint) {
   return buildPath(points);
 }
 
-function buildArrowPath(from, to) {
+function buildArrowPoints(from, to) {
   const start = squareCenter(from);
   const end = squareCenter(to);
   if (!start || !end) return null;
 
   if (!isKnightMove(from, to)) {
-    const points = shortenLastSegment([start, end], ARROW_HEAD_LENGTH);
-    return buildPath(points);
+    return shortenLastSegment([start, end], ARROW_HEAD_LENGTH);
   }
 
   const dx = end.x - start.x;
@@ -180,11 +181,62 @@ function buildArrowPath(from, to) {
     y: start.y + tailDy * ARROW_TAIL_OFFSET,
   };
 
-  const points = shortenLastSegment(
-    [start, tailPoint, bend, end],
-    ARROW_HEAD_LENGTH
-  );
+  return shortenLastSegment([start, tailPoint, bend, end], ARROW_HEAD_LENGTH);
+}
+
+function buildArrowPath(from, to) {
+  const points = buildArrowPoints(from, to);
+  if (!points) return null;
   return buildPath(points);
+}
+
+function distancePointToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  if (dx === 0 && dy === 0) {
+    return Math.hypot(px - ax, py - ay);
+  }
+  const t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+  const clampedT = clamp(t, 0, 1);
+  const cx = ax + dx * clampedT;
+  const cy = ay + dy * clampedT;
+  return Math.hypot(px - cx, py - cy);
+}
+
+function findArrowHit(point, tolerance = ARROW_HIT_TOLERANCE) {
+  if (!point) return null;
+  for (const [key, arrow] of boardState.arrows.entries()) {
+    const points = buildArrowPoints(arrow.from, arrow.to);
+    if (!points || points.length < 2) continue;
+    const origin = points[0];
+    const originSquareEl = boardState.squares.get(arrow.from);
+    const originHasPiece =
+      originSquareEl &&
+      (originSquareEl.classList.contains("white-piece") ||
+        originSquareEl.classList.contains("black-piece"));
+    if (originHasPiece) {
+      const originDistance = Math.hypot(point.x - origin.x, point.y - origin.y);
+      if (originDistance <= ARROW_ORIGIN_PROTECT_RADIUS) {
+        continue;
+      }
+    }
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const a = points[index];
+      const b = points[index + 1];
+      const distance = distancePointToSegment(
+        point.x,
+        point.y,
+        a.x,
+        a.y,
+        b.x,
+        b.y
+      );
+      if (distance <= tolerance) {
+        return key;
+      }
+    }
+  }
+  return null;
 }
 
 function ensureArrowLayer() {
@@ -249,10 +301,17 @@ function ensureArrowPreview() {
   path.setAttribute("stroke-linecap", "butt");
   path.setAttribute("stroke-linejoin", "round");
   path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
+  path.setAttribute("pointer-events", "none");
   path.style.display = "none";
   layer.appendChild(path);
   boardState.arrowPreview = path;
   return path;
+}
+
+function removeArrow(key) {
+  if (!boardState.arrows.has(key)) return;
+  boardState.arrows.delete(key);
+  renderArrows();
 }
 
 function renderArrows() {
@@ -269,7 +328,7 @@ function renderArrows() {
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", ARROW_STROKE);
     path.setAttribute("stroke-width", ARROW_THICKNESS);
-  path.setAttribute("stroke-linecap", "butt");
+    path.setAttribute("stroke-linecap", "butt");
     path.setAttribute("stroke-linejoin", "round");
     path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
     layer.appendChild(path);
@@ -285,11 +344,40 @@ function toggleArrow(from, to) {
   if (from === to) return;
   const key = `${from}-${to}`;
   if (boardState.arrows.has(key)) {
-    boardState.arrows.delete(key);
+    removeArrow(key);
   } else {
     boardState.arrows.set(key, { from, to });
   }
   renderArrows();
+}
+
+function startArrowDrag(square, event) {
+  if (event.button !== 2) return;
+  if (!boardState.interactive) return;
+  const fromPoint = squareCenter(square);
+  if (!fromPoint) return;
+
+  event.preventDefault();
+
+  ensureArrowLayer();
+  ensureArrowPreview();
+
+  boardState.arrowDrag = {
+    fromSquare: square,
+    startX: event.clientX,
+    startY: event.clientY,
+    dragDistance: 0,
+    currentSquare: square,
+  };
+
+  const preview = boardState.arrowPreview;
+  if (preview) {
+    preview.setAttribute(
+      "d",
+      `M ${fromPoint.x} ${fromPoint.y} L ${fromPoint.x} ${fromPoint.y}`
+    );
+    preview.style.display = "none";
+  }
 }
 
 function updateArrowPreview(event) {
@@ -367,32 +455,8 @@ function finalizeArrowDrag(event, { canceled = false } = {}) {
 
 function handleMouseDown(event) {
   if (event.button !== 2) return;
-  if (!boardState.interactive) return;
   const square = event.currentTarget.dataset.square;
-  const fromPoint = squareCenter(square);
-  if (!fromPoint) return;
-
-  event.preventDefault();
-
-  ensureArrowLayer();
-  ensureArrowPreview();
-
-  boardState.arrowDrag = {
-    fromSquare: square,
-    startX: event.clientX,
-    startY: event.clientY,
-    dragDistance: 0,
-    currentSquare: square,
-  };
-
-  const preview = boardState.arrowPreview;
-  if (preview) {
-    preview.setAttribute(
-      "d",
-      `M ${fromPoint.x} ${fromPoint.y} L ${fromPoint.x} ${fromPoint.y}`
-    );
-    preview.style.display = "none";
-  }
+  startArrowDrag(square, event);
 }
 
 function handleDocumentMouseMove(event) {
@@ -413,6 +477,14 @@ function handleDocumentMouseUp(event) {
 
 function handleClick(event) {
   if (!boardState.interactive) return;
+  if (event.button !== undefined && event.button === 0) {
+    const pointer = pointFromClient(event.clientX, event.clientY);
+    const hitKey = findArrowHit(pointer);
+    if (hitKey) {
+      removeArrow(hitKey);
+      return;
+    }
+  }
   const square = event.currentTarget.dataset.square;
   if (boardState.callbacks.onSquareClick) {
     boardState.callbacks.onSquareClick(square, { event });
