@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Chess</title>
+    <!-- Include chess.js library locally -->
+    <script src="./libs/chess.min.js"></script>
+    <style>
+        /* Basic page setup */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+            background-color: #333;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            color: #f0f0f0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        h2 {
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: #f0f0f0;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #555;
+            text-align: center;
+        }
+
+        /* --- Main Layout --- */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .layout-panel {
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2) inset;
+            width: 90%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        /* 3-Column layout for desktop */
+        @media (min-width: 1100px) {
+            .main-layout {
+                flex-direction: row;
+                align-items: flex-start;
+                justify-content: center;
+                gap: 20px;
+            }
+
+            .layout-panel {
+                width: auto;
+                max-width: none;
+            }
+
+            .controls-panel {
+                order: 1;
+                flex: 1 1 280px;
+                max-width: 280px;
+            }
+
+            .board-panel {
+                order: 2;
+                flex: 0 0 auto; /* Don't grow or shrink */
+                background: none; /* No background for board panel itself */
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .game-panel {
+                order: 3;
+                flex: 1 1 280px;
+                max-width: 280px;
+            }
+        }
+        
+        /* --- Controls Panel --- */
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .control-group {
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .control-group h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+
+        /* Inner group for sliders */
+        .control-group-inner {
+            border: 1px solid #5f5f5f;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #3f3f3f;
+        }
+        .control-group-inner:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Layout for H4 (group title) and reset button */
+        .control-group-inner h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 15px 0;
+            padding: 0;
+            color: #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        /* Style for individual group reset icon */
+        .reset-group-btn {
+            background: none;
+            border: none;
+            color: #9198e5; /* A subtle blue/purple color */
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 10px;
+            transition: color 0.2s, transform 0.1s;
+        }
+        .reset-group-btn:hover {
+            color: #e66465; /* Hover to match main button color */
+            transform: rotate(30deg);
+        }
+
+        /* Adjust padding on parent .control-group holding sliders */
+        .controls-container > .control-group:first-child {
+            padding: 10px; 
+            background-color: #3a3a3a;
+        }
+
+        .slider-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .slider-control label {
+            font-weight: 500;
+        }
+        
+        .slider-control output {
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #666;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #e66465;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #e66465;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+
+        /* --- Board Panel --- */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative; 
+
+            /* CSS Variables for sliders - Initial defaults */
+            --white-piece-size: 85%;
+            --black-piece-size: 85%;
+            --white-piece-filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)) brightness(1);
+            --black-piece-filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)) grayscale(0.8) brightness(0.4);
+            --light-square-filter: brightness(1);
+            --dark-square-filter: brightness(1);
+        }
+        
+        /* Reset Appearance Button - Same look, new location */
+        #reset-appearance-button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 8px; /* Matched to Reset Game Button style for consistency */
+            padding: 12px 25px; /* Matched to Reset Game Button style for consistency */
+            font-size: 1rem; /* Matched to Reset Game Button style for consistency */
+            font-weight: 600; /* Matched to Reset Game Button style for consistency */
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            flex: 1; /* Added flex property to share space with Reset Game */
+        }
+        
+        #reset-appearance-button:hover {
+            background-color: #666;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        #reset-appearance-button:active {
+            background-color: #777;
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+
+        /* Chess board styling */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 90vw;
+            height: 90vw;
+            max-width: 600px;
+            max-height: 600px;
+            border: 8px solid #4a2c2a;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            overflow: hidden; 
+            position: relative; 
+            z-index: 1;
+        }
+
+        /* Square styling */
+        .square {
+            width: 100%;
+            height: 100%;
+            background-size: cover; 
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: background-color 0.2s ease;
+            box-sizing: border-box; 
+        }
+
+        .square.light {
+            background-image: url('assets/sq_white.png');
+            filter: var(--light-square-filter);
+        }
+
+        .square.dark {
+            background-image: url('assets/sq_black.png');
+            filter: var(--dark-square-filter);
+        }
+        
+        /* --- Highlights --- */
+        /* Highlight on selection (left click) */
+        .square.selected {
+            background-color: rgba(98, 180, 255, 0.6);
+            background-blend-mode: multiply;
+        }
+        
+        /* Highlight on last move */
+        .square.last-move {
+            background-color: rgba(235, 230, 90, 0.7); /* Yellowish highlight */
+            background-blend-mode: multiply;
+        }
+
+        /* Highlight for valid drop target */
+        .square.drag-over {
+            box-shadow: 0 0 15px 5px rgba(98, 180, 255, 0.8) inset;
+        }
+
+        /* Highlight for right click */
+        .square.highlighted {
+            /* Green overlay */
+            box-shadow: 0 0 0 4px rgba(100, 255, 100, 0.5) inset;
+            background-blend-mode: color-burn;
+        }
+
+        /* Legal Move Hints */
+        .square.legal-move-hint {
+            position: relative;
+        }
+        /* A subtle dot in the middle of the square */
+        .square.legal-move-hint::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20%;
+            height: 20%;
+            background-color: rgba(98, 180, 255, 0.5);
+            border-radius: 50%;
+            z-index: 2; /* Below pieces */
+        }
+        /* Special style for captures */
+        .square.legal-capture-hint::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* A ring around the edge */
+            box-shadow: 0 0 0 4px rgba(98, 180, 255, 0.5) inset;
+            border-radius: 0;
+            background: none;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+
+        /* --- Engine Highlight Styles (Shades of Sky Blue) --- */
+        .square.engine-move-1 {
+            background-color: rgba(125, 219, 240, 0.8); /* Light Sky Blue */
+            background-blend-mode: multiply;
+        }
+        .square.engine-move-2 {
+            background-color: rgba(70, 169, 230, 0.8); /* Medium Sky Blue */
+            background-blend-mode: multiply;
+        }
+        .square.engine-move-3 {
+            background-color: rgba(26, 115, 217, 0.8); /* Dark Sky Blue */
+            background-blend-mode: multiply;
+        }
+
+        /* Piece styling */
+        .piece {
+            width: var(--white-piece-size);
+            height: var(--white-piece-size);
+            object-fit: contain;
+            cursor: grab;
+            transition: transform 0.1s ease-in-out;
+            filter: var(--white-piece-filter);
+            -webkit-user-drag: none;
+            user-select: none;
+            position: relative; 
+            z-index: 10;
+        }
+        
+        .piece:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Class for the piece being dragged */
+        .piece.dragging {
+            opacity: 0.3;
+            cursor: grabbing;
+        }
+
+        /* Style for black pieces */
+        .piece.black {
+            filter: var(--black-piece-filter);
+            width: var(--black-piece-size);
+            height: var(--black-piece-size);
+        }
+        
+        /* --- Game Panel --- */
+        .game-panel .clocks-container {
+            width: 100%;
+        }
+
+        /* Message box for alerts */
+        #message-box {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff4136;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            font-size: 1rem;
+            font-weight: 600;
+            transition: top 0.4s ease-out;
+            z-index: 1000;
+        }
+        
+        #message-box.info {
+            background-color: #3498db;
+        }
+        
+        #message-box.success {
+            background-color: #2ecc71;
+        }
+
+        #message-box.show {
+            top: 20px;
+        }
+
+        /* --- Custom Confirmation Modal Styles --- */
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000; /* Above message box */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .confirmation-modal {
+            background-color: #444;
+            color: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .confirmation-modal h3 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #e66465;
+        }
+        .confirmation-modal p {
+            margin: 15px 0 30px 0;
+            font-size: 1rem;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #confirm-ok {
+            background-color: #e66465; /* Reset color */
+            color: white;
+        }
+        #confirm-ok:hover {
+            background-color: #ff7878;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        #confirm-cancel {
+            background-color: #666;
+            color: #ddd;
+        }
+        #confirm-cancel:hover {
+            background-color: #777;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        /* --- End Confirmation Modal Styles --- */
+
+
+        /* Time Controls and Reset */
+        .game-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            margin-top: 10px; 
+            max-width: 600px; 
+            z-index: 2; 
+        }
+        
+        .reset-buttons-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* Preset Time Controls */
+        .preset-times {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 5px; 
+        }
+
+        .preset-btn {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        .preset-btn:hover {
+            background-color: #666;
+        }
+        
+        .preset-btn:active {
+            background-color: #777;
+            transform: scale(0.98);
+        }
+
+        /* Container for a single clock */
+        .clock-display {
+            margin-bottom: 20px; 
+        }
+
+        .clocks-container {
+            /* This class is no longer used for layout */
+        }
+
+        .clock {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            font-weight: 700;
+            background-color: #2a2a2a;
+            color: #ccc;
+            padding: 10px 20px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3) inset;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .clock.active {
+            background-color: #e66465;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+
+        /* Reset button */
+        #reset-game-button { /* Renamed for clarity */
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #e66465, #9198e5);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            flex: 1; /* Added flex property */
+        }
+
+        #reset-game-button:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        #reset-game-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Time Inputs */
+        .time-inputs {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .time-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+        }
+
+        .time-input-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .time-input-group input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            background-color: #666;
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        
+        /* Remove arrows from number input */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+
+        /* --- Moves List --- */
+        .moves-list-container {
+            background-color: #333; /* Darker inner background */
+            border-radius: 6px;
+            padding: 10px;
+            height: 200px; /* Fixed height */
+            max-height: 200px; /* Explicit max-height */
+            overflow-y: auto;
+            border: 1px solid #222;
+        }
+        
+        #moves-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+            color: #f0f0f0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        #moves-list li {
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex; /* Use flex to align move number and moves */
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+        
+        #moves-list li:nth-child(odd) {
+            background-color: #3a3a3a;
+        }
+        
+        #moves-list li .move-number {
+            font-weight: 600;
+            color: #aaa;
+            flex-shrink: 0; /* Don't let it shrink */
+            width: 30px; /* Fixed width for alignment */
+        }
+        
+        #moves-list li .move-pair {
+            display: flex;
+            gap: 15px; /* Space between w and b moves */
+        }
+
+        #moves-list li .move-pair span {
+            display: inline-block;
+            width: 50px; /* Give moves space */
+        }
+
+        /* --- Copy Buttons --- */
+        .copy-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px; /* Add space above the buttons */
+        }
+        
+        .copy-btn {
+            flex: 1; /* Make buttons share space equally */
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        .copy-btn:hover {
+            background-color: #666;
+        }
+        
+        .copy-btn:active {
+            background-color: #777;
+            transform: scale(0.98);
+        }
+
+        /* --- Engine Highlight Styles (Shades of Sky Blue) --- */
+        .square.engine-move-1 {
+            background-color: rgba(125, 219, 240, 0.8); /* Light Sky Blue */
+            background-blend-mode: multiply;
+        }
+        .square.engine-move-2 {
+            background-color: rgba(70, 169, 230, 0.8); /* Medium Sky Blue */
+            background-blend-mode: multiply;
+        }
+        .square.engine-move-3 {
+            background-color: rgba(26, 115, 217, 0.8); /* Dark Sky Blue */
+            background-blend-mode: multiply;
+        }
+
+        /* --- Engine Panel Specific Styles --- */
+        .engine-move-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .engine-move-list li {
+            background-color: #3a3a3a;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .engine-move-list li:first-child {
+            background-color: rgba(125, 219, 240, 0.3); /* Match highlight color */
+            font-weight: bold;
+        }
+        .engine-move-list .rank {
+            font-weight: bold;
+            color: #fff;
+            width: 20px;
+        }
+        .engine-move-list .move-san {
+            color: #7dbfdd;
+            flex-grow: 1;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .engine-move-list .score {
+            font-size: 0.9rem;
+            color: #ccc;
+            width: 60px;
+            text-align: right;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Cat Chess</h1>
+
+    <div class="main-layout">
+        
+        <!-- --- Left Panel: Settings --- -->
+        <div class="layout-panel controls-panel">
+            <h2>White Controls</h2>
+            
+            <!-- White Clock Display (Outside Panel) -->
+            <div class="clock-display">
+                <div id="white-clock" class="clock">05:00</div>
+            </div>
+
+            <div class="controls-container">
+                <!-- Panel 1: Sliders -->
+                <div class="control-group"> 
+                    <h3>Display Settings</h3>
+                    <div class="control-group-inner">
+                        <h4>
+                            Light Squares
+                            <button class="reset-group-btn" data-group="lightSq">&#x21BA;</button>
+                        </h4>
+                        <div class="slider-control">
+                            <label for="light-sq-hue">Hue</label>
+                            <input type="range" id="light-sq-hue" min="0" max="360" value="0" step="1">
+                            <output id="light-sq-hue-output">0 deg</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="light-sq-sat">Saturation</label>
+                            <input type="range" id="light-sq-sat" min="0" max="200" value="100" step="1">
+                            <output id="light-sq-sat-output">100%</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="light-sq-bright">Brightness</label>
+                            <input type="range" id="light-sq-bright" min="50" max="200" value="100" step="1">
+                            <output id="light-sq-bright-output">100%</output>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group-inner">
+                        <h4>
+                            White Pieces
+                            <button class="reset-group-btn" data-group="whitePiece">&#x21BA;</button>
+                        </h4>
+                        <div class="slider-control">
+                            <label for="white-piece-size-slider">Piece Size</label>
+                            <input type="range" id="white-piece-size-slider" min="50" max="95" value="85" step="1">
+                            <output id="white-piece-size-output">85%</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="white-piece-hue">Hue</label>
+                            <input type="range" id="white-piece-hue" min="0" max="360" value="0" step="1">
+                            <output id="white-piece-hue-output">0 deg</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="white-piece-sat">Saturation</label>
+                            <input type="range" id="white-piece-sat" min="0" max="200" value="100" step="1">
+                            <output id="white-piece-sat-output">100%</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="white-piece-bright">Brightness</label>
+                            <input type="range" id="white-piece-bright" min="50" max="200" value="100" step="1">
+                            <output id="white-piece-bright-output">100%</output>
+                        </div>
+                    </div>
+                    
+                    <!-- REMOVED: Reset Appearance Button from here -->
+                </div>
+
+                <!-- Panel 2: Engine/Cheatcode Feature -->
+                <div class="control-group" id="engine-features-group">
+                    <h3>Engine Analysis</h3>
+                    <!-- The text to be selected. Selection sets the 'cheatcodePrimed' flag. -->
+                    <p id="cheatcode-target" style="text-align: center; color: #999; margin: 20px 0; user-select: text; cursor: text;">(Reserved for future use)</p>
+
+                    <!-- Controls and Results Area (Initially hidden) -->
+                    <div id="engine-controls" style="display: none; flex-direction: column; gap: 15px;">
+                        <div class="slider-control">
+                            <label for="engine-depth">Search Depth: <output id="depth-output">12</output></label>
+                            <input type="range" id="engine-depth" min="1" max="25" value="12" step="1">
+                        </div>
+                        <button id="start-analysis-btn" class="copy-btn" style="background: linear-gradient(145deg, #2ecc71, #3498db);">Start Analysis</button>
+
+                        <!-- Engine Status and Results (Hidden until analysis starts) -->
+                        <div id="engine-results" style="display: none; min-height: 50px; text-align: center; color: #fff; padding-top: 10px;">
+                            <p id="engine-status">Ready.</p>
+                            <ul class="engine-move-list" id="best-moves-list">
+                                <!-- Best moves will be inserted here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- Center Panel: Board --- -->
+        <div class="layout-panel board-panel">
+            <div class="game-container">
+                <div class="board" id="board">
+                    <!-- Squares will be generated by JavaScript -->
+                </div>
+
+                <!-- MOVED & UPDATED Game Controls -->
+                <div class="game-controls">
+                    <!-- NEW: Preset Times -->
+                    <div class="preset-times">
+                        <button class="preset-btn" data-time="3" data-inc="0">3+0</button>
+                        <button class="preset-btn" data-time="5" data-inc="1">5+1</button>
+                        <button class="preset-btn" data-time="10" data-inc="0">10+0</button>
+                        <button class="preset-btn" data-time="15" data-inc="10">15+10</button>
+                        <button class="preset-btn" data-time="30" data-inc="0">30+0</button>
+                        <button class="preset-btn" data-time="30" data-inc="30">30+30</button>
+                    </div>
+
+                    <div class="time-inputs">
+                        <div class="time-input-group">
+                            <label for="time-minutes">Minutes</label>
+                            <input type="number" id="time-minutes" value="5" min="1">
+                        </div>
+                        <div class="time-input-group">
+                            <label for="time-increment">Increment (s)</label>
+                            <input type="number" id="time-increment" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="reset-buttons-group">
+                        <button id="reset-game-button">Reset Game</button>
+                        <!-- ADDED: Reset Appearance Button here -->
+                        <button id="reset-appearance-button">Reset Appearance</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- Right Panel: Game --- -->
+        <div class="layout-panel game-panel">
+            <h2>Black Controls</h2>
+            
+            <!-- Black Clock Display (Outside Panel) -->
+            <div class="clock-display">
+                <div id="black-clock" class="clock">05:00</div>
+            </div>
+            
+            <div class="controls-container">
+                <!-- Panel 1: Sliders -->
+                <div class="control-group">
+                    <h3>Display Settings</h3>
+                     <div class="control-group-inner">
+                        <h4>
+                            Dark Squares
+                            <button class="reset-group-btn" data-group="darkSq">&#x21BA;</button>
+                        </h4>
+                        <div class="slider-control">
+                            <label for="dark-sq-hue">Hue</label>
+                            <input type="range" id="dark-sq-hue" min="0" max="360" value="0" step="1">
+                            <output id="dark-sq-hue-output">0 deg</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="dark-sq-sat">Saturation</label>
+                            <input type="range" id="dark-sq-sat" min="0" max="200" value="100" step="1">
+                            <output id="dark-sq-sat-output">100%</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="dark-sq-bright">Brightness</label>
+                            <input type="range" id="dark-sq-bright" min="50" max="200" value="100" step="1">
+                            <output id="dark-sq-bright-output">100%</output>
+                        </div>
+                    </div>
+
+                    <div class="control-group-inner">
+                        <h4>
+                            Black Pieces
+                            <button class="reset-group-btn" data-group="blackPiece">&#x21BA;</button>
+                        </h4>
+                        <div class="slider-control">
+                            <label for="black-piece-size-slider">Piece Size</label>
+                            <input type="range" id="black-piece-size-slider" min="50" max="95" value="85" step="1">
+                            <output id="black-piece-size-output">85%</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="black-piece-hue">Hue</label>
+                            <input type="range" id="black-piece-hue" min="0" max="360" value="0" step="1">
+                            <output id="black-piece-hue-output">0 deg</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="black-piece-sat">Saturation</label>
+                            <input type="range" id="black-piece-sat" min="0" max="200" value="100" step="1">
+                            <output id="black-piece-sat-output">100%</output>
+                        </div>
+                        <div class="slider-control">
+                            <label for="black-piece-bright">Brightness</label>
+                            <input type="range" id="black-piece-bright" min="0" max="200" value="40" step="1">
+                            <output id="black-piece-bright-output">40%</output>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Last Moves -->
+                <div class="control-group">
+                    <h3>Last Moves</h3>
+                    <div class="moves-list-container">
+                        <ol id="moves-list"></ol>
+                    </div>
+                    <!-- NEW: Copy Buttons -->
+                    <div class="copy-btn-group">
+                        <button id="copy-pgn-btn" class="copy-btn">Copy PGN</button>
+                        <button id="copy-fen-btn" class="copy-btn">Copy FEN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Custom message box (outside layout) -->
+    <div id="message-box">This is a message</div>
+    
+    <!-- NEW: Confirmation Modal -->
+    <div id="confirmation-overlay" class="modal-overlay">
+        <div class="confirmation-modal">
+            <h3 id="confirm-title">Confirm Action</h3>
+            <p id="confirm-message">Are you sure you want to proceed?</p>
+            <div class="modal-buttons">
+                <button id="confirm-cancel">Cancel</button>
+                <button id="confirm-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const boardElement = document.getElementById('board');
+            // Renamed from 'reset-button' to 'reset-game-button'
+            const resetGameButton = document.getElementById('reset-game-button'); 
+            // NEW: Appearance Reset Button
+            const resetAppearanceButton = document.getElementById('reset-appearance-button'); 
+            
+            const gameContainer = document.querySelector('.game-container');
+
+            // --- Engine Elements ---
+            const cheatcodeTarget = document.getElementById('cheatcode-target');
+            const engineControlsDiv = document.getElementById('engine-controls');
+            const startAnalysisBtn = document.getElementById('start-analysis-btn');
+            const engineDepthInput = document.getElementById('engine-depth');
+            const depthOutput = document.getElementById('depth-output');
+
+            const engineResultsDiv = document.getElementById('engine-results');
+            const engineStatusEl = document.getElementById('engine-status');
+            const bestMovesList = document.getElementById('best-moves-list');
+
+            // --- Sliders ---
+            // Group all sliders and their outputs for easy manipulation
+            const allSliders = [];
+            
+            function registerSlider(id, outputId, unit, filterTarget, filterProp, initialValue) {
+                const slider = document.getElementById(id);
+                const output = document.getElementById(outputId);
+                allSliders.push({ slider, output, unit, filterTarget, filterProp, initialValue });
+                
+                // Set initial values
+                slider.value = initialValue;
+                output.value = `${initialValue}${unit}`;
+                return slider;
+            }
+
+            // Light Squares
+            const lightSqHueSlider = registerSlider('light-sq-hue', 'light-sq-hue-output', ' deg', 'lightSq', 'hue', 0);
+            const lightSqSatSlider = registerSlider('light-sq-sat', 'light-sq-sat-output', '%', 'lightSq', 'sat', 100);
+            const lightSqBrightSlider = registerSlider('light-sq-bright', 'light-sq-bright-output', '%', 'lightSq', 'bright', 100);
+
+            // Dark Squares
+            const darkSqHueSlider = registerSlider('dark-sq-hue', 'dark-sq-hue-output', ' deg', 'darkSq', 'hue', 0);
+            const darkSqSatSlider = registerSlider('dark-sq-sat', 'dark-sq-sat-output', '%', 'darkSq', 'sat', 100);
+            // This slider was the one reported to be stuck at 100, its registration looks correct
+            const darkSqBrightSlider = registerSlider('dark-sq-bright', 'dark-sq-bright-output', '%', 'darkSq', 'bright', 100);
+
+            // White Pieces
+            const whitePieceHueSlider = registerSlider('white-piece-hue', 'white-piece-hue-output', ' deg', 'whitePiece', 'hue', 0);
+            const whitePieceSatSlider = registerSlider('white-piece-sat', 'white-piece-sat-output', '%', 'whitePiece', 'sat', 100);
+            const whitePieceBrightSlider = registerSlider('white-piece-bright', 'white-piece-bright-output', '%', 'whitePiece', 'bright', 100);
+            const whitePieceSizeSlider = registerSlider('white-piece-size-slider', 'white-piece-size-output', '%', 'whitePiece', 'size', 85);
+
+            // Black Pieces
+            const blackPieceHueSlider = registerSlider('black-piece-hue', 'black-piece-hue-output', ' deg', 'blackPiece', 'hue', 0);
+            const blackPieceSatSlider = registerSlider('black-piece-sat', 'black-piece-sat-output', '%', 'blackPiece', 'sat', 100);
+            const blackPieceBrightSlider = registerSlider('black-piece-bright', 'black-piece-bright-output', '%', 'blackPiece', 'bright', 40);
+            const blackPieceSizeSlider = registerSlider('black-piece-size-slider', 'black-piece-size-output', '%', 'blackPiece', 'size', 85);
+            
+            // --- Filter State Objects (Defaults are hardcoded here and matched in registerSlider) ---
+            let filters = {
+                lightSq: { hue: 0, sat: 100, bright: 100 },
+                darkSq: { hue: 0, sat: 100, bright: 100 },
+                whitePiece: { hue: 0, sat: 100, bright: 100, size: 85 },
+                blackPiece: { hue: 0, sat: 100, bright: 40, size: 85 }
+            };
+
+            // Time controls
+            const whiteClockEl = document.getElementById('white-clock');
+            const blackClockEl = document.getElementById('black-clock');
+            const minutesInput = document.getElementById('time-minutes');
+            const incrementInput = document.getElementById('time-increment');
+            const presetButtons = document.querySelectorAll('.preset-btn');
+            const movesListElement = document.getElementById('moves-list');
+            
+            // Copy Buttons
+            const copyPgnButton = document.getElementById('copy-pgn-btn');
+            const copyFenButton = document.getElementById('copy-fen-btn');
+
+            // Confirmation Modal Elements
+            const confirmOverlay = document.getElementById('confirmation-overlay');
+            const confirmTitle = document.getElementById('confirm-title');
+            const confirmMessage = document.getElementById('confirm-message');
+            const confirmOkButton = document.getElementById('confirm-ok');
+            const confirmCancelButton = document.getElementById('confirm-cancel');
+            let confirmCallback = null; // Function to run on 'Confirm'
+
+            // --- Game State ---
+            let game = new Chess(); // Initialize chess.js
+            let selectedSquare = null; // Will store algebraic notation (e.g., "e2")
+            let squareElements = {}; // To store references to DOM elements
+            let lastMove = { from: null, to: null };
+            let isDragging = false; // Drag-drop flag
+            let moveHistory = []; // To store move SANs
+            let highlightedSquares = []; // For right-click highlighting
+
+            // --- Timer State ---
+            let whiteTime = 300000; // 5 minutes in ms
+            let blackTime = 300000; // 5 minutes in ms
+            let incrementTime = 0; // 0 seconds in ms
+            let timerInterval = null;
+            let activePlayer = 'w';
+            let isTimeGameOver = false;
+
+            // --- Stockfish Engine State ---
+            let analysisFen = null;
+            let stockfish = null;
+            let bestMoves = []; // Stores the top 3 best moves
+            let engineRunning = false;
+            let engineDepth = parseInt(engineDepthInput.value, 10) || 12; // Sync with initial slider value
+            
+            // CHEATCODE: "gmmamun" 
+            let cheatcodeSequence = [
+                'g', 'm', 'm', 'a', 'm', 'u', 'n'
+            ];
+            let cheatcodeIndex = 0;
+            let cheatcodePrimed = false; // True if the text is selected
+            let cheatcodeActive = false; // True if controls are shown
+            let cheatcodeTimer = null;
+            const cheatcodeTargetText = "(Reserved for future use)";
+
+            // -------------------------------------------------------------------------
+            // --- MODAL CONFIRMATION HANDLERS ---
+            // -------------------------------------------------------------------------
+
+            /**
+             * Shows the custom confirmation modal.
+             * @param {string} title The title of the modal.
+             * @param {string} message The message body.
+             * @param {function} callback The function to execute if the user confirms.
+             */
+            function showConfirmation(title, message, callback) {
+                confirmTitle.textContent = title;
+                confirmMessage.textContent = message;
+                confirmCallback = callback;
+                confirmOverlay.classList.add('show');
+            }
+
+            // Global modal button listeners
+            confirmOkButton.addEventListener('click', () => {
+                confirmOverlay.classList.remove('show');
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+                confirmCallback = null; // Clear callback
+            });
+
+            confirmCancelButton.addEventListener('click', () => {
+                confirmOverlay.classList.remove('show');
+                confirmCallback = null; // Clear callback
+            });
+
+            // -------------------------------------------------------------------------
+            // --- SLIDER and APPEARANCE HANDLERS ---
+            // -------------------------------------------------------------------------
+            
+            /**
+             * Resets all sliders within a specific group to their defaults.
+             * @param {string} groupName - 'lightSq', 'darkSq', 'whitePiece', or 'blackPiece'.
+             */
+            function resetGroupToDefaults(groupName) {
+                let defaults;
+                
+                // Define the default values (must match initialValue in registerSlider)
+                switch (groupName) {
+                    case 'lightSq':
+                        defaults = { hue: 0, sat: 100, bright: 100 };
+                        break;
+                    case 'darkSq':
+                        defaults = { hue: 0, sat: 100, bright: 100 };
+                        break;
+                    case 'whitePiece':
+                        defaults = { hue: 0, sat: 100, bright: 100, size: 85 };
+                        break;
+                    case 'blackPiece':
+                        defaults = { hue: 0, sat: 100, bright: 40, size: 85 };
+                        break;
+                    default:
+                        return;
+                }
+                
+                // 1. Reset the internal filter state
+                filters[groupName] = { ...defaults };
+                
+                // 2. Reset the DOM elements (sliders and outputs)
+                allSliders.forEach(item => {
+                    if (item.filterTarget === groupName) {
+                        const defaultValue = defaults[item.filterProp];
+                        item.slider.value = defaultValue;
+                        item.output.value = `${defaultValue}${item.unit}`;
+                        
+                        // Handle size properties specially for CSS variables
+                        if (item.filterProp === 'size') {
+                            const varName = groupName === 'whitePiece' ? '--white-piece-size' : '--black-piece-size';
+                            gameContainer.style.setProperty(varName, `${defaultValue}%`);
+                        }
+                    }
+                });
+
+                // 3. Update the visual filters for the whole board
+                updateFilters();
+                showMessage(`${groupName.replace(/Piece|Sq/, '')} settings reset!`, 'info');
+            }
+
+
+            // --- Function to reset all appearance sliders to their default values (uses the group function) ---
+            function resetAppearanceToDefaults() {
+                resetGroupToDefaults('lightSq');
+                resetGroupToDefaults('darkSq');
+                resetGroupToDefaults('whitePiece');
+                resetGroupToDefaults('blackPiece');
+                showMessage("All appearance settings reset to defaults!", 'success');
+            }
+
+            // Listener for the global Reset Appearance button
+            resetAppearanceButton.addEventListener('click', () => {
+                showConfirmation(
+                    "Reset Appearance",
+                    "This will revert all color and size sliders to their default settings. Are you sure?",
+                    resetAppearanceToDefaults // The function to call on confirmation
+                );
+            });
+            
+            // Add listeners for individual group reset buttons
+            document.querySelectorAll('.reset-group-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const group = e.currentTarget.dataset.group;
+                    resetGroupToDefaults(group);
+                });
+            });
+
+
+            // Depth Slider Listener
+            engineDepthInput.addEventListener('input', (e) => {
+                engineDepth = parseInt(e.target.value, 10);
+                depthOutput.textContent = engineDepth;
+            });
+
+            // Start Analysis Button Listener
+            startAnalysisBtn.addEventListener('click', startEngineAnalysis);
+
+            // --- Function to render the moves list ---
+            function updateMovesList() {
+                if (!movesListElement) return;
+                
+                movesListElement.innerHTML = ''; // Clear the list
+                
+                let moveNumber = 1;
+                for (let i = 0; i < moveHistory.length; i += 2) {
+                    const li = document.createElement('li');
+                    
+                    const whiteMove = moveHistory[i] || '';
+                    const blackMove = moveHistory[i+1] || '';
+                    
+                    li.innerHTML = `
+                        <span class="move-number">${moveNumber}.</span>
+                        <span class="move-pair">
+                            <span>${whiteMove}</span>
+                            <span>${blackMove}</span>
+                        </span>
+                    `;
+                    
+                    movesListElement.appendChild(li);
+                    moveNumber++;
+                }
+                
+                // Auto-scroll to bottom
+                if (movesListElement.parentElement) {
+                    movesListElement.parentElement.scrollTop = movesListElement.parentElement.scrollHeight;
+                }
+            }
+
+            // --- Slider Event Listeners ---
+            function updateFilters() {
+                // Light Squares
+                gameContainer.style.setProperty('--light-square-filter',
+                    `hue-rotate(${filters.lightSq.hue}deg) ` +
+                    `saturate(${filters.lightSq.sat}%) ` +
+                    `brightness(${filters.lightSq.bright}%)`
+                );
+                // Dark Squares
+                gameContainer.style.setProperty('--dark-square-filter',
+                    `hue-rotate(${filters.darkSq.hue}deg) ` +
+                    `saturate(${filters.darkSq.sat}%) ` +
+                    `brightness(${filters.darkSq.bright}%)`
+                );
+                // White Pieces
+                gameContainer.style.setProperty('--white-piece-filter',
+                    `drop-shadow(0 2px 3px rgba(0,0,0,0.5)) ` +
+                    `hue-rotate(${filters.whitePiece.hue}deg) ` +
+                    `saturate(${filters.whitePiece.sat}%) ` +
+                    `brightness(${filters.whitePiece.bright}%)`
+                );
+                // Black Pieces
+                gameContainer.style.setProperty('--black-piece-filter',
+                    `drop-shadow(0 2px 3px rgba(0,0,0,0.5)) grayscale(0.8) ` +
+                    `hue-rotate(${filters.blackPiece.hue}deg) ` +
+                    `saturate(${filters.blackPiece.sat}%) ` +
+                    `brightness(${filters.blackPiece.bright}%)`
+                );
+            }
+            
+            // Generic function to handle filter updates for a single slider
+            function setupSliderListener(slider, filterTarget, filterProp, output, unit) {
+                slider.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    filters[filterTarget][filterProp] = value;
+                    output.value = `${value}${unit}`;
+                    updateFilters();
+                });
+            }
+
+            // Apply listeners to all sliders (using the structure defined in allSliders)
+            allSliders.forEach(item => {
+                if (item.filterProp === 'size') {
+                     item.slider.addEventListener('input', (e) => {
+                        const size = e.target.value;
+                        
+                        // FIX: Correctly determine the CSS variable name for piece size.
+                        let varName;
+                        if (item.filterTarget === 'whitePiece') {
+                            varName = '--white-piece-size';
+                        } else if (item.filterTarget === 'blackPiece') {
+                            varName = '--black-piece-size';
+                        }
+                        
+                        gameContainer.style.setProperty(varName, `${size}%`);
+                        item.output.value = `${size}%`;
+                        filters[item.filterTarget][item.filterProp] = size; // Update internal state
+                    });
+                } else {
+                    setupSliderListener(item.slider, item.filterTarget, item.filterProp, item.output, item.unit);
+                }
+            });
+            
+            // Initialize filters on load
+            updateFilters();
+
+            // Piece image filenames
+            const pieceImages = {
+                'w_pawn': 'w_pawn.png',
+                'w_rook': 'w_rook.png',
+                'w_knight': 'w_knight.png',
+                'w_bishop': 'w_bishop.png',
+                'w_queen': 'w_queen.png',
+                'w_king': 'w_king.png',
+                'b_pawn': 'w_pawn.png', // Using white images for black pieces
+                'b_rook': 'w_rook.png',
+                'b_knight': 'w_knight.png',
+                'b_bishop': 'w_bishop.png',
+                'b_queen': 'w_queen.png',
+                'b_king': 'w_king.png'
+            };
+
+            // --- Custom Message Box ---
+            function showMessage(message, type = 'error') {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = message;
+                
+                // Remove old types
+                messageBox.classList.remove('info', 'success', 'error');
+                
+                // Add new type (defaults to error style)
+                if (type === 'info') messageBox.classList.add('info');
+                else if (type === 'success') messageBox.classList.add('success');
+                else messageBox.classList.add('error');
+                
+                messageBox.classList.add('show');
+                
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 3000);
+            }
+
+            // --- Clipboard Helper Function ---
+            function copyToClipboard(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                    return false;
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+
+            // --- Helper Functions ---
+            
+            function coordsToAlg(row, col) {
+                const file = 'abcdefgh'[col];
+                const rank = 8 - row;
+                return file + rank;
+            }
+
+            function gamePieceToImageName(piece) {
+                if (!piece) return null;
+                const color = piece.color === 'w' ? 'w' : 'b';
+                const type = { p: 'pawn', r: 'rook', n: 'knight', b: 'bishop', q: 'queen', k: 'king' }[piece.type];
+                return `${color}_${type}`;
+            }
+
+            // --- Drawing/Highlighting Functions (Simplified) ---
+
+            /**
+             * Updates the square elements based on the highlightedSquares array and bestMoves.
+             */
+            function redrawHighlights() {
+                // Clear all previous highlights including engine ones
+                for (const alg in squareElements) {
+                    const square = squareElements[alg];
+                    square.classList.toggle('highlighted', highlightedSquares.includes(alg));
+                    square.classList.remove('engine-move-1', 'engine-move-2', 'engine-move-3');
+                }
+
+                // Apply engine highlights if available
+                if (cheatcodeActive && bestMoves.length > 0) {
+                    bestMoves.forEach((move, index) => {
+                        if (index < 3) {
+                            // move.uci is like 'e2e4'. Get the target square (e4)
+                            const toSquareAlg = move.uci.substring(2, 4); 
+                            const toSquare = squareElements[toSquareAlg];
+                            if (toSquare) {
+                                toSquare.classList.add(`engine-move-${index + 1}`);
+                            }
+                        }
+                    });
+                }
+            }
+
+            /**
+             * Removes all legal move hint CSS classes
+             */
+            function clearLegalMoveHints() {
+                document.querySelectorAll('.legal-move-hint, .legal-capture-hint').forEach(el => {
+                    el.classList.remove('legal-move-hint', 'legal-capture-hint');
+                });
+            }
+
+            /**
+             * Clears all highlights and hints (used for Esc/move/click)
+             */
+            function clearDrawings() {
+                highlightedSquares = [];
+                clearLegalMoveHints();
+                redrawHighlights(); // Sync DOM
+                
+                // Clear selected square too, as per original logic
+                if (selectedSquare) {
+                    squareElements[selectedSquare].classList.remove('selected');
+                    selectedSquare = null;
+                }
+            }
+
+            /**
+             * Shows legal move hints for a selected piece
+             */
+            function showLegalMoves(fromAlg) {
+                clearLegalMoveHints(); // Clear previous ones
+                const moves = game.moves({ square: fromAlg, verbose: true });
+                
+                moves.forEach(move => {
+                    const toSquareEl = squareElements[move.to];
+                    if (toSquareEl) {
+                        if (move.flags.includes('c') || move.flags.includes('e')) { // 'c' capture, 'e' en passant
+                            toSquareEl.classList.add('legal-capture-hint');
+                        } else {
+                            toSquareEl.classList.add('legal-move-hint');
+                        }
+                    }
+                });
+            }
+
+
+            // --- Clock Functions ---
+
+            function formatTime(ms) {
+                const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+                const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+                const seconds = String(totalSeconds % 60).padStart(2, '0');
+                return `${minutes}:${seconds}`;
+            }
+
+            function updateClockDisplay() {
+                whiteClockEl.textContent = formatTime(whiteTime);
+                blackClockEl.textContent = formatTime(blackTime);
+                
+                whiteClockEl.classList.toggle('active', activePlayer === 'w');
+                blackClockEl.classList.toggle('active', activePlayer === 'b');
+            }
+
+            function stopTimer() {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            function timerTick() {
+                if (activePlayer === 'w') {
+                    whiteTime -= 1000;
+                } else {
+                    blackTime -= 1000;
+                }
+
+                if (whiteTime <= 0 || blackTime <= 0) {
+                    whiteTime = Math.max(0, whiteTime);
+                    blackTime = Math.max(0, blackTime);
+                    stopTimer();
+                    isTimeGameOver = true;
+                    
+                    const winner = activePlayer === 'w' ? 'Black' : 'White';
+                    showMessage(`${winner} wins on time!`, 'success');
+                    boardElement.style.pointerEvents = 'none'; // Disable board
+                }
+                
+                updateClockDisplay();
+            }
+
+            function startTimer() {
+                stopTimer(); // Ensure only one timer runs
+                timerInterval = setInterval(timerTick, 1000);
+            }
+
+            function switchTimer() {
+                // Add increment to the player who just moved
+                if (activePlayer === 'w') {
+                    whiteTime += incrementTime;
+                } else {
+                    blackTime += incrementTime;
+                }
+                
+                activePlayer = game.turn();
+                updateClockDisplay();
+                
+                if (!timerInterval) {
+                    startTimer();
+                }
+            }
+            
+            // --- Create Board and Pieces ---
+            
+            function createBoard() {
+                boardElement.innerHTML = '';
+                squareElements = {}; 
+                
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        const square = document.createElement('div');
+                        square.classList.add('square');
+                        
+                        const isLight = (r + c) % 2 === 0;
+                        square.classList.add(isLight ? 'light' : 'dark');
+                        
+                        square.dataset.row = r;
+                        square.dataset.col = c;
+                        
+                        const alg = coordsToAlg(r, c);
+                        square.dataset.alg = alg;
+                        
+                        squareElements[alg] = square;
+                        
+                        // Left-click listener
+                        square.addEventListener('click', onSquareClick);
+                        
+                        // Right-click listener
+                        square.addEventListener('contextmenu', onSquareRightClick);
+                        
+                        // Drag-drop listeners (for pieces)
+                        square.addEventListener('dragover', onDragOver);
+                        square.addEventListener('dragleave', onDragLeave);
+                        square.addEventListener('drop', onDrop);
+                        
+                        boardElement.appendChild(square);
+                    }
+                }
+            }
+            
+            /**
+             * Handles right-click events for highlighting.
+             */
+            function onSquareRightClick(event) {
+                event.preventDefault(); // Prevent default context menu
+                const alg = event.currentTarget.dataset.alg;
+
+                // Clear engine highlights if they were active
+                if (cheatcodeActive) {
+                    deactivateCheatcode();
+                }
+
+                const index = highlightedSquares.indexOf(alg);
+                if (index > -1) {
+                    highlightedSquares.splice(index, 1); // Remove if exists
+                } else {
+                    highlightedSquares.push(alg); // Add if not exists
+                }
+                
+                redrawHighlights();
+            }
+
+            function updateBoard() {
+                const boardState = game.board(); 
+                
+                for (const alg in squareElements) {
+                    squareElements[alg].classList.remove('last-move');
+                }
+                
+                if (lastMove.from) squareElements[lastMove.from].classList.add('last-move');
+                if (lastMove.to) squareElements[lastMove.to].classList.add('last-move');
+
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        const alg = coordsToAlg(r, c);
+                        const square = squareElements[alg];
+                        const piece = boardState[r][c]; 
+                        
+                        square.innerHTML = ''; 
+                        
+                        const pieceName = gamePieceToImageName(piece);
+
+                        if (pieceName) {
+                            const pieceElement = document.createElement('img');
+                            pieceElement.classList.add('piece');
+                            pieceElement.draggable = true;
+                            
+                            pieceElement.src = `assets/${pieceImages[pieceName]}`;
+                            
+                            if (piece.color === 'b') {
+                                pieceElement.classList.add('black');
+                            }
+                            pieceElement.dataset.color = piece.color;
+                            pieceElement.alt = `${piece.color} ${piece.type}`;
+                            
+                            pieceElement.addEventListener('dragstart', onDragStart);
+                            pieceElement.addEventListener('dragend', onDragEnd);
+                            
+                            square.appendChild(pieceElement);
+                        }
+                    }
+                }
+                redrawHighlights(); // Ensure highlights persist through board updates
+            }
+            
+            function attemptMove(from, to) {
+                if (game.game_over() || isTimeGameOver) return false;
+
+                const move = game.move({
+                    from: from,
+                    to: to,
+                    promotion: 'q' // Always promote to queen for simplicity
+                });
+
+                if (move === null) {
+                    showMessage("Invalid move!");
+                    return false;
+                }
+                
+                // Successful move
+                lastMove = { from: move.from, to: move.to };
+                moveHistory.push(move.san); // Add move to history
+                clearDrawings(); // Clear all drawings and hints
+                updateBoard(); // Redraw board
+                updateMovesList(); // Update moves list
+                switchTimer(); // Switch the clock
+                checkGameStatus(); // Check for checkmate, etc.
+
+                // Deactivate cheatcode on move
+                deactivateCheatcode();
+                return true;
+            }
+            
+            // --- Handle Square Clicks (Left-Click) ---
+            function onSquareClick(event) {
+                if (isDragging) return; // Don't process clicks while dragging
+
+                const clickedSquare = event.currentTarget;
+                const alg = clickedSquare.dataset.alg;
+                
+                if (selectedSquare) {
+                    // This is the second click (destination)
+                    squareElements[selectedSquare].classList.remove('selected');
+
+                    if (selectedSquare !== alg) { 
+                        attemptMove(selectedSquare, alg); 
+                    } else {
+                         // Clicked same square, just deselect
+                        clearDrawings();
+                    }
+                    
+                    selectedSquare = null;
+
+                } else {
+                    // This is the first click (selection)
+                    const piece = game.get(alg);
+                    
+                    // Check if square is empty or wrong turn
+                    if (!piece || piece.color !== game.turn()) {
+                        // Invalid first click (empty or opponent's piece)
+                        clearDrawings(); // Clear all highlights and arrows
+                        return;
+                    }
+                    
+                    // Valid first click
+                    clearDrawings(); // Clear previous drawings
+                    selectedSquare = alg;
+                    clickedSquare.classList.add('selected');
+                    showLegalMoves(alg); // Show new hints
+                }
+            }
+            
+            // --- Drag and Drop Handlers ---
+            
+            function onDragStart(event) {
+                const piece = event.target;
+                const fromSquare = piece.closest('.square');
+                const alg = fromSquare.dataset.alg;
+                
+                const pieceData = game.get(alg);
+                if (!pieceData || pieceData.color !== game.turn()) {
+                    event.preventDefault(); 
+                    const turnColor = game.turn() === 'w' ? 'White' : 'Black';
+                    showMessage(`It's ${turnColor}'s turn!`, 'info');
+                    return;
+                }
+
+                isDragging = true;
+                
+                event.dataTransfer.setData('text/plain', alg);
+                event.dataTransfer.effectAllowed = 'move';
+                
+                if (selectedSquare) {
+                    squareElements[selectedSquare].classList.remove('selected');
+                    selectedSquare = null;
+                }
+                clearDrawings(); // Clear hints and drawings on drag start
+                
+                setTimeout(() => {
+                    piece.classList.add('dragging');
+                }, 0);
+            }
+            
+            function onDragOver(event) {
+                event.preventDefault(); 
+                event.dataTransfer.dropEffect = 'move';
+                event.currentTarget.classList.add('drag-over');
+            }
+            
+            function onDragLeave(event) {
+                event.currentTarget.classList.remove('drag-over');
+            }
+            
+            function onDrop(event) {
+                event.preventDefault();
+                event.currentTarget.classList.remove('drag-over');
+                
+                const fromAlg = event.dataTransfer.getData('text/plain');
+                const toAlg = event.currentTarget.dataset.alg;
+                
+                if (fromAlg !== toAlg) {
+                    attemptMove(fromAlg, toAlg);
+                }
+            }
+            
+            function onDragEnd(event) {
+                isDragging = false;
+                event.target.classList.remove('dragging');
+            }
+
+            function checkGameStatus() {
+                if (game.game_over()) {
+                    stopTimer(); 
+                    boardElement.style.pointerEvents = 'none'; 
+                    if (game.in_checkmate()) {
+                        const winner = game.turn() === 'w' ? 'Black' : 'White';
+                        showMessage(`${winner} wins by checkmate!`, 'success');
+                    } else if (game.in_stalemate()) {
+                        showMessage("Game is a draw by stalemate!", 'info');
+                    } else if (game.in_threefold_repetition()) {
+                        showMessage("Game is a draw by threefold repetition!", 'info');
+                    } else if (game.insufficient_material()) {
+                        showMessage("Game is a draw due to insufficient material!", 'info');
+                    } else {
+                        showMessage("Game over!", 'info');
+                    }
+                } else if (game.in_check()) {
+                    const kingColor = game.turn() === 'w' ? 'White' : 'Black';
+                    showMessage(`${kingColor} is in check!`, 'info');
+                }
+            }
+            
+            function startNewGame() {
+                stopTimer();
+                game = new Chess();
+                selectedSquare = null;
+                lastMove = { from: null, to: null };
+                moveHistory = []; // Reset history
+                isTimeGameOver = false; 
+                boardElement.style.pointerEvents = 'auto'; 
+                
+                const minutes = parseInt(minutesInput.value, 10) || 5;
+                const increment = parseInt(incrementInput.value, 10) || 0;
+                
+                whiteTime = minutes * 60 * 1000;
+                blackTime = minutes * 60 * 1000;
+                incrementTime = increment * 1000;
+                activePlayer = 'w';
+                
+                clearDrawings(); // Clear all drawings
+                updateClockDisplay();
+                updateMovesList(); // Clear the moves list display
+
+                if (Object.keys(squareElements).length === 0) {
+                    createBoard(); 
+                }
+                
+                updateBoard(); 
+                deactivateCheatcode(); // Deactivate cheatcode panel
+
+                showMessage(`New game started: ${minutes}+${increment}`, 'success');
+            }
+
+            // --- Reset Game Button Handler (now uses confirmation) ---
+            resetGameButton.addEventListener('click', () => {
+                showConfirmation(
+                    "Reset Game",
+                    "This will immediately end the current game and start a new one with the current time settings. Are you sure?",
+                    startNewGame // The function to call on confirmation
+                );
+            });
+
+            // --- Preset Time Button Listeners (now uses confirmation) ---
+            presetButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const time = button.dataset.time;
+                    const inc = button.dataset.inc;
+                    
+                    const newTimeMessage = `Changing time controls to ${time}+${inc} will reset the current game. Are you sure?`;
+                    
+                    showConfirmation(
+                        "Change Time & Reset",
+                        newTimeMessage,
+                        () => {
+                            minutesInput.value = time;
+                            incrementInput.value = inc;
+                            startNewGame(); 
+                        }
+                    );
+                });
+            });
+            
+            // --- Time Input Change Listener (now uses confirmation) ---
+            function handleTimeInputChange() {
+                const newMinutes = parseInt(minutesInput.value, 10);
+                const newIncrement = parseInt(incrementInput.value, 10);
+
+                // Only prompt for confirmation if the time is different from current clock state
+                // Or if the game has started/is not a fresh board
+                if (game.history().length > 0 || 
+                   (newMinutes * 60 * 1000 !== whiteTime && newMinutes * 60 * 1000 !== 0) || 
+                   (newIncrement * 1000 !== incrementTime)) {
+                    
+                    showConfirmation(
+                        "Change Time & Reset",
+                        `Setting time to ${newMinutes}+${newIncrement} will reset the current game. Are you sure?`,
+                        startNewGame
+                    );
+                } else {
+                    // If the board is fresh and the time hasn't changed, just update internal time state
+                    whiteTime = newMinutes * 60 * 1000;
+                    blackTime = newMinutes * 60 * 1000;
+                    incrementTime = newIncrement * 1000;
+                    updateClockDisplay();
+                }
+            }
+            
+            minutesInput.addEventListener('change', handleTimeInputChange);
+            incrementInput.addEventListener('change', handleTimeInputChange);
+
+
+            // --- Copy Button Listeners ---
+            copyPgnButton.addEventListener('click', () => {
+                const pgn = game.pgn();
+                if (pgn && copyToClipboard(pgn)) {
+                    showMessage('PGN Copied to clipboard!', 'success');
+                } else {
+                    showMessage('Failed to copy PGN.');
+                }
+            });
+
+            copyFenButton.addEventListener('click', () => {
+                const fen = game.fen();
+                if (fen && copyToClipboard(fen)) {
+                    showMessage('FEN Copied to clipboard!', 'success');
+                } else {
+                    showMessage('Failed to copy FEN.');
+                }
+            });
+
+            // --- NEW: Global Event Listener for Escape Key ---
+            document.addEventListener('keydown', (e) => { 
+                if (e.key === 'Escape') {
+                    // If modal is open, cancel it
+                    if (confirmOverlay.classList.contains('show')) {
+                        confirmCancelButton.click();
+                        return;
+                    }
+                    clearDrawings();
+                    deactivateCheatcode();
+                }
+                // Handle cheatcode sequence on keydown
+                handleCheatcodeKey(e);
+            });
+
+
+            // =========================================================================
+            // --- STOCKFISH ENGINE LOGIC (Local Worker) ---
+            // =========================================================================
+
+            /**
+             * Initializes the Stockfish worker by loading the local stockfish.js file.
+             * IMPORTANT: This assumes 'stockfish.js' and 'stockfish.wasm' are in the root directory.
+             */
+            function initStockfish() {
+                try {
+                    if (stockfish) {
+                        stockfish.terminate();
+                    }
+                    
+                    // Use relative path to load the local stockfish.js worker file
+                    stockfish = new Worker('./libs/stockfish.js'); 
+
+                    stockfish.onmessage = onEngineMessage;
+                    stockfish.postMessage('uci'); // Initialize UCI protocol
+                    stockfish.postMessage('isready');
+
+                } catch (e) {
+                    showMessage("Error loading Stockfish.js Worker. Make sure the file is present.", 'error');
+                    console.error("Stockfish init failed:", e);
+                }
+            }
+
+            /**
+             * Parses the Stockfish output to extract the best moves.
+             * @param {string} data - raw stockfish line
+             * @returns {object|null}
+             */
+            function parseEngineOutput(data) {
+                console.log(data);
+
+                // pv: get ONLY the first move from the PV
+                // examples in your data: "pv e2e4 e7e6 ..."
+                const pvMatch = data.match(/pv\s+([a-h][1-8][a-h][1-8][nbrqNBRQ]?)/);
+
+                // score: "score cp 107" or "score mate 3"
+                const scoreMatch = data.match(/score\s+(cp|mate)\s+(-?\d+)/);
+
+                // multipv: "multipv 1"
+                const multipvMatch = data.match(/multipv\s+(\d+)/);
+
+                if (pvMatch && scoreMatch && multipvMatch) {
+                    const moveUCI = pvMatch[1]; // e2e4, d2d4, e7e8q, ...
+                    
+                    // IMPORTANT: use the FEN we froze when we started analysis
+                    const baseFen = analysisFen || game.fen();  // fallback just in case
+                    const tempGame = new Chess(baseFen);
+
+                    // try to apply the move to get SAN
+                    const from = moveUCI.slice(0, 2);
+                    const to   = moveUCI.slice(2, 4);
+                    const promo = moveUCI.length === 5 ? moveUCI[4] : undefined;
+
+                    const moveObj = tempGame.move({
+                        from: from,
+                        to: to,
+                        promotion: promo
+                    });
+
+                    // if it's still null, just return UCI — don't kill the whole thing
+                    if (moveObj === null) {
+                        // console.warn('Illegal from current FEN:', baseFen, moveUCI);
+                        // we STILL return useful data
+                        const scoreType = scoreMatch[1];
+                        const scoreValue = parseInt(scoreMatch[2], 10);
+                        const scoreText =
+                            scoreType === 'cp'
+                                ? `CP: ${(scoreValue / 100).toFixed(2)}`
+                                : `M: ${scoreValue}`;
+
+                        return {
+                            multipv: parseInt(multipvMatch[1], 10),
+                            san: moveUCI, // fallback
+                            uci: moveUCI,
+                            score: scoreText,
+                            scoreValue,
+                            scoreType
+                        };
+                    }
+
+                    // build score text
+                    const scoreType = scoreMatch[1];
+                    const rawScoreValue = parseInt(scoreMatch[2], 10);
+
+                    let scoreText;
+                    if (scoreType === 'cp') {
+                        // normalize to side-to-move IN THAT POSITION
+                        const fenSide = baseFen.split(' ')[1]; // 'w' or 'b'
+                        const sign = fenSide === 'b' ? -1 : 1;
+                        const pawnScore = (rawScoreValue * sign / 100).toFixed(2);
+                        scoreText = `CP: ${pawnScore}`;
+                    } else {
+                        scoreText = `M: ${rawScoreValue}`;
+                    }
+
+                    return {
+                        multipv: parseInt(multipvMatch[1], 10),
+                        san: moveObj.san,
+                        uci: moveUCI,
+                        score: scoreText,
+                        scoreValue: rawScoreValue,
+                        scoreType
+                    };
+                }
+
+                return null;
+            }
+
+            /**
+             * Handles messages coming back from the Stockfish worker.
+             */
+            function onEngineMessage(event) {
+                const data = event.data;
+
+                // FIX: Ignore non-string messages
+                if (typeof data !== 'string') {
+                    return; 
+                }
+
+                if (data.startsWith(`info depth ${engineDepth}`)) {
+                    const result = parseEngineOutput(data);
+                    console.log("Engine info:", result);
+                    if (result && result.multipv <= 3) {
+                        const existingIndex = bestMoves.findIndex(m => m.multipv === result.multipv);
+
+                        if (existingIndex !== -1) {
+                            bestMoves[existingIndex] = result;
+                        } else {
+                            bestMoves.push(result);
+                        }
+
+                        bestMoves.sort((a, b) => a.multipv - b.multipv);
+                    }
+                } else if (data.startsWith('bestmove')) {
+                    engineRunning = false;
+                    engineStatusEl.textContent = `Analysis complete (Depth ${engineDepth})`;
+
+                    displayBestMoves();
+                    redrawHighlights();
+
+                    if (bestMoves.length === 0) {
+                        showMessage("Engine could not find a suitable move.", 'info');
+                    }
+
+                    // Reset engine for next command
+                    stockfish.postMessage('ucinewgame');
+                    stockfish.postMessage('isready');
+                }
+            }
+
+            /**
+             * Clears the UI and internal state for engine analysis.
+             */
+            function deactivateCheatcode() {
+                if (engineRunning) {
+                    stockfish.postMessage('stop'); // MANDATORY: Stop any running analysis
+                    engineRunning = false;
+                }
+                cheatcodeActive = false;
+                cheatcodePrimed = false; // Unprime the selection lock
+                bestMoves = [];
+                
+                // Reset engine state explicitly when closing the panel
+                if (stockfish) {
+                    stockfish.postMessage('ucinewgame');
+                    stockfish.postMessage('isready');
+                }
+                
+                cheatcodeTarget.textContent = cheatcodeTargetText; // Reset text
+                cheatcodeTarget.style.display = 'block'; // Show selectable text
+                engineControlsDiv.style.display = 'none'; // HIDE the whole control panel
+                engineResultsDiv.style.display = 'none'; // Hide results panel (only shows status/results)
+                bestMovesList.innerHTML = ''; // Clear results list
+                redrawHighlights(); // Clear highlights from board
+            }
+
+            /**
+             * Shows the engine control panel (primed state).
+             */
+            function showEngineControls() {
+                if (game.game_over() || isTimeGameOver) {
+                    showMessage("Game is over. Cannot analyze.", 'error');
+                    return;
+                }
+                if (cheatcodeActive) return; // Already in control/analysis mode
+
+                cheatcodeActive = true; 
+                bestMoves = []; // Clear previous results
+
+                // 1. Update UI to show controls
+                cheatcodeTarget.style.display = 'none';
+                engineControlsDiv.style.display = 'flex'; // SHOW the control panel
+                engineResultsDiv.style.display = 'none'; // Ensure results are hidden initially
+                engineStatusEl.textContent = "Ready.";
+                bestMovesList.innerHTML = '';
+
+                // 2. Clear old highlights 
+                redrawHighlights();
+
+                showMessage(`Cheatcode activated! Set depth and click 'Start Analysis'.`, 'info');
+            }
+
+
+            /**
+             * Starts the Stockfish analysis after the button is clicked.
+             */
+            function startEngineAnalysis() {
+                if (engineRunning) {
+                    showMessage("Engine is already analyzing. Please wait.", 'info');
+                    return;
+                }
+                if (game.game_over() || isTimeGameOver) {
+                    showMessage("Game is over. Cannot analyze.", 'error');
+                    return;
+                }
+
+                // 1. Update UI to calculating state
+                engineResultsDiv.style.display = 'block'; // Show result area
+                engineStatusEl.textContent = `Calculating best moves (Depth ${engineDepth})...`;
+                bestMoves = []; // Clear previous results
+                bestMovesList.innerHTML = '';
+                redrawHighlights(); // Clear old highlights
+
+                // 2. Start Stockfish analysis
+                engineRunning = true;
+                const fen = game.fen();
+                analysisFen = fen; // Freeze the FEN for this analysis session
+                
+                // MANDATORY: Ensure the engine is pointed to the current board state
+                stockfish.postMessage('ucinewgame');
+                stockfish.postMessage('position fen ' + fen);
+                stockfish.postMessage('setoption name multipv value 3'); // Request top 3 moves
+                stockfish.postMessage('go depth ' + engineDepth);
+
+                showMessage("Engine analysis started.", 'info');
+            }
+
+            /**
+             * Renders the calculated best moves in the panel.
+             */
+            function displayBestMoves() {
+                bestMovesList.innerHTML = '';
+                if (bestMoves.length === 0) {
+                    engineStatusEl.textContent = 'Analysis complete. No clear best moves found.';
+                    return;
+                }
+
+                bestMoves.forEach((move, index) => {
+                    const rank = index + 1;
+                    const li = document.createElement('li');
+
+                    li.innerHTML = `
+                        <span class="rank">#${rank}</span>
+                        <span class="move-san">${move.san}</span>
+                        <span class="score">${move.score}</span>
+                    `;
+                    bestMovesList.appendChild(li);
+                });
+            }
+
+            // =========================================================================
+            // --- CHEATCODE KEY SEQUENCE HANDLER ---
+            // =========================================================================
+
+            // Key mapping for the sequence. Keys can be modifiers or specific letters.
+            function isKeyMatch(key, expected) {
+                return key.toLowerCase() === expected.toLowerCase();
+            }
+
+            function handleCheatcodeKey(event) {
+                // Cheatcode sequence should only start if the selection is primed and the panel is not already open
+                if (!cheatcodePrimed || cheatcodeActive) return;
+
+                const expectedKey = cheatcodeSequence[cheatcodeIndex];
+
+                if (isKeyMatch(event.key, expectedKey)) {
+                    cheatcodeIndex++;
+                    // Reset timer to allow more time for the next key press
+                    clearTimeout(cheatcodeTimer);
+                    cheatcodeTimer = setTimeout(() => {
+                        cheatcodeIndex = 0; // Reset if sequence is too slow
+                    }, 500); // Tightened window for next key
+
+                    if (cheatcodeIndex === cheatcodeSequence.length) {
+                        // Sequence completed!
+                        clearTimeout(cheatcodeTimer);
+                        cheatcodeIndex = 0; // Reset index for next time
+                        showEngineControls(); // Show the control panel
+                    }
+                } else {
+                    // Wrong key pressed, reset the sequence unless it's a modifier key
+                    if (!event.key.match(/Shift|Control|Alt|Meta/)) {
+                        clearTimeout(cheatcodeTimer);
+                        cheatcodeIndex = 0;
+                    }
+                }
+            }
+
+
+            // =========================================================================
+            // --- CHEATCODE SELECTION HANDLER ---
+            // =========================================================================
+
+            /**
+             * Detects if the full cheatcode text has been selected by the user.
+             */
+            function checkSelectionCheatcode() {
+                const selection = window.getSelection();
+
+                // 1. If selection is cleared, un-prime the cheatcode
+                if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+                    cheatcodePrimed = false;
+                    return;
+                }
+
+                const selectedText = selection.toString().trim();
+
+                // 2. Check if the selected text matches the target text
+                if (selectedText === cheatcodeTargetText) {
+                    const range = selection.getRangeAt(0);
+                    // 3. Check if the selection originated from the target element
+                    if (cheatcodeTarget.contains(range.startContainer) && cheatcodeTarget.contains(range.endContainer)) {
+                        
+                        if (!cheatcodePrimed) {
+                            cheatcodePrimed = true; // Lock in the primed state
+                            showMessage(`Now enter the sequence.`, 'info');
+                        }
+                    }
+                } else {
+                    cheatcodePrimed = false;
+                }
+            }
+
+            // Add listeners for selection change (mouse up) and cheatcode sequence keys
+            document.addEventListener('mouseup', checkSelectionCheatcode);
+
+            // --- Initial Game Setup ---
+            initStockfish();
+            // Start the board drawing immediately
+            if (Object.keys(squareElements).length === 0) {
+                createBoard(); 
+            }
+            startNewGame(); // Starts game with default 5+0
+        });
+    </script>
+
+</body>
+</html>
