@@ -84,6 +84,17 @@ h1,
   gap: 16px;
 }
 
+.board-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.board-actions .button {
+  flex: 0 0 auto;
+}
+
 .panel-header {
   display: flex;
   align-items: center;

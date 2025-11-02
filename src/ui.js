@@ -290,7 +290,6 @@ export function initUI(rootEl, handlers = {}) {
       <section class="layout-panel controls-panel" id="white-panel">
         <div class="panel-header">
           <h2>White Controls</h2>
-          <button id="reset-game" type="button" class="button button-danger">Reset Game</button>
         </div>
         <div class="clock-display" id="white-clock">05:00</div>
         <div class="controls-container">
@@ -332,6 +331,12 @@ export function initUI(rootEl, handlers = {}) {
           <div class="board-wrapper">
             <div id="board"></div>
           </div>
+        </div>
+        <div class="board-actions">
+          <button id="reset-game" type="button" class="button button-outline icon-button button-small">
+            <span class="button-icon">↻</span>
+            <span>Reset Game</span>
+          </button>
         </div>
         <div class="match-card" id="match-card">
           <div class="match-title" id="match-title">Purrfect Game</div>
