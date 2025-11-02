@@ -557,6 +557,7 @@ export function createBoard(
 
   boardState.squares.clear();
   rootEl.innerHTML = "";
+  boardState.arrows.clear();
   boardState.arrowLayer = null;
   boardState.arrowPreview = null;
   boardState.arrowDrag = null;
