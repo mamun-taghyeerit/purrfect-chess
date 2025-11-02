@@ -71,11 +71,11 @@ function createConfirmationOverlay() {
     overlay.id = 'confirmation-overlay';
     overlay.innerHTML = `
       <div class="modal">
-        <h3 class="text-xl font-semibold" data-role="title"></h3>
-        <p class="text-sm text-slate-200/80" data-role="message"></p>
-        <div class="flex justify-end gap-3">
-          <button type="button" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600" data-role="cancel">Cancel</button>
-          <button type="button" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold" data-role="confirm">Confirm</button>
+        <h3 class="modal-title" data-role="title"></h3>
+        <p class="modal-message" data-role="message"></p>
+        <div class="modal-actions">
+          <button type="button" class="button button-muted" data-role="cancel">Cancel</button>
+          <button type="button" class="button button-accent" data-role="confirm">Confirm</button>
         </div>
       </div>
     `;
@@ -145,13 +145,13 @@ function buildAppearanceControls(container) {
 
   groups.forEach((group) => {
     const wrapper = document.createElement('div');
-    wrapper.className = 'appearance-group';
+    wrapper.className = 'appearance-group control-group-inner';
     const header = document.createElement('h4');
     header.textContent = group.label;
 
     const reset = document.createElement('button');
     reset.type = 'button';
-    reset.className = 'px-2 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-sm';
+    reset.className = 'reset-group-btn';
     reset.textContent = '↻';
     reset.addEventListener('click', () => {
       appearanceState[group.key] = cloneDefaults(group.key);
@@ -166,7 +166,7 @@ function buildAppearanceControls(container) {
     });
 
     const headerWrapper = document.createElement('div');
-    headerWrapper.className = 'flex items-center justify-between gap-2';
+    headerWrapper.className = 'appearance-group-header';
     headerWrapper.appendChild(header);
     headerWrapper.appendChild(reset);
 
@@ -177,18 +177,19 @@ function buildAppearanceControls(container) {
 
     group.sliders.forEach((slider) => {
       const label = document.createElement('label');
-      label.className = 'text-sm flex flex-col gap-1';
+      label.className = 'slider-control';
       label.textContent = slider.label;
 
       const range = document.createElement('input');
       range.type = 'range';
+      range.className = 'slider-input';
       range.min = slider.min;
       range.max = slider.max;
       range.step = slider.step;
       range.value = appearanceState[group.key][slider.key];
 
       const valueDisplay = document.createElement('span');
-      valueDisplay.className = 'text-xs text-slate-300';
+      valueDisplay.className = 'slider-value';
       valueDisplay.textContent = slider.format(range.value);
 
       range.addEventListener('input', () => {
@@ -275,7 +276,7 @@ function setupCheatcode(cheatTextEl, enginePanelEl, onReveal) {
 }
 
 function clearEnginePanel(engineLinesEl) {
-  engineLinesEl.innerHTML = '<p class="text-xs text-slate-300">Awaiting analysis…</p>';
+  engineLinesEl.innerHTML = '<p class="engine-placeholder">Awaiting analysis…</p>';
 }
 
 export function initUI(rootEl, handlers = {}) {
@@ -283,78 +284,81 @@ export function initUI(rootEl, handlers = {}) {
   const overlay = createConfirmationOverlay();
 
   rootEl.innerHTML = `
-    <div class="layout-grid">
-      <section class="panel side-panel" id="white-panel">
-        <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-bold">White Controls</h2>
-          <button id="reset-game" type="button" class="px-3 py-2 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-900 font-semibold">Reset Game</button>
+    <div class="main-layout">
+      <section class="layout-panel controls-panel" id="white-panel">
+        <div class="panel-header">
+          <h2>White Controls</h2>
+          <button id="reset-game" type="button" class="button button-danger">Reset Game</button>
         </div>
         <div class="clock-display" id="white-clock">05:00</div>
-        <div class="space-y-3">
-          <h3 class="text-lg font-semibold">Time Presets</h3>
-          <div class="grid grid-cols-2 gap-2" id="preset-container"></div>
-        </div>
-        <div class="space-y-2">
-          <h3 class="text-lg font-semibold">Custom Time</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <label class="flex flex-col text-sm gap-1">
-              Minutes
-              <input id="custom-minutes" type="number" min="1" max="180" value="5" class="bg-slate-900/60 rounded-lg px-3 py-2" />
-            </label>
-            <label class="flex flex-col text-sm gap-1">
-              Increment (s)
-              <input id="custom-increment" type="number" min="0" max="60" value="0" class="bg-slate-900/60 rounded-lg px-3 py-2" />
-            </label>
+        <div class="controls-container">
+          <div class="control-group">
+            <h3>Time Presets</h3>
+            <div class="preset-grid" id="preset-container"></div>
           </div>
-          <div class="flex gap-2">
-            <button id="apply-custom" type="button" class="flex-1 px-3 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold">Apply</button>
-            <button id="start-new-game" type="button" class="flex-1 px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold">Start</button>
+          <div class="control-group">
+            <h3>Custom Time</h3>
+            <div class="custom-time-grid">
+              <label>
+                <span>Minutes</span>
+                <input id="custom-minutes" type="number" min="1" max="180" value="5" class="number-input" />
+              </label>
+              <label>
+                <span>Increment (s)</span>
+                <input id="custom-increment" type="number" min="0" max="60" value="0" class="number-input" />
+              </label>
+            </div>
+            <div class="button-row">
+              <button id="apply-custom" type="button" class="button button-muted">Apply</button>
+              <button id="start-new-game" type="button" class="button button-accent">Start</button>
+            </div>
           </div>
-        </div>
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Appearance</h3>
-            <button id="reset-appearance" type="button" class="px-3 py-2 rounded-lg bg-purple-500 hover:bg-purple-400 text-slate-900 font-semibold">Reset Appearance</button>
+          <div class="control-group">
+            <div class="panel-header">
+              <h3>Appearance</h3>
+              <button id="reset-appearance" type="button" class="button button-outline button-small">Reset Appearance</button>
+            </div>
+            <div class="appearance-grid" id="appearance-grid"></div>
           </div>
-          <div class="appearance-grid" id="appearance-grid"></div>
         </div>
       </section>
-      <section class="panel board-panel" id="board-panel">
-        <div class="board-wrapper">
-          <div id="board"></div>
-        </div>
-        <p id="cheatcode-text" class="text-xs text-slate-400 italic select-text cursor-pointer">(Reserved for future use)</p>
-        <div id="engine-panel" class="engine-panel hidden">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Engine Analysis</h3>
-            <button id="close-engine" type="button" class="px-2 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-sm">Close</button>
+      <section class="board-panel" id="board-panel">
+        <div class="board-frame">
+          <div class="board-wrapper">
+            <div id="board"></div>
           </div>
-          <label class="text-sm flex flex-col gap-1">
-            Search Depth: <span id="engine-depth-value" class="text-xs text-slate-300">18</span>
-            <input id="engine-depth" type="range" min="6" max="30" step="1" value="18" class="accent-sky-400" />
+        </div>
+        <p id="cheatcode-text" class="cheatcode-text">(Reserved for future use)</p>
+        <div id="engine-panel" class="engine-panel hidden">
+          <div class="panel-header">
+            <h3>Engine Analysis</h3>
+            <button id="close-engine" type="button" class="button button-outline button-small">Close</button>
+          </div>
+          <label class="engine-depth-control">
+            <span>Search Depth:</span>
+            <span id="engine-depth-value" class="engine-depth-value">18</span>
+            <input id="engine-depth" type="range" min="6" max="30" step="1" value="18" class="slider-input" />
           </label>
-          <div class="flex gap-2">
-            <button id="start-analysis" type="button" class="flex-1 px-3 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-900 font-semibold">Start Analysis</button>
-            <button id="stop-analysis" type="button" class="flex-1 px-3 py-2 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-900 font-semibold">Stop</button>
+          <div class="button-row">
+            <button id="start-analysis" type="button" class="button button-accent">Start Analysis</button>
+            <button id="stop-analysis" type="button" class="button button-danger">Stop</button>
           </div>
           <div class="engine-lines" id="engine-lines"></div>
         </div>
       </section>
-      <section class="panel side-panel" id="black-panel">
-        <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-bold">Black Controls</h2>
-        </div>
+      <section class="layout-panel game-panel" id="black-panel">
+        <h2>Black Controls</h2>
         <div class="clock-display" id="black-clock">05:00</div>
-        <div class="space-y-3">
-          <h3 class="text-lg font-semibold">Moves</h3>
-          <div id="move-list" class="space-y-2"></div>
+        <div class="control-group">
+          <h3>Moves</h3>
+          <div id="move-list" class="move-list"></div>
+          <div class="button-row">
+            <button id="copy-pgn" type="button" class="button button-muted">Copy PGN</button>
+            <button id="copy-fen" type="button" class="button button-muted">Copy FEN</button>
+          </div>
+          <textarea id="pgn-output" rows="4" readonly placeholder="PGN will appear here" class="notation-output"></textarea>
+          <textarea id="fen-output" rows="2" readonly placeholder="FEN will appear here" class="notation-output"></textarea>
         </div>
-        <div class="flex gap-2">
-          <button id="copy-pgn" type="button" class="flex-1 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Copy PGN</button>
-          <button id="copy-fen" type="button" class="flex-1 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Copy FEN</button>
-        </div>
-        <textarea id="pgn-output" rows="4" readonly placeholder="PGN will appear here"></textarea>
-        <textarea id="fen-output" rows="2" readonly placeholder="FEN will appear here"></textarea>
       </section>
     </div>
   `;
@@ -390,7 +394,7 @@ export function initUI(rootEl, handlers = {}) {
   timePresets.forEach((preset) => {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600';
+    button.className = 'button preset-button';
     button.textContent = preset.label;
     button.addEventListener('click', () => {
       showConfirmation(
@@ -401,11 +405,9 @@ export function initUI(rootEl, handlers = {}) {
           rootEl.querySelector('#custom-minutes').value = preset.minutes;
           rootEl.querySelector('#custom-increment').value = preset.increment;
           if (selectedPresetButton) {
-            selectedPresetButton.classList.remove('bg-sky-600', 'text-slate-900');
-            selectedPresetButton.classList.add('bg-slate-700');
+            selectedPresetButton.classList.remove('preset-button-active');
           }
-          button.classList.remove('bg-slate-700');
-          button.classList.add('bg-sky-600', 'text-slate-900');
+          button.classList.add('preset-button-active');
           selectedPresetButton = button;
           if (handlers.onTimePreset) {
             handlers.onTimePreset({ ...currentTimeControl });
@@ -446,8 +448,7 @@ export function initUI(rootEl, handlers = {}) {
     showConfirmation('Change Time Control', `Apply ${minutes}+${increment}?`, () => {
       currentTimeControl = { minutes, increment };
       if (selectedPresetButton) {
-        selectedPresetButton.classList.remove('bg-sky-600', 'text-slate-900');
-        selectedPresetButton.classList.add('bg-slate-700');
+        selectedPresetButton.classList.remove('preset-button-active');
         selectedPresetButton = null;
       }
       if (handlers.onTimePreset) {
@@ -548,11 +549,14 @@ export function initUI(rootEl, handlers = {}) {
     updateMoveList(moves) {
       const list = rootEl.querySelector('#move-list');
       if (!Array.isArray(moves) || moves.length === 0) {
-        list.innerHTML = '<p class="text-xs text-slate-300">No moves yet.</p>';
+        list.innerHTML = '<p class="move-list-empty">No moves yet.</p>';
         return;
       }
       const rows = moves
-        .map((move) => `<div class="flex justify-between"><span>${move.index}.</span><span>${move.white || ''}</span><span>${move.black || ''}</span></div>`)
+        .map(
+          (move) =>
+            `<div class="move-row"><span class="move-index">${move.index}.</span><span class="move-white">${move.white || ''}</span><span class="move-black">${move.black || ''}</span></div>`
+        )
         .join('');
       list.innerHTML = rows;
     },
@@ -584,7 +588,7 @@ export function initUI(rootEl, handlers = {}) {
             const value = (line.score / 100).toFixed(2);
             scoreText = `${value}`;
           }
-          return `<div class="flex flex-col bg-slate-900/60 rounded-lg p-2"><div class="flex justify-between text-xs text-slate-300"><span>${label}</span><span>${scoreText}</span></div><div class="text-sm font-semibold">${line.san}</div><div class="text-xs text-slate-400 uppercase tracking-wide">${line.uci}</div></div>`;
+          return `<div class="engine-line engine-line-${index + 1}"><div class="engine-line-header"><span class="engine-line-label">${label}</span><span class="engine-line-score">${scoreText}</span></div><div class="engine-line-san">${line.san}</div><div class="engine-line-uci">${line.uci}</div></div>`;
         })
         .join('');
     },
