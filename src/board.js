@@ -22,8 +22,11 @@ const pieceImages = {
 const SVG_NS = "http://www.w3.org/2000/svg";
 const ARROW_STROKE = "rgba(145, 152, 229, 0.85)";
 const ARROW_PREVIEW_STROKE = "rgba(145, 152, 229, 0.6)";
-const ARROW_THICKNESS = 0.24;
+const ARROW_THICKNESS = 0.16;
 const ARROW_HEAD_ID = "board-arrow-head";
+const ARROW_HEAD_SIZE = 0.35;
+const ARROW_HEAD_LENGTH = 0.1;
+const ARROW_TAIL_OFFSET = 0.32;
 const ARROW_DRAG_THRESHOLD = 6;
 
 const boardState = {
@@ -112,13 +115,50 @@ function isKnightMove(from, to) {
   return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
 }
 
+function shortenLastSegment(points, offset) {
+  if (!Array.isArray(points) || points.length < 2) return points;
+  const result = points.map((pt) => ({ x: pt.x, y: pt.y }));
+  const lastIndex = result.length - 1;
+  const from = result[lastIndex - 1];
+  const to = result[lastIndex];
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy);
+  if (length < offset) {
+    return result;
+  }
+  const scale = (length - offset) / length;
+  result[lastIndex] = {
+    x: from.x + dx * scale,
+    y: from.y + dy * scale,
+  };
+  return result;
+}
+
+function buildPath(points) {
+  if (!Array.isArray(points) || points.length === 0) return null;
+  const [first, ...rest] = points;
+  const commands = [`M ${first.x} ${first.y}`];
+  rest.forEach((pt) => {
+    commands.push(`L ${pt.x} ${pt.y}`);
+  });
+  return commands.join(" ");
+}
+
+function buildPreviewPath(fromPoint, toPoint) {
+  if (!fromPoint || !toPoint) return null;
+  const points = shortenLastSegment([fromPoint, toPoint], ARROW_HEAD_LENGTH);
+  return buildPath(points);
+}
+
 function buildArrowPath(from, to) {
   const start = squareCenter(from);
   const end = squareCenter(to);
   if (!start || !end) return null;
 
   if (!isKnightMove(from, to)) {
-    return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+    const points = shortenLastSegment([start, end], ARROW_HEAD_LENGTH);
+    return buildPath(points);
   }
 
   const dx = end.x - start.x;
@@ -133,7 +173,18 @@ function buildArrowPath(from, to) {
     bend = { x: start.x, y: end.y };
   }
 
-  return `M ${start.x} ${start.y} L ${bend.x} ${bend.y} L ${end.x} ${end.y}`;
+  const tailDx = bend.x === start.x ? 0 : Math.sign(bend.x - start.x);
+  const tailDy = bend.y === start.y ? 0 : Math.sign(bend.y - start.y);
+  const tailPoint = {
+    x: start.x + tailDx * ARROW_TAIL_OFFSET,
+    y: start.y + tailDy * ARROW_TAIL_OFFSET,
+  };
+
+  const points = shortenLastSegment(
+    [start, tailPoint, bend, end],
+    ARROW_HEAD_LENGTH
+  );
+  return buildPath(points);
 }
 
 function ensureArrowLayer() {
@@ -157,16 +208,18 @@ function ensureArrowLayer() {
   const defs = document.createElementNS(SVG_NS, "defs");
   const marker = document.createElementNS(SVG_NS, "marker");
   marker.setAttribute("id", ARROW_HEAD_ID);
-  marker.setAttribute("markerWidth", "0.8");
-  marker.setAttribute("markerHeight", "0.8");
-  marker.setAttribute("refX", "0.8");
-  marker.setAttribute("refY", "0.4");
+  marker.setAttribute("markerWidth", `${ARROW_HEAD_SIZE}`);
+  marker.setAttribute("markerHeight", `${ARROW_HEAD_SIZE}`);
+  marker.setAttribute("refX", "1");
+  marker.setAttribute("refY", "0.5");
   marker.setAttribute("orient", "auto");
-  marker.setAttribute("markerUnits", "strokeWidth");
+  marker.setAttribute("markerUnits", "userSpaceOnUse");
+  marker.setAttribute("viewBox", "0 0 1 1");
 
   const markerPath = document.createElementNS(SVG_NS, "path");
-  markerPath.setAttribute("d", "M 0 0 L 1 0.4 L 0 0.8 z");
+  markerPath.setAttribute("d", "M 0 0 L 1 0.5 L 0 1 Z");
   markerPath.setAttribute("fill", "context-stroke");
+  markerPath.setAttribute("stroke", "none");
 
   marker.appendChild(markerPath);
   defs.appendChild(marker);
@@ -193,7 +246,7 @@ function ensureArrowPreview() {
   path.setAttribute("fill", "none");
   path.setAttribute("stroke", ARROW_PREVIEW_STROKE);
   path.setAttribute("stroke-width", ARROW_THICKNESS);
-  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linecap", "butt");
   path.setAttribute("stroke-linejoin", "round");
   path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
   path.style.display = "none";
@@ -216,7 +269,7 @@ function renderArrows() {
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", ARROW_STROKE);
     path.setAttribute("stroke-width", ARROW_THICKNESS);
-    path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linecap", "butt");
     path.setAttribute("stroke-linejoin", "round");
     path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
     layer.appendChild(path);
@@ -251,29 +304,26 @@ function updateArrowPreview(event) {
     return;
   }
 
-  if (drag.currentSquare && isKnightMove(drag.fromSquare, drag.currentSquare)) {
-    const knightPath = buildArrowPath(drag.fromSquare, drag.currentSquare);
-    if (knightPath) {
-      preview.setAttribute("d", knightPath);
-      preview.style.display = "block";
-      return;
-    }
-  }
-
   const targetPoint = pointFromClient(event.clientX, event.clientY);
   if (!targetPoint) {
     preview.style.display = "none";
   } else {
-    preview.setAttribute(
-      "d",
-      `M ${fromPoint.x} ${fromPoint.y} L ${targetPoint.x} ${targetPoint.y}`
-    );
-    preview.style.display = "block";
+    const previewPath = buildPreviewPath(fromPoint, targetPoint);
+    if (previewPath) {
+      preview.setAttribute("d", previewPath);
+      preview.style.display = "block";
+    } else {
+      preview.style.display = "none";
+    }
   }
 
   const targetSquare = squareFromClient(event.clientX, event.clientY);
   if (targetSquare) {
     drag.currentSquare = targetSquare;
+    const pathData = buildArrowPath(drag.fromSquare, targetSquare);
+    if (pathData) {
+      preview.setAttribute("d", pathData);
+    }
   }
   const distance = Math.hypot(
     event.clientX - drag.startX,
