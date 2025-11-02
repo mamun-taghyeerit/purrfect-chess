@@ -29,6 +29,29 @@ let boardController;
 let engineReady = false;
 let clockInterval = null;
 
+function formatMatchDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}.${month}.${day}`;
+}
+
+function formatTimeControl({ minutes, increment }) {
+  return `${minutes} + ${increment}`;
+}
+
+function refreshMatchDetails() {
+  const control = getTimeControl();
+  const now = new Date();
+  ui.updateMatchInfo({
+    title: 'Purrfect Chess Arena',
+    event: `Purrfect Game - ${control.minutes}+${control.increment}`,
+    date: formatMatchDate(now),
+    timeControl: formatTimeControl(control),
+    site: 'Purrfect Universe (Online)'
+  });
+}
+
 function renderBoard() {
   renderPosition(getGame(), {
     selectedSquare: state.selectedSquare,
@@ -105,6 +128,7 @@ function handleMove(event) {
   ui.updateClocks(getClocks());
 
   if (status?.type === 'reset') {
+    refreshMatchDetails();
     ui.showMessage('info', 'New game started.');
     boardController.setInteractive(true);
     state.boardLocked = false;
@@ -292,6 +316,8 @@ function initialize() {
 
   const initialControl = ui.getCurrentTimeControl();
   startNewGame(initialControl);
+
+  refreshMatchDetails();
 
   initEngine()
     .then(() => {

@@ -14,6 +14,47 @@ const appearanceDefaults = {
   blackPieces: { hue: 0, saturation: 100, brightness: 100, scale: 100 }
 };
 
+const appearanceGroupConfig = {
+  light: {
+    key: 'light',
+    label: 'Light Squares',
+    sliders: [
+      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
+      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
+      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` }
+    ]
+  },
+  dark: {
+    key: 'dark',
+    label: 'Dark Squares',
+    sliders: [
+      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
+      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
+      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` }
+    ]
+  },
+  whitePieces: {
+    key: 'whitePieces',
+    label: 'White Pieces',
+    sliders: [
+      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
+      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
+      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
+      { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` }
+    ]
+  },
+  blackPieces: {
+    key: 'blackPieces',
+    label: 'Black Pieces',
+    sliders: [
+      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
+      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
+      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
+      { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` }
+    ]
+  }
+};
+
 const appearanceState = JSON.parse(JSON.stringify(appearanceDefaults));
 const appearanceInputs = new Map();
 
@@ -101,49 +142,12 @@ function createConfirmationOverlay() {
   return overlay;
 }
 
-function buildAppearanceControls(container) {
-  const groups = [
-    {
-      key: 'light',
-      label: 'Light Squares',
-      sliders: [
-        { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-        { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-        { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` }
-      ]
-    },
-    {
-      key: 'dark',
-      label: 'Dark Squares',
-      sliders: [
-        { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-        { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-        { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` }
-      ]
-    },
-    {
-      key: 'whitePieces',
-      label: 'White Pieces',
-      sliders: [
-        { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-        { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-        { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
-        { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` }
-      ]
-    },
-    {
-      key: 'blackPieces',
-      label: 'Black Pieces',
-      sliders: [
-        { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-        { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-        { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
-        { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` }
-      ]
-    }
-  ];
+function buildAppearanceControls(container, keys) {
+  if (!container || !Array.isArray(keys)) return;
 
-  groups.forEach((group) => {
+  keys.forEach((groupKey) => {
+    const group = appearanceGroupConfig[groupKey];
+    if (!group) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'appearance-group control-group-inner';
     const header = document.createElement('h4');
@@ -217,8 +221,6 @@ function buildAppearanceControls(container) {
 
     container.appendChild(wrapper);
   });
-
-  applyAppearance();
 }
 
 function handleSelection(cheatTextEl) {
@@ -318,7 +320,7 @@ export function initUI(rootEl, handlers = {}) {
               <h3>Appearance</h3>
               <button id="reset-appearance" type="button" class="button button-outline button-small">Reset Appearance</button>
             </div>
-            <div class="appearance-grid" id="appearance-grid"></div>
+            <div class="appearance-grid" id="appearance-grid-left"></div>
           </div>
         </div>
       </section>
@@ -326,6 +328,27 @@ export function initUI(rootEl, handlers = {}) {
         <div class="board-frame">
           <div class="board-wrapper">
             <div id="board"></div>
+          </div>
+        </div>
+        <div class="match-card" id="match-card">
+          <div class="match-title" id="match-title">Purrfect Game</div>
+          <div class="match-details">
+            <div class="match-row">
+              <span class="match-label">Event</span>
+              <span class="match-value" id="match-event">Purrfect Game - 5+0</span>
+            </div>
+            <div class="match-row">
+              <span class="match-label">Date</span>
+              <span class="match-value" id="match-date">${new Date().toLocaleDateString()}</span>
+            </div>
+            <div class="match-row">
+              <span class="match-label">Time Control</span>
+              <span class="match-value" id="match-time-control">5 + 0</span>
+            </div>
+            <div class="match-row">
+              <span class="match-label">Site</span>
+              <span class="match-value" id="match-site">Purrfect Universe (Online)</span>
+            </div>
           </div>
         </div>
         <p id="cheatcode-text" class="cheatcode-text">(Reserved for future use)</p>
@@ -349,15 +372,21 @@ export function initUI(rootEl, handlers = {}) {
       <section class="layout-panel game-panel" id="black-panel">
         <h2>Black Controls</h2>
         <div class="clock-display" id="black-clock">05:00</div>
-        <div class="control-group">
-          <h3>Moves</h3>
-          <div id="move-list" class="move-list"></div>
-          <div class="button-row">
-            <button id="copy-pgn" type="button" class="button button-muted">Copy PGN</button>
-            <button id="copy-fen" type="button" class="button button-muted">Copy FEN</button>
+        <div class="controls-container">
+          <div class="control-group">
+            <h3>Appearance</h3>
+            <div class="appearance-grid" id="appearance-grid-right"></div>
           </div>
-          <textarea id="pgn-output" rows="4" readonly placeholder="PGN will appear here" class="notation-output"></textarea>
-          <textarea id="fen-output" rows="2" readonly placeholder="FEN will appear here" class="notation-output"></textarea>
+          <div class="control-group">
+            <h3>Moves</h3>
+            <div id="move-list" class="move-list"></div>
+            <div class="button-row">
+              <button id="copy-pgn" type="button" class="button button-muted">Copy PGN</button>
+              <button id="copy-fen" type="button" class="button button-muted">Copy FEN</button>
+            </div>
+            <textarea id="pgn-output" rows="4" readonly placeholder="PGN will appear here" class="notation-output"></textarea>
+            <textarea id="fen-output" rows="2" readonly placeholder="FEN will appear here" class="notation-output"></textarea>
+          </div>
         </div>
       </section>
     </div>
@@ -404,6 +433,10 @@ export function initUI(rootEl, handlers = {}) {
           currentTimeControl = { minutes: preset.minutes, increment: preset.increment };
           rootEl.querySelector('#custom-minutes').value = preset.minutes;
           rootEl.querySelector('#custom-increment').value = preset.increment;
+          updateMatchInfo({
+            event: `Purrfect Game - ${preset.minutes}+${preset.increment}`,
+            timeControl: `${preset.minutes} + ${preset.increment}`
+          });
           if (selectedPresetButton) {
             selectedPresetButton.classList.remove('preset-button-active');
           }
@@ -424,7 +457,8 @@ export function initUI(rootEl, handlers = {}) {
   const startBtn = rootEl.querySelector('#start-new-game');
   const resetGameBtn = rootEl.querySelector('#reset-game');
   const resetAppearanceBtn = rootEl.querySelector('#reset-appearance');
-  const appearanceGrid = rootEl.querySelector('#appearance-grid');
+  const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
+  const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
   const copyFenBtn = rootEl.querySelector('#copy-fen');
   const copyPgnBtn = rootEl.querySelector('#copy-pgn');
   const pgnOutput = rootEl.querySelector('#pgn-output');
@@ -438,15 +472,53 @@ export function initUI(rootEl, handlers = {}) {
   const engineLinesEl = rootEl.querySelector('#engine-lines');
   const closeEngineBtn = rootEl.querySelector('#close-engine');
 
-  buildAppearanceControls(appearanceGrid);
+  buildAppearanceControls(appearanceGridLeft, ['light', 'whitePieces']);
+  buildAppearanceControls(appearanceGridRight, ['dark', 'blackPieces']);
+  applyAppearance();
   clearEnginePanel(engineLinesEl);
   stopAnalysisBtn.disabled = true;
+
+  const matchTitleEl = rootEl.querySelector('#match-title');
+  const matchEventEl = rootEl.querySelector('#match-event');
+  const matchDateEl = rootEl.querySelector('#match-date');
+  const matchTimeControlEl = rootEl.querySelector('#match-time-control');
+  const matchSiteEl = rootEl.querySelector('#match-site');
+
+  function updateMatchInfo({ title, event, date, timeControl, site }) {
+    if (title) {
+      matchTitleEl.textContent = title;
+    }
+    if (event) {
+      matchEventEl.textContent = event;
+    }
+    if (date) {
+      matchDateEl.textContent = date;
+    }
+    if (timeControl) {
+      matchTimeControlEl.textContent = timeControl;
+    }
+    if (site) {
+      matchSiteEl.textContent = site;
+    }
+  }
+
+  updateMatchInfo({
+    title: 'Purrfect Chess Arena',
+    event: `Purrfect Game - ${currentTimeControl.minutes}+${currentTimeControl.increment}`,
+    date: new Date().toLocaleDateString(),
+    timeControl: `${currentTimeControl.minutes} + ${currentTimeControl.increment}`,
+    site: 'Purrfect Universe (Online)'
+  });
 
   applyCustomBtn.addEventListener('click', () => {
     const minutes = Number.parseInt(customMinutes.value, 10);
     const increment = Number.parseInt(customIncrement.value, 10);
     showConfirmation('Change Time Control', `Apply ${minutes}+${increment}?`, () => {
       currentTimeControl = { minutes, increment };
+      updateMatchInfo({
+        event: `Purrfect Game - ${minutes}+${increment}`,
+        timeControl: `${minutes} + ${increment}`
+      });
       if (selectedPresetButton) {
         selectedPresetButton.classList.remove('preset-button-active');
         selectedPresetButton = null;
@@ -601,6 +673,7 @@ export function initUI(rootEl, handlers = {}) {
     getCurrentTimeControl() {
       return { ...currentTimeControl };
     },
+    updateMatchInfo,
     messageApi
   };
 }
