@@ -283,8 +283,8 @@ export function initUI(rootEl, handlers = {}) {
   const overlay = createConfirmationOverlay();
 
   rootEl.innerHTML = `
-    <div class="grid gap-6 lg:grid-cols-[1fr_auto_1fr]">
-      <section class="panel" id="white-panel">
+    <div class="layout-grid">
+      <section class="panel side-panel" id="white-panel">
         <div class="flex items-center justify-between">
           <h2 class="text-2xl font-bold">White Controls</h2>
           <button id="reset-game" type="button" class="px-3 py-2 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-900 font-semibold">Reset Game</button>
@@ -319,7 +319,7 @@ export function initUI(rootEl, handlers = {}) {
           <div class="appearance-grid" id="appearance-grid"></div>
         </div>
       </section>
-      <section class="panel items-center" id="board-panel">
+      <section class="panel board-panel" id="board-panel">
         <div class="board-wrapper">
           <div id="board"></div>
         </div>
@@ -340,7 +340,7 @@ export function initUI(rootEl, handlers = {}) {
           <div class="engine-lines" id="engine-lines"></div>
         </div>
       </section>
-      <section class="panel" id="black-panel">
+      <section class="panel side-panel" id="black-panel">
         <div class="flex items-center justify-between">
           <h2 class="text-2xl font-bold">Black Controls</h2>
         </div>
