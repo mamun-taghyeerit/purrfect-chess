@@ -1,0 +1,205 @@
+import { Chess } from 'chess.js';
+
+let worker = null;
+let readyPromise = null;
+let isReady = false;
+let analyzeResolver = null;
+let analyzeRejecter = null;
+let currentAnalysis = null;
+
+function ensureWorker() {
+  if (worker) return;
+  worker = new Worker('/libs/stockfish.js');
+  worker.addEventListener('message', handleMessage);
+}
+
+function post(command) {
+  if (worker) {
+    worker.postMessage(command);
+  }
+}
+
+function handleMessage(event) {
+  const line = typeof event.data === 'string' ? event.data : event.data?.data;
+  if (!line) {
+    return;
+  }
+
+  if (line === 'uciok') {
+    post('isready');
+    return;
+  }
+
+  if (line === 'readyok') {
+    if (!isReady) {
+      isReady = true;
+      if (readyPromise) {
+        readyPromise.resolve();
+      }
+    }
+    return;
+  }
+
+  if (line.startsWith('info')) {
+    handleInfo(line);
+    return;
+  }
+
+  if (line.startsWith('bestmove')) {
+    finalizeAnalysis();
+  }
+}
+
+function handleInfo(line) {
+  if (!currentAnalysis) return;
+
+  const multipvMatch = line.match(/multipv\s+(\d+)/);
+  if (!multipvMatch) return;
+
+  const index = Number.parseInt(multipvMatch[1], 10);
+  if (!Number.isFinite(index)) return;
+
+  const entry = currentAnalysis.partials.get(index) || {
+    multipv: index,
+    pv: null,
+    score: null,
+    result: null
+  };
+
+  const pvMatch = line.match(/pv\s+([a-h][1-8][a-h][1-8][nbrqNBRQ]?)/);
+  if (pvMatch) {
+    entry.pv = pvMatch[1];
+  }
+
+  const scoreMatch = line.match(/score\s+(cp|mate)\s+(-?\d+)/);
+  if (scoreMatch) {
+    entry.score = {
+      type: scoreMatch[1],
+      value: Number.parseInt(scoreMatch[2], 10)
+    };
+  }
+
+  if (entry.pv && entry.score) {
+    entry.result = buildResult(entry);
+  }
+
+  currentAnalysis.partials.set(index, entry);
+}
+
+function buildResult(entry) {
+  const { pv, score, multipv } = entry;
+  const moves = pv.split(/\s+/);
+  const uci = moves[0];
+  const from = uci.slice(0, 2);
+  const to = uci.slice(2, 4);
+  const promotion = uci.length > 4 ? uci.slice(4).toLowerCase() : undefined;
+
+  const tempGame = new Chess(currentAnalysis.fen);
+  let san = uci;
+  try {
+    const move = tempGame.move({ from, to, promotion });
+    if (move && move.san) {
+      san = move.san;
+    }
+  } catch (error) {
+    san = uci;
+  }
+
+  let normalizedScore = score.value;
+  if (score.type === 'cp' || score.type === 'mate') {
+    if (currentAnalysis.turn === 'b') {
+      normalizedScore = -normalizedScore;
+    }
+  }
+
+  return {
+    multipv,
+    uci,
+    from,
+    to,
+    san,
+    score: normalizedScore,
+    scoreType: score.type,
+    rawScore: score.value
+  };
+}
+
+function finalizeAnalysis() {
+  if (!currentAnalysis) return;
+
+  const results = Array.from(currentAnalysis.partials.values())
+    .filter((entry) => entry.result)
+    .sort((a, b) => a.multipv - b.multipv)
+    .map((entry) => entry.result);
+
+  if (analyzeResolver) {
+    analyzeResolver(results);
+  }
+
+  analyzeResolver = null;
+  analyzeRejecter = null;
+  currentAnalysis = null;
+}
+
+export function initEngine() {
+  if (readyPromise) {
+    return readyPromise.promise;
+  }
+  ensureWorker();
+  post('uci');
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  readyPromise = { promise, resolve, reject };
+  return promise;
+}
+
+export function analyze(fen, { depth = 16, multipv = 3 } = {}) {
+  if (!worker || !isReady) {
+    throw new Error('Engine not initialized');
+  }
+
+  if (analyzeRejecter) {
+    analyzeRejecter(new Error('Analysis superseded'));
+  }
+
+  post('stop');
+
+  const safeMultipv = Math.max(1, Number.parseInt(multipv, 10) || 1);
+  const searchDepth = Math.max(4, Number.parseInt(depth, 10) || 4);
+
+  currentAnalysis = {
+    fen,
+    turn: new Chess(fen).turn(),
+    multipv: safeMultipv,
+    partials: new Map()
+  };
+
+  post('ucinewgame');
+  post(`setoption name MultiPV value ${safeMultipv}`);
+  post(`position fen ${fen}`);
+
+  return new Promise((resolve, reject) => {
+    analyzeResolver = resolve;
+    analyzeRejecter = reject;
+    post(`go depth ${searchDepth}`);
+  });
+}
+
+export function stop() {
+  if (!worker) return;
+  post('stop');
+  post('ucinewgame');
+  if (analyzeResolver) {
+    analyzeResolver([]);
+  }
+  if (analyzeRejecter) {
+    analyzeRejecter(new Error('Analysis stopped'));
+  }
+  analyzeResolver = null;
+  analyzeRejecter = null;
+  currentAnalysis = null;
+}
