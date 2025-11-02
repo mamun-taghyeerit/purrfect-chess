@@ -295,6 +295,16 @@ export function initUI(rootEl, handlers = {}) {
         <div class="clock-display" id="white-clock">05:00</div>
         <div class="controls-container">
           <div class="control-group">
+            <div class="panel-header">
+              <h3>Appearance</h3>
+              <button id="reset-appearance" type="button" class="button button-outline icon-button" data-role="reset-appearance">
+                <span class="button-icon">↻</span>
+                <span>Reset</span>
+              </button>
+            </div>
+            <div class="appearance-grid" id="appearance-grid-left"></div>
+          </div>
+          <div class="control-group">
             <h3>Time Presets</h3>
             <div class="preset-grid" id="preset-container"></div>
           </div>
@@ -314,13 +324,6 @@ export function initUI(rootEl, handlers = {}) {
               <button id="apply-custom" type="button" class="button button-muted">Apply</button>
               <button id="start-new-game" type="button" class="button button-accent">Start</button>
             </div>
-          </div>
-          <div class="control-group">
-            <div class="panel-header">
-              <h3>Appearance</h3>
-              <button id="reset-appearance" type="button" class="button button-outline button-small">Reset Appearance</button>
-            </div>
-            <div class="appearance-grid" id="appearance-grid-left"></div>
           </div>
         </div>
       </section>
@@ -374,7 +377,13 @@ export function initUI(rootEl, handlers = {}) {
         <div class="clock-display" id="black-clock">05:00</div>
         <div class="controls-container">
           <div class="control-group">
-            <h3>Appearance</h3>
+            <div class="panel-header">
+              <h3>Appearance</h3>
+              <button id="reset-appearance-right" type="button" class="button button-outline icon-button" data-role="reset-appearance">
+                <span class="button-icon">↻</span>
+                <span>Reset</span>
+              </button>
+            </div>
             <div class="appearance-grid" id="appearance-grid-right"></div>
           </div>
           <div class="control-group">
@@ -456,7 +465,7 @@ export function initUI(rootEl, handlers = {}) {
   const applyCustomBtn = rootEl.querySelector('#apply-custom');
   const startBtn = rootEl.querySelector('#start-new-game');
   const resetGameBtn = rootEl.querySelector('#reset-game');
-  const resetAppearanceBtn = rootEl.querySelector('#reset-appearance');
+  const resetAppearanceButtons = rootEl.querySelectorAll('[data-role="reset-appearance"]');
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
   const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
   const copyFenBtn = rootEl.querySelector('#copy-fen');
@@ -543,7 +552,7 @@ export function initUI(rootEl, handlers = {}) {
     });
   });
 
-  resetAppearanceBtn.addEventListener('click', () => {
+  function resetAppearance() {
     showConfirmation('Reset Appearance', 'Restore all appearance settings?', () => {
       Object.keys(appearanceDefaults).forEach((key) => {
         appearanceState[key] = cloneDefaults(key);
@@ -557,6 +566,10 @@ export function initUI(rootEl, handlers = {}) {
       });
       applyAppearance();
     });
+  }
+
+  resetAppearanceButtons.forEach((button) => {
+    button.addEventListener('click', resetAppearance);
   });
 
   copyFenBtn.addEventListener('click', async () => {
