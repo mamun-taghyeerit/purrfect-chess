@@ -55,7 +55,7 @@ function formatTimeControl({ minutes, increment }) {
 }
 
 function selectEngineDepth({ minutes }) {
-  return minutes > 10 ? 18 : 22;
+  return minutes <= 10 ? 18 : 22;
 }
 
 function updateDepthFromControl(control) {
