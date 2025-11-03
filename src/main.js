@@ -39,6 +39,10 @@ let autoEvalDepth = 22;
 let evalBarVisible = false;
 let enginePanelVisible = false;
 
+// Move review configuration
+const MOVE_REVIEW_ANALYSIS_TIME = 5000; // 5 seconds per position
+const MOVE_REVIEW_UPDATE_INTERVAL = 100; // Update UI every 100ms
+
 function formatMatchDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -449,6 +453,39 @@ function startAnalysis({ depth }) {
     });
 }
 
+// Helper function to create a status update interval for move review
+function createMoveReviewStatusUpdater(startTime, totalTime, onProgress) {
+  let currentDepth = 0;
+  
+  const updateStatus = () => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, totalTime - elapsed);
+    if (typeof ui.updateMoveReviewStatus === 'function') {
+      ui.updateMoveReviewStatus({ 
+        remainingTime: remaining, 
+        totalTime: totalTime,
+        depth: currentDepth
+      });
+    }
+  };
+  
+  // Update immediately
+  updateStatus();
+  
+  // Create interval for periodic updates
+  const intervalId = setInterval(updateStatus, MOVE_REVIEW_UPDATE_INTERVAL);
+  
+  // Return update function and cleanup function
+  return {
+    updateDepth: (depth) => {
+      currentDepth = depth;
+    },
+    clear: () => {
+      clearInterval(intervalId);
+    }
+  };
+}
+
 async function reviewLastMove() {
   const lastMoveInfo = getLastMoveInfo();
   
@@ -467,8 +504,7 @@ async function reviewLastMove() {
     return;
   }
 
-  const TOTAL_ANALYSIS_TIME = 5000; // 5 seconds per position
-  let reviewUpdateInterval = null;
+  let statusUpdater = null;
 
   try {
     ui.showMessage('info', 'Analyzing move...');
@@ -479,76 +515,42 @@ async function reviewLastMove() {
     }
 
     // Analyze position before the move
-    let startTime = Date.now();
-    reviewUpdateInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
-      if (typeof ui.updateMoveReviewStatus === 'function') {
-        ui.updateMoveReviewStatus({ 
-          remainingTime: remaining, 
-          totalTime: TOTAL_ANALYSIS_TIME,
-          depth: 0
-        });
-      }
-    }, 100);
-
+    statusUpdater = createMoveReviewStatusUpdater(Date.now(), MOVE_REVIEW_ANALYSIS_TIME);
+    
     const preAnalysis = await analyze(lastMoveInfo.preFen, { 
-      movetime: TOTAL_ANALYSIS_TIME, 
+      movetime: MOVE_REVIEW_ANALYSIS_TIME, 
       multipv: 1,
       onProgress: ({ depth }) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
-        if (typeof ui.updateMoveReviewStatus === 'function') {
-          ui.updateMoveReviewStatus({ 
-            remainingTime: remaining, 
-            totalTime: TOTAL_ANALYSIS_TIME,
-            depth
-          });
+        if (statusUpdater) {
+          statusUpdater.updateDepth(depth);
         }
       }
     });
     const preEval = preAnalysis && preAnalysis.length > 0 ? preAnalysis[0] : null;
 
     // Clear interval and restart for second analysis
-    if (reviewUpdateInterval) {
-      clearInterval(reviewUpdateInterval);
+    if (statusUpdater) {
+      statusUpdater.clear();
     }
 
     // Analyze position after the move
-    startTime = Date.now();
-    reviewUpdateInterval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
-      if (typeof ui.updateMoveReviewStatus === 'function') {
-        ui.updateMoveReviewStatus({ 
-          remainingTime: remaining, 
-          totalTime: TOTAL_ANALYSIS_TIME,
-          depth: 0
-        });
-      }
-    }, 100);
-
+    statusUpdater = createMoveReviewStatusUpdater(Date.now(), MOVE_REVIEW_ANALYSIS_TIME);
+    
     const postAnalysis = await analyze(lastMoveInfo.postFen, { 
-      movetime: TOTAL_ANALYSIS_TIME, 
+      movetime: MOVE_REVIEW_ANALYSIS_TIME, 
       multipv: 1,
       onProgress: ({ depth }) => {
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
-        if (typeof ui.updateMoveReviewStatus === 'function') {
-          ui.updateMoveReviewStatus({ 
-            remainingTime: remaining, 
-            totalTime: TOTAL_ANALYSIS_TIME,
-            depth
-          });
+        if (statusUpdater) {
+          statusUpdater.updateDepth(depth);
         }
       }
     });
     const postEval = postAnalysis && postAnalysis.length > 0 ? postAnalysis[0] : null;
 
     // Clear the update interval
-    if (reviewUpdateInterval) {
-      clearInterval(reviewUpdateInterval);
-      reviewUpdateInterval = null;
+    if (statusUpdater) {
+      statusUpdater.clear();
+      statusUpdater = null;
     }
 
     // Hide move review status
@@ -565,9 +567,9 @@ async function reviewLastMove() {
     ui.showMessage('success', `Move classified as: ${classification.type}`);
   } catch (error) {
     // Clear the update interval on error
-    if (reviewUpdateInterval) {
-      clearInterval(reviewUpdateInterval);
-      reviewUpdateInterval = null;
+    if (statusUpdater) {
+      statusUpdater.clear();
+      statusUpdater = null;
     }
     
     // Hide move review status
