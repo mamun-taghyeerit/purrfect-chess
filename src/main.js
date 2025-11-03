@@ -20,6 +20,7 @@ const state = {
   customHighlights: new Set(),
   lastMove: null,
   engineHighlights: [],
+  engineDisplayMode: "both",
   engineBusy: false,
   boardLocked: false,
 };
@@ -60,6 +61,7 @@ function renderBoard() {
     lastMove: state.lastMove,
     customHighlights: Array.from(state.customHighlights),
     engineHighlights: state.engineHighlights,
+    engineDisplayMode: state.engineDisplayMode,
   });
 }
 
@@ -264,7 +266,11 @@ function startAnalysis({ depth }) {
         ui.updateEngineLines([]);
       } else {
         ui.updateEngineLines(lines);
-        state.engineHighlights = lines.map((line) => line.to);
+        state.engineHighlights = lines.map((line, index) => ({
+          from: line.from,
+          to: line.to,
+          rank: index + 1,
+        }));
         renderBoard();
       }
     })
@@ -311,7 +317,15 @@ function initialize() {
     onRevealEnginePanel: () => {
       ui.showMessage("success", "Engine panel unlocked!");
     },
+    onEngineOverlayModeChange: (mode) => {
+      state.engineDisplayMode = mode;
+      renderBoard();
+    },
   });
+
+  if (typeof ui.setEngineOverlayMode === "function") {
+    ui.setEngineOverlayMode(state.engineDisplayMode);
+  }
 
   const boardElement = ui.getBoardElement();
   const controller = createBoard(boardElement, {
