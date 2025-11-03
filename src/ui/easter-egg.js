@@ -26,15 +26,16 @@ function checkSelectedText(cheatTextEl) {
   const selected = selection.toString().trim();
   if (!selected) return false;
   
-  if (selected === TARGET_TEXT) {
-    try {
-      if (typeof selection.containsNode === 'function' && 
-          selection.containsNode(cheatTextEl, true)) {
+  try {
+    if (typeof selection.containsNode === 'function' &&
+        selection.containsNode(cheatTextEl, true)) {
+      // Compare against the element's actual text content, trimmed
+      if (selected === cheatTextEl.textContent.trim()) {
         return true;
       }
-    } catch (error) {
-      // Ignore selection errors (can happen in some browsers)
     }
+  } catch (error) {
+    // Ignore selection errors (can happen in some browsers)
   }
   
   return false;

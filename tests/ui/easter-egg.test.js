@@ -5,12 +5,8 @@ describe('Easter Egg Module', () => {
   let cheatTextEl;
   let enginePanelEl;
   let onRevealCallback;
-  let originalGetSelection;
 
   beforeEach(() => {
-    // Save original getSelection
-    originalGetSelection = window.getSelection;
-    
     // Reset DOM
     document.body.innerHTML = '';
     
