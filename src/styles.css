@@ -562,7 +562,7 @@ h1,
   pointer-events: none;
 }
 
-.eval-bar.hidden::before {
+.eval-bar.eval-bar-concealed::before {
   opacity: 1;
 }
 
@@ -570,7 +570,7 @@ h1,
   transition: opacity 0.2s ease;
 }
 
-.eval-bar.hidden > * {
+.eval-bar.eval-bar-concealed > * {
   opacity: 0;
   pointer-events: none;
 }

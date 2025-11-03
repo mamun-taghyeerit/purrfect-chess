@@ -336,7 +336,7 @@ export function initUI(rootEl, handlers = {}) {
               <div class="board-ranks board-ranks-right" data-role="ranks-right"></div>
               <div id="board"></div>
             </div>
-            <div class="eval-bar hidden" id="eval-bar">
+            <div class="eval-bar eval-bar-concealed" id="eval-bar">
               <div class="eval-bar-track" id="eval-bar-track">
                 <div class="eval-bar-fill" id="eval-bar-fill"></div>
               </div>
@@ -673,7 +673,7 @@ export function initUI(rootEl, handlers = {}) {
 
   toggleEvalBarBtn.addEventListener('click', () => {
     evalBarVisible = !evalBarVisible;
-    evalBarEl.classList.toggle('hidden', !evalBarVisible);
+    evalBarEl.classList.toggle('eval-bar-concealed', !evalBarVisible);
     const buttonText = toggleEvalBarBtn.querySelector('span:last-child');
     if (buttonText) {
       buttonText.textContent = evalBarVisible ? 'Hide Eval Bar' : 'Show Eval Bar';
