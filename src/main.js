@@ -39,6 +39,10 @@ let autoEvalDepth = 22;
 let evalBarVisible = false;
 let enginePanelVisible = false;
 
+// Move review configuration
+const MOVE_REVIEW_ANALYSIS_TIME = 5000; // 5 seconds per position
+const MOVE_REVIEW_UPDATE_INTERVAL = 100; // Update UI every 100ms
+
 function formatMatchDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -51,7 +55,7 @@ function formatTimeControl({ minutes, increment }) {
 }
 
 function selectEngineDepth({ minutes }) {
-  return minutes > 10 ? 18 : 22;
+  return minutes <= 10 ? 18 : 22;
 }
 
 function updateDepthFromControl(control) {
@@ -114,7 +118,21 @@ function queueAutoEvaluation() {
     ui.setEvalBarAnalyzing(true);
   }
 
-  analyze(fen, { depth: autoEvalDepth, multipv: 1 })
+  // Update max depth info
+  if (typeof ui.updateEvalBarDepthInfo === "function") {
+    ui.updateEvalBarDepthInfo({ currentDepth: 0, maxDepth: autoEvalDepth });
+  }
+
+  analyze(fen, { 
+    depth: autoEvalDepth, 
+    multipv: 1,
+    onProgress: ({ depth }) => {
+      if (token !== autoEvalToken) return;
+      if (typeof ui.updateEvalBarDepthInfo === "function") {
+        ui.updateEvalBarDepthInfo({ currentDepth: depth, maxDepth: autoEvalDepth });
+      }
+    }
+  })
     .then((lines) => {
       if (token !== autoEvalToken) return;
 
@@ -435,6 +453,39 @@ function startAnalysis({ depth }) {
     });
 }
 
+// Helper function to create a status update interval for move review
+function createMoveReviewStatusUpdater(startTime, totalTime, onProgress) {
+  let currentDepth = 0;
+  
+  const updateStatus = () => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, totalTime - elapsed);
+    if (typeof ui.updateMoveReviewStatus === 'function') {
+      ui.updateMoveReviewStatus({ 
+        remainingTime: remaining, 
+        totalTime: totalTime,
+        depth: currentDepth
+      });
+    }
+  };
+  
+  // Update immediately
+  updateStatus();
+  
+  // Create interval for periodic updates
+  const intervalId = setInterval(updateStatus, MOVE_REVIEW_UPDATE_INTERVAL);
+  
+  // Return update function and cleanup function
+  return {
+    updateDepth: (depth) => {
+      currentDepth = depth;
+    },
+    clear: () => {
+      clearInterval(intervalId);
+    }
+  };
+}
+
 async function reviewLastMove() {
   const lastMoveInfo = getLastMoveInfo();
   
@@ -453,16 +504,59 @@ async function reviewLastMove() {
     return;
   }
 
+  let statusUpdater = null;
+
   try {
     ui.showMessage('info', 'Analyzing move...');
+    
+    // Show move review status
+    if (typeof ui.showMoveReviewStatus === 'function') {
+      ui.showMoveReviewStatus(true);
+    }
 
     // Analyze position before the move
-    const preAnalysis = await analyze(lastMoveInfo.preFen, { movetime: 5000, multipv: 1 });
+    statusUpdater = createMoveReviewStatusUpdater(Date.now(), MOVE_REVIEW_ANALYSIS_TIME);
+    
+    const preAnalysis = await analyze(lastMoveInfo.preFen, { 
+      movetime: MOVE_REVIEW_ANALYSIS_TIME, 
+      multipv: 1,
+      onProgress: ({ depth }) => {
+        if (statusUpdater) {
+          statusUpdater.updateDepth(depth);
+        }
+      }
+    });
     const preEval = preAnalysis && preAnalysis.length > 0 ? preAnalysis[0] : null;
 
+    // Clear interval and restart for second analysis
+    if (statusUpdater) {
+      statusUpdater.clear();
+    }
+
     // Analyze position after the move
-    const postAnalysis = await analyze(lastMoveInfo.postFen, { movetime: 5000, multipv: 1 });
+    statusUpdater = createMoveReviewStatusUpdater(Date.now(), MOVE_REVIEW_ANALYSIS_TIME);
+    
+    const postAnalysis = await analyze(lastMoveInfo.postFen, { 
+      movetime: MOVE_REVIEW_ANALYSIS_TIME, 
+      multipv: 1,
+      onProgress: ({ depth }) => {
+        if (statusUpdater) {
+          statusUpdater.updateDepth(depth);
+        }
+      }
+    });
     const postEval = postAnalysis && postAnalysis.length > 0 ? postAnalysis[0] : null;
+
+    // Clear the update interval
+    if (statusUpdater) {
+      statusUpdater.clear();
+      statusUpdater = null;
+    }
+
+    // Hide move review status
+    if (typeof ui.showMoveReviewStatus === 'function') {
+      ui.showMoveReviewStatus(false);
+    }
 
     // Classify the move
     const classification = classifyMove(lastMoveInfo, preEval, postEval);
@@ -472,6 +566,17 @@ async function reviewLastMove() {
 
     ui.showMessage('success', `Move classified as: ${classification.type}`);
   } catch (error) {
+    // Clear the update interval on error
+    if (statusUpdater) {
+      statusUpdater.clear();
+      statusUpdater = null;
+    }
+    
+    // Hide move review status
+    if (typeof ui.showMoveReviewStatus === 'function') {
+      ui.showMoveReviewStatus(false);
+    }
+    
     if (error && error.message !== 'Analysis stopped' && error.message !== 'Analysis superseded') {
       ui.showMessage('error', 'Failed to analyze move.');
     }
@@ -741,8 +846,16 @@ function initialize() {
     onEvalBarVisibilityChange: (visible) => {
       evalBarVisible = visible;
       if (visible) {
+        // Show eval bar depth info when eval bar is shown
+        if (typeof ui.showEvalBarDepthInfo === 'function') {
+          ui.showEvalBarDepthInfo(true);
+        }
         queueAutoEvaluation();
       } else {
+        // Hide eval bar depth info when eval bar is hidden
+        if (typeof ui.showEvalBarDepthInfo === 'function') {
+          ui.showEvalBarDepthInfo(false);
+        }
         cancelAutoEvaluation({ stopEngine: true });
       }
     },
