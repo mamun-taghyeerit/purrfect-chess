@@ -31,6 +31,9 @@ let ui;
 let boardController;
 let engineReady = false;
 let clockInterval = null;
+let autoEvalToken = 0;
+let autoEvalActive = false;
+let autoEvalDepth = 22;
 
 function formatMatchDate(date) {
   const year = date.getFullYear();
@@ -41,6 +44,17 @@ function formatMatchDate(date) {
 
 function formatTimeControl({ minutes, increment }) {
   return `${minutes} + ${increment}`;
+}
+
+function selectEngineDepth({ minutes }) {
+  return minutes > 10 ? 18 : 22;
+}
+
+function updateDepthFromControl(control) {
+  autoEvalDepth = selectEngineDepth(control);
+  if (ui && typeof ui.setEngineDepth === "function") {
+    ui.setEngineDepth(autoEvalDepth);
+  }
 }
 
 function refreshMatchDetails() {
@@ -65,6 +79,58 @@ function renderBoard() {
     engineHighlights: state.engineHighlights,
     engineDisplayMode: state.engineDisplayMode,
   });
+}
+
+function cancelAutoEvaluation({ stopEngine: shouldStop = true } = {}) {
+  if (autoEvalActive && shouldStop && engineReady && !state.engineBusy) {
+    try {
+      stopEngine();
+    } catch (error) {
+      // ignore engine stop errors for auto-eval
+    }
+  }
+  autoEvalActive = false;
+  autoEvalToken += 1;
+  return autoEvalToken;
+}
+
+function queueAutoEvaluation() {
+  if (!ui || typeof ui.updateEvalBar !== "function") return;
+  if (!engineReady || state.engineBusy) return;
+
+  const token = cancelAutoEvaluation();
+  autoEvalActive = true;
+  const fen = getFen();
+
+  analyze(fen, { depth: autoEvalDepth, multipv: 1 })
+    .then((lines) => {
+      if (token !== autoEvalToken) return;
+
+      const bestLine = Array.isArray(lines) && lines.length > 0 ? lines[0] : null;
+      if (!bestLine) {
+        ui.updateEvalBar(0);
+        return;
+      }
+
+      if (bestLine.scoreType === "mate") {
+        const advantage = bestLine.score > 0 ? 500 : -500;
+        ui.updateEvalBar(advantage);
+        return;
+      }
+
+      ui.updateEvalBar(bestLine.score);
+    })
+    .catch((error) => {
+      if (token !== autoEvalToken) return;
+      if (error && error.message === "Analysis stopped") {
+        return;
+      }
+      ui.updateEvalBar(null);
+    })
+    .finally(() => {
+      if (token !== autoEvalToken) return;
+      autoEvalActive = false;
+    });
 }
 
 function clearSelection() {
@@ -132,6 +198,11 @@ function handleMove(event) {
   ui.updateClocks(getClocks());
 
   if (status?.type === "reset") {
+    ui.updateEvalBar(0);
+  }
+
+  if (status?.type === "reset") {
+    updateDepthFromControl(getTimeControl());
     if (boardController && typeof boardController.clearArrows === "function") {
       boardController.clearArrows();
     }
@@ -140,12 +211,15 @@ function handleMove(event) {
     boardController.setInteractive(true);
     state.boardLocked = false;
   } else if (status?.type === "load") {
+    updateDepthFromControl(getTimeControl());
     if (boardController && typeof boardController.clearArrows === "function") {
       boardController.clearArrows();
     }
     boardController.setInteractive(true);
     state.boardLocked = false;
   }
+
+  queueAutoEvaluation();
 }
 
 function handleGameOver(payload) {
@@ -236,6 +310,7 @@ function handleDrop(from, to) {
 }
 
 function stopAnalysis({ quiet = false } = {}) {
+  cancelAutoEvaluation();
   state.engineBusy = false;
   ui.setEngineBusy(false);
   state.engineHighlights = [];
@@ -250,9 +325,13 @@ function stopAnalysis({ quiet = false } = {}) {
   } catch (error) {
     // ignore engine stop errors
   }
+  if (!quiet) {
+    queueAutoEvaluation();
+  }
 }
 
 function startAnalysis({ depth }) {
+  cancelAutoEvaluation();
   if (!engineReady) {
     ui.showMessage("error", "Engine is not ready yet.");
     return;
@@ -307,16 +386,33 @@ function initialize() {
   ui = initUI(document.getElementById("app"), {
     onTimePreset: ({ minutes, increment }) => {
       stopAnalysis({ quiet: true });
-      startNewGame({ minutes, increment });
+      const control = { minutes, increment };
+      updateDepthFromControl(control);
+      if (ui && typeof ui.updateEvalBar === "function") {
+        ui.updateEvalBar(0);
+      }
+      startNewGame(control);
+      queueAutoEvaluation();
     },
     onStartNewGame: ({ minutes, increment }) => {
       stopAnalysis({ quiet: true });
-      startNewGame({ minutes, increment });
+      const control = { minutes, increment };
+      updateDepthFromControl(control);
+      if (ui && typeof ui.updateEvalBar === "function") {
+        ui.updateEvalBar(0);
+      }
+      startNewGame(control);
+      queueAutoEvaluation();
     },
     onResetGame: () => {
       stopAnalysis({ quiet: true });
       const control = getTimeControl();
+      updateDepthFromControl(control);
+      if (ui && typeof ui.updateEvalBar === "function") {
+        ui.updateEvalBar(0);
+      }
       startNewGame(control);
+      queueAutoEvaluation();
     },
     onCopyFen: () => getFen(),
     onCopyPgn: () => getPgn(),
@@ -326,6 +422,8 @@ function initialize() {
       if (result.success) {
         state.engineHighlights = [];
         ui.updateEngineLines([]);
+        ui.updateEvalBar(0);
+        queueAutoEvaluation();
       }
       return result;
     },
@@ -335,6 +433,8 @@ function initialize() {
       if (result.success) {
         state.engineHighlights = [];
         ui.updateEngineLines([]);
+        ui.updateEvalBar(0);
+        queueAutoEvaluation();
       }
       return result;
     },
@@ -367,13 +467,19 @@ function initialize() {
   setupClockUpdater();
 
   const initialControl = ui.getCurrentTimeControl();
+  updateDepthFromControl(initialControl);
+  if (ui && typeof ui.updateEvalBar === "function") {
+    ui.updateEvalBar(0);
+  }
   startNewGame(initialControl);
+  queueAutoEvaluation();
 
   refreshMatchDetails();
 
   initEngine()
     .then(() => {
       engineReady = true;
+      queueAutoEvaluation();
     })
     .catch(() => {
       ui.showMessage("error", "Unable to initialize Stockfish.");

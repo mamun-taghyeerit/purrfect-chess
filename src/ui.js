@@ -329,7 +329,19 @@ export function initUI(rootEl, handlers = {}) {
       <section class="board-panel" id="board-panel">
         <div class="board-frame">
           <div class="board-wrapper">
-            <div id="board"></div>
+            <div class="board-container">
+              <div class="board-files board-files-top" data-role="files-top"></div>
+              <div class="board-files board-files-bottom" data-role="files-bottom"></div>
+              <div class="board-ranks board-ranks-left" data-role="ranks-left"></div>
+              <div class="board-ranks board-ranks-right" data-role="ranks-right"></div>
+              <div id="board"></div>
+            </div>
+            <div class="eval-bar" id="eval-bar">
+              <div class="eval-bar-track" id="eval-bar-track">
+                <div class="eval-bar-fill" id="eval-bar-fill"></div>
+              </div>
+              <div class="eval-bar-score" id="eval-bar-score">0.0</div>
+            </div>
           </div>
         </div>
         <div class="board-actions">
@@ -437,6 +449,13 @@ export function initUI(rootEl, handlers = {}) {
   `;
 
   const boardEl = rootEl.querySelector('#board');
+  const filesTopEl = rootEl.querySelector('[data-role="files-top"]');
+  const filesBottomEl = rootEl.querySelector('[data-role="files-bottom"]');
+  const ranksLeftEl = rootEl.querySelector('[data-role="ranks-left"]');
+  const ranksRightEl = rootEl.querySelector('[data-role="ranks-right"]');
+  const evalBarTrack = rootEl.querySelector('#eval-bar-track');
+  const evalBarFill = rootEl.querySelector('#eval-bar-fill');
+  const evalBarScore = rootEl.querySelector('#eval-bar-score');
   const whiteClockEl = rootEl.querySelector('#white-clock');
   const blackClockEl = rootEl.querySelector('#black-clock');
   const presetContainer = rootEl.querySelector('#preset-container');
@@ -453,6 +472,26 @@ export function initUI(rootEl, handlers = {}) {
       }, duration);
     }
   };
+
+  const fileLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const rankLabels = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+  function populateCoordinateLabels() {
+    if (filesTopEl) {
+      filesTopEl.innerHTML = fileLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+    if (filesBottomEl) {
+      filesBottomEl.innerHTML = fileLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+    if (ranksLeftEl) {
+      ranksLeftEl.innerHTML = rankLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+    if (ranksRightEl) {
+      ranksRightEl.innerHTML = rankLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+  }
+
+  populateCoordinateLabels();
 
   function showConfirmation(title, message, onConfirm) {
     overlay.querySelector('[data-role="title"]').textContent = title;
@@ -754,6 +793,33 @@ export function initUI(rootEl, handlers = {}) {
 
   setupCheatcode(cheatText, enginePanel, handlers.onRevealEnginePanel);
 
+  function updateEvalBar(score) {
+    if (!evalBarTrack || !evalBarFill || !evalBarScore) return;
+
+    const validScore = typeof score === 'number' && Number.isFinite(score);
+    if (!validScore) {
+      evalBarTrack.classList.remove('white-advantage', 'black-advantage');
+      evalBarScore.classList.remove('white-advantage', 'black-advantage');
+      evalBarFill.style.height = '50%';
+      evalBarScore.textContent = '–';
+      return;
+    }
+
+    const clamped = Math.max(-500, Math.min(500, score));
+    const percent = ((clamped + 500) / 1000) * 100;
+    const display = (clamped / 100).toFixed(1);
+    const whiteAdvantage = clamped >= 0;
+
+    evalBarTrack.classList.toggle('white-advantage', whiteAdvantage);
+    evalBarTrack.classList.toggle('black-advantage', !whiteAdvantage);
+    evalBarScore.classList.toggle('white-advantage', whiteAdvantage);
+    evalBarScore.classList.toggle('black-advantage', !whiteAdvantage);
+    evalBarFill.style.height = `${percent}%`;
+    evalBarScore.textContent = display;
+  }
+
+  updateEvalBar(0);
+
   return {
     boardEl,
     showMessage: messageApi.show,
@@ -789,6 +855,13 @@ export function initUI(rootEl, handlers = {}) {
       startAnalysisBtn.disabled = isBusy;
       stopAnalysisBtn.disabled = !isBusy;
     },
+    setEngineDepth(depth) {
+      if (!engineDepth) return;
+      const fallback = Number.parseInt(engineDepth.getAttribute('min'), 10) || 18;
+      const value = Number.isFinite(depth) ? depth : fallback;
+      engineDepth.value = value;
+      engineDepthValue.textContent = value;
+    },
     updateEngineLines(lines) {
       if (!Array.isArray(lines) || lines.length === 0) {
         clearEnginePanel(engineLinesEl);
@@ -822,6 +895,7 @@ export function initUI(rootEl, handlers = {}) {
     getCurrentTimeControl() {
       return { ...currentTimeControl };
     },
+    updateEvalBar,
     updateMatchInfo,
     messageApi
   };
