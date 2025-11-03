@@ -539,6 +539,7 @@ h1,
 }
 
 .eval-bar {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -547,13 +548,29 @@ h1,
   min-width: 46px;
   height: 100%;
   padding: 8px 0;
-  visibility: visible;
-  opacity: 1;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-.eval-bar.hidden {
-  visibility: hidden;
+.eval-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(31, 31, 31, 0.3) 0%, rgba(45, 45, 45, 0.3) 100%);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.eval-bar.hidden::before {
+  opacity: 1;
+}
+
+.eval-bar > * {
+  transition: opacity 0.2s ease;
+}
+
+.eval-bar.hidden > * {
   opacity: 0;
   pointer-events: none;
 }
