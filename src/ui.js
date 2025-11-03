@@ -422,10 +422,14 @@ export function initUI(rootEl, handlers = {}) {
             <div id="move-list" class="move-list"></div>
             <div class="button-row">
               <button id="copy-pgn" type="button" class="button button-muted">Copy PGN</button>
-              <button id="copy-fen" type="button" class="button button-muted">Copy FEN</button>
+              <button id="load-pgn" type="button" class="button button-muted">Load PGN</button>
             </div>
-            <textarea id="pgn-output" rows="4" readonly placeholder="PGN will appear here" class="notation-output"></textarea>
-            <textarea id="fen-output" rows="2" readonly placeholder="FEN will appear here" class="notation-output"></textarea>
+            <div class="button-row">
+              <button id="copy-fen" type="button" class="button button-muted">Copy FEN</button>
+              <button id="load-fen" type="button" class="button button-muted">Load FEN</button>
+            </div>
+            <textarea id="pgn-output" rows="4" placeholder="PGN will appear here" class="notation-output"></textarea>
+            <textarea id="fen-output" rows="2" placeholder="FEN will appear here" class="notation-output"></textarea>
           </div>
         </div>
       </section>
@@ -501,7 +505,9 @@ export function initUI(rootEl, handlers = {}) {
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
   const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
   const copyFenBtn = rootEl.querySelector('#copy-fen');
+  const loadFenBtn = rootEl.querySelector('#load-fen');
   const copyPgnBtn = rootEl.querySelector('#copy-pgn');
+  const loadPgnBtn = rootEl.querySelector('#load-pgn');
   const pgnOutput = rootEl.querySelector('#pgn-output');
   const fenOutput = rootEl.querySelector('#fen-output');
   const cheatText = rootEl.querySelector('#cheatcode-text');
@@ -639,6 +645,42 @@ export function initUI(rootEl, handlers = {}) {
     button.addEventListener('click', resetAppearance);
   });
 
+  function interpretHandlerResult(result) {
+    if (typeof result === 'boolean') {
+      return { success: result };
+    }
+    if (result && typeof result === 'object') {
+      if (Object.prototype.hasOwnProperty.call(result, 'success')) {
+        return { success: Boolean(result.success), message: result.message };
+      }
+      if (Object.prototype.hasOwnProperty.call(result, 'error')) {
+        return { success: false, message: result.error };
+      }
+    }
+    return { success: Boolean(result) };
+  }
+
+  async function handleNotationLoad({ textarea, handler, emptyMessage, successMessage, invalidMessage }) {
+    if (!handler || !textarea) return;
+    const value = textarea.value.trim();
+    textarea.value = value;
+    if (!value) {
+      messageApi.show('error', emptyMessage);
+      return;
+    }
+    try {
+      const result = interpretHandlerResult(await Promise.resolve(handler(value)));
+      if (result.success) {
+        messageApi.show('success', result.message || successMessage);
+      } else {
+        messageApi.show('error', result.message || invalidMessage);
+      }
+    } catch (error) {
+      const fallbackMessage = error && typeof error.message === 'string' ? error.message : invalidMessage;
+      messageApi.show('error', fallbackMessage || invalidMessage);
+    }
+  }
+
   copyFenBtn.addEventListener('click', async () => {
     if (!handlers.onCopyFen) return;
     const fen = handlers.onCopyFen();
@@ -651,6 +693,18 @@ export function initUI(rootEl, handlers = {}) {
     }
   });
 
+  if (loadFenBtn) {
+    loadFenBtn.addEventListener('click', () => {
+      handleNotationLoad({
+        textarea: fenOutput,
+        handler: handlers.onSetFen,
+        emptyMessage: 'Enter a FEN string to load.',
+        successMessage: 'FEN loaded successfully.',
+        invalidMessage: 'Invalid FEN string.'
+      });
+    });
+  }
+
   copyPgnBtn.addEventListener('click', async () => {
     if (!handlers.onCopyPgn) return;
     const pgn = handlers.onCopyPgn();
@@ -662,6 +716,18 @@ export function initUI(rootEl, handlers = {}) {
       messageApi.show('error', 'Unable to copy PGN.');
     }
   });
+
+  if (loadPgnBtn) {
+    loadPgnBtn.addEventListener('click', () => {
+      handleNotationLoad({
+        textarea: pgnOutput,
+        handler: handlers.onSetPgn,
+        emptyMessage: 'Enter a PGN string to load.',
+        successMessage: 'PGN loaded successfully.',
+        invalidMessage: 'Invalid PGN data.'
+      });
+    });
+  }
 
   engineDepth.addEventListener('input', () => {
     engineDepthValue.textContent = engineDepth.value;

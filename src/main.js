@@ -8,6 +8,8 @@ import {
   getPgn,
   getClocks,
   getTimeControl,
+  loadFen,
+  loadPgn,
 } from "./game.js";
 import { createBoard, renderPosition } from "./board.js";
 import { initEngine, analyze, stop as stopEngine } from "./engine.js";
@@ -135,6 +137,12 @@ function handleMove(event) {
     }
     refreshMatchDetails();
     ui.showMessage("info", "New game started.");
+    boardController.setInteractive(true);
+    state.boardLocked = false;
+  } else if (status?.type === "load") {
+    if (boardController && typeof boardController.clearArrows === "function") {
+      boardController.clearArrows();
+    }
     boardController.setInteractive(true);
     state.boardLocked = false;
   }
@@ -312,6 +320,24 @@ function initialize() {
     },
     onCopyFen: () => getFen(),
     onCopyPgn: () => getPgn(),
+    onSetFen: (fen) => {
+      stopAnalysis({ quiet: true });
+      const result = loadFen(fen);
+      if (result.success) {
+        state.engineHighlights = [];
+        ui.updateEngineLines([]);
+      }
+      return result;
+    },
+    onSetPgn: (pgn) => {
+      stopAnalysis({ quiet: true });
+      const result = loadPgn(pgn);
+      if (result.success) {
+        state.engineHighlights = [];
+        ui.updateEngineLines([]);
+      }
+      return result;
+    },
     onStartAnalysis: ({ depth }) => startAnalysis({ depth }),
     onStopAnalysis: () => stopAnalysis({ quiet: true }),
     onRevealEnginePanel: () => {

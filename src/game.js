@@ -17,6 +17,16 @@ const state = {
   timeControl: { ...DEFAULT_TIME }
 };
 
+function getTimeControlSettings() {
+  const minutes = Number.isFinite(state.timeControl?.minutes)
+    ? state.timeControl.minutes
+    : DEFAULT_TIME.minutes;
+  const increment = Number.isFinite(state.timeControl?.increment)
+    ? state.timeControl.increment
+    : DEFAULT_TIME.increment;
+  return { minutes, increment };
+}
+
 function stopTimer() {
   if (state.timerId) {
     clearInterval(state.timerId);
@@ -179,6 +189,67 @@ export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   state.lastTick = null;
 
   notifyMove(null, { type: 'reset' });
+}
+
+function resetAfterExternalLoad() {
+  stopTimer();
+  state.timerId = null;
+  state.lastTick = null;
+  const { minutes, increment } = getTimeControlSettings();
+  state.whiteTime = minutes * 60 * 1000;
+  state.blackTime = minutes * 60 * 1000;
+  state.incrementMs = increment * 1000;
+  state.lastMove = null;
+  state.activeColor = state.game.turn();
+  state.gameOver = state.game.isGameOver();
+}
+
+export function loadFen(fen) {
+  if (typeof fen !== 'string' || fen.trim() === '') {
+    return { success: false, message: 'FEN string is empty.' };
+  }
+
+  const trimmedFen = fen.trim();
+  const newGame = new Chess();
+  let loaded = false;
+  try {
+    loaded = newGame.load(trimmedFen);
+  } catch (error) {
+    loaded = false;
+  }
+
+  if (!loaded) {
+    return { success: false, message: 'Unable to load FEN.' };
+  }
+
+  state.game = newGame;
+  resetAfterExternalLoad();
+  notifyMove(null, { type: 'load', source: 'fen' });
+  return { success: true };
+}
+
+export function loadPgn(pgn) {
+  if (typeof pgn !== 'string' || pgn.trim() === '') {
+    return { success: false, message: 'PGN string is empty.' };
+  }
+
+  const trimmedPgn = pgn.trim();
+  const newGame = new Chess();
+  let loaded = false;
+  try {
+    loaded = newGame.loadPgn(trimmedPgn, { sloppy: true });
+  } catch (error) {
+    loaded = false;
+  }
+
+  if (!loaded) {
+    return { success: false, message: 'Unable to load PGN.' };
+  }
+
+  state.game = newGame;
+  resetAfterExternalLoad();
+  notifyMove(null, { type: 'load', source: 'pgn' });
+  return { success: true };
 }
 
 function attemptMove(from, to, { promotion } = {}) {
