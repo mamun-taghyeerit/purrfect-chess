@@ -329,13 +329,29 @@ export function initUI(rootEl, handlers = {}) {
       <section class="board-panel" id="board-panel">
         <div class="board-frame">
           <div class="board-wrapper">
-            <div id="board"></div>
+            <div class="board-container">
+              <div class="board-files board-files-top" data-role="files-top"></div>
+              <div class="board-files board-files-bottom" data-role="files-bottom"></div>
+              <div class="board-ranks board-ranks-left" data-role="ranks-left"></div>
+              <div class="board-ranks board-ranks-right" data-role="ranks-right"></div>
+              <div id="board"></div>
+            </div>
+            <div class="eval-bar eval-bar-concealed" id="eval-bar">
+              <div class="eval-bar-track" id="eval-bar-track">
+                <div class="eval-bar-fill" id="eval-bar-fill"></div>
+              </div>
+              <div class="eval-bar-score" id="eval-bar-score">0.0</div>
+            </div>
           </div>
         </div>
         <div class="board-actions">
           <button id="reset-game" type="button" class="button button-outline icon-button button-small">
             <span class="button-icon">↻</span>
             <span>Reset Game</span>
+          </button>
+          <button id="toggle-eval-bar" type="button" class="button button-outline icon-button button-small">
+            <span class="button-icon">📊</span>
+            <span>Show Eval Bar</span>
           </button>
         </div>
         <div class="match-card" id="match-card">
@@ -437,6 +453,13 @@ export function initUI(rootEl, handlers = {}) {
   `;
 
   const boardEl = rootEl.querySelector('#board');
+  const filesTopEl = rootEl.querySelector('[data-role="files-top"]');
+  const filesBottomEl = rootEl.querySelector('[data-role="files-bottom"]');
+  const ranksLeftEl = rootEl.querySelector('[data-role="ranks-left"]');
+  const ranksRightEl = rootEl.querySelector('[data-role="ranks-right"]');
+  const evalBarTrack = rootEl.querySelector('#eval-bar-track');
+  const evalBarFill = rootEl.querySelector('#eval-bar-fill');
+  const evalBarScore = rootEl.querySelector('#eval-bar-score');
   const whiteClockEl = rootEl.querySelector('#white-clock');
   const blackClockEl = rootEl.querySelector('#black-clock');
   const presetContainer = rootEl.querySelector('#preset-container');
@@ -454,6 +477,26 @@ export function initUI(rootEl, handlers = {}) {
     }
   };
 
+  const fileLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+  const rankLabels = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+  function populateCoordinateLabels() {
+    if (filesTopEl) {
+      filesTopEl.innerHTML = fileLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+    if (filesBottomEl) {
+      filesBottomEl.innerHTML = fileLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+    if (ranksLeftEl) {
+      ranksLeftEl.innerHTML = rankLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+    if (ranksRightEl) {
+      ranksRightEl.innerHTML = rankLabels.map((label) => `<span>${label}</span>`).join('');
+    }
+  }
+
+  populateCoordinateLabels();
+
   function showConfirmation(title, message, onConfirm) {
     overlay.querySelector('[data-role="title"]').textContent = title;
     overlay.querySelector('[data-role="message"]').textContent = message;
@@ -462,8 +505,9 @@ export function initUI(rootEl, handlers = {}) {
   }
 
   let currentTimeControl = { minutes: 5, increment: 0 };
-  let engineOverlayMode = 'both';
+  let engineOverlayMode = 'arrows';
   let selectedPresetButton = null;
+  let evalBarVisible = false;
 
   timePresets.forEach((preset) => {
     const button = document.createElement('button');
@@ -501,6 +545,8 @@ export function initUI(rootEl, handlers = {}) {
   const applyCustomBtn = rootEl.querySelector('#apply-custom');
   const startBtn = rootEl.querySelector('#start-new-game');
   const resetGameBtn = rootEl.querySelector('#reset-game');
+  const toggleEvalBarBtn = rootEl.querySelector('#toggle-eval-bar');
+  const evalBarEl = rootEl.querySelector('#eval-bar');
   const resetAppearanceButtons = rootEl.querySelectorAll('[data-role="reset-appearance"]');
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
   const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
@@ -625,6 +671,22 @@ export function initUI(rootEl, handlers = {}) {
     });
   });
 
+  toggleEvalBarBtn.addEventListener('click', () => {
+    evalBarVisible = !evalBarVisible;
+    evalBarEl.classList.toggle('eval-bar-concealed', !evalBarVisible);
+    const buttonText = toggleEvalBarBtn.querySelector('span:last-child');
+    if (buttonText) {
+      buttonText.textContent = evalBarVisible ? 'Hide Eval Bar' : 'Show Eval Bar';
+    }
+    // Stop analyzing animation when hiding the eval bar
+    if (!evalBarVisible && evalBarTrack) {
+      evalBarTrack.classList.remove('analyzing');
+    }
+    if (handlers.onEvalBarVisibilityChange) {
+      handlers.onEvalBarVisibilityChange(evalBarVisible);
+    }
+  });
+
   function resetAppearance() {
     showConfirmation('Reset Appearance', 'Restore all appearance settings?', () => {
       Object.keys(appearanceDefaults).forEach((key) => {
@@ -747,12 +809,53 @@ export function initUI(rootEl, handlers = {}) {
 
   closeEngineBtn.addEventListener('click', () => {
     enginePanel.classList.add('hidden');
+    if (handlers.onEnginePanelVisibilityChange) {
+      handlers.onEnginePanelVisibilityChange(false);
+    }
     if (handlers.onStopAnalysis) {
       handlers.onStopAnalysis();
     }
   });
 
   setupCheatcode(cheatText, enginePanel, handlers.onRevealEnginePanel);
+
+  function updateEvalBar(score) {
+    if (!evalBarTrack || !evalBarFill || !evalBarScore) return;
+
+    const validScore = typeof score === 'number' && Number.isFinite(score);
+    if (!validScore) {
+      evalBarTrack.classList.remove('white-advantage', 'black-advantage');
+      evalBarScore.classList.remove('white-advantage', 'black-advantage');
+      evalBarFill.style.height = '50%';
+      evalBarScore.textContent = '–';
+      return;
+    }
+
+    evalBarTrack.classList.remove('analyzing');
+    const clamped = Math.max(-500, Math.min(500, score));
+    const percent = ((clamped + 500) / 1000) * 100;
+    const display = (clamped / 100).toFixed(1);
+    const whiteAdvantage = clamped >= 0;
+
+    evalBarTrack.classList.toggle('white-advantage', whiteAdvantage);
+    evalBarTrack.classList.toggle('black-advantage', !whiteAdvantage);
+    evalBarScore.classList.toggle('white-advantage', whiteAdvantage);
+    evalBarScore.classList.toggle('black-advantage', !whiteAdvantage);
+    evalBarFill.style.height = `${percent}%`;
+    evalBarScore.textContent = display;
+  }
+
+  function setEvalBarAnalyzing(isAnalyzing) {
+    if (!evalBarTrack) return;
+    // Only show analyzing animation if eval bar is visible
+    if (isAnalyzing && !evalBarVisible) {
+      evalBarTrack.classList.remove('analyzing');
+      return;
+    }
+    evalBarTrack.classList.toggle('analyzing', isAnalyzing);
+  }
+
+  updateEvalBar(0);
 
   return {
     boardEl,
@@ -789,6 +892,13 @@ export function initUI(rootEl, handlers = {}) {
       startAnalysisBtn.disabled = isBusy;
       stopAnalysisBtn.disabled = !isBusy;
     },
+    setEngineDepth(depth) {
+      if (!engineDepth) return;
+      const fallback = Number.parseInt(engineDepth.getAttribute('min'), 10) || 18;
+      const value = Number.isFinite(depth) ? depth : fallback;
+      engineDepth.value = value;
+      engineDepthValue.textContent = value;
+    },
     updateEngineLines(lines) {
       if (!Array.isArray(lines) || lines.length === 0) {
         clearEnginePanel(engineLinesEl);
@@ -812,9 +922,15 @@ export function initUI(rootEl, handlers = {}) {
     },
     revealEnginePanel() {
       enginePanel.classList.remove('hidden');
+      if (handlers.onEnginePanelVisibilityChange) {
+        handlers.onEnginePanelVisibilityChange(true);
+      }
     },
     hideEnginePanel() {
       enginePanel.classList.add('hidden');
+      if (handlers.onEnginePanelVisibilityChange) {
+        handlers.onEnginePanelVisibilityChange(false);
+      }
     },
     setEngineOverlayMode(mode) {
       updateEngineOverlayButtons(mode);
@@ -822,6 +938,11 @@ export function initUI(rootEl, handlers = {}) {
     getCurrentTimeControl() {
       return { ...currentTimeControl };
     },
+    isEvalBarVisible() {
+      return evalBarVisible;
+    },
+    updateEvalBar,
+    setEvalBarAnalyzing,
     updateMatchInfo,
     messageApi
   };
