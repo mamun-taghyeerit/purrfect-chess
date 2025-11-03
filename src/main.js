@@ -22,7 +22,7 @@ const state = {
   customHighlights: new Set(),
   lastMove: null,
   engineHighlights: [],
-  engineDisplayMode: "both",
+  engineDisplayMode: "arrows",
   engineBusy: false,
   boardLocked: false,
 };
@@ -102,6 +102,10 @@ function queueAutoEvaluation() {
   autoEvalActive = true;
   const fen = getFen();
 
+  if (typeof ui.setEvalBarAnalyzing === "function") {
+    ui.setEvalBarAnalyzing(true);
+  }
+
   analyze(fen, { depth: autoEvalDepth, multipv: 1 })
     .then((lines) => {
       if (token !== autoEvalToken) return;
@@ -130,6 +134,9 @@ function queueAutoEvaluation() {
     .finally(() => {
       if (token !== autoEvalToken) return;
       autoEvalActive = false;
+      if (typeof ui.setEvalBarAnalyzing === "function") {
+        ui.setEvalBarAnalyzing(false);
+      }
     });
 }
 

@@ -336,7 +336,7 @@ export function initUI(rootEl, handlers = {}) {
               <div class="board-ranks board-ranks-right" data-role="ranks-right"></div>
               <div id="board"></div>
             </div>
-            <div class="eval-bar" id="eval-bar">
+            <div class="eval-bar hidden" id="eval-bar">
               <div class="eval-bar-track" id="eval-bar-track">
                 <div class="eval-bar-fill" id="eval-bar-fill"></div>
               </div>
@@ -348,6 +348,10 @@ export function initUI(rootEl, handlers = {}) {
           <button id="reset-game" type="button" class="button button-outline icon-button button-small">
             <span class="button-icon">↻</span>
             <span>Reset Game</span>
+          </button>
+          <button id="toggle-eval-bar" type="button" class="button button-outline icon-button button-small">
+            <span class="button-icon">📊</span>
+            <span>Show Eval Bar</span>
           </button>
         </div>
         <div class="match-card" id="match-card">
@@ -501,8 +505,9 @@ export function initUI(rootEl, handlers = {}) {
   }
 
   let currentTimeControl = { minutes: 5, increment: 0 };
-  let engineOverlayMode = 'both';
+  let engineOverlayMode = 'arrows';
   let selectedPresetButton = null;
+  let evalBarVisible = false;
 
   timePresets.forEach((preset) => {
     const button = document.createElement('button');
@@ -540,6 +545,8 @@ export function initUI(rootEl, handlers = {}) {
   const applyCustomBtn = rootEl.querySelector('#apply-custom');
   const startBtn = rootEl.querySelector('#start-new-game');
   const resetGameBtn = rootEl.querySelector('#reset-game');
+  const toggleEvalBarBtn = rootEl.querySelector('#toggle-eval-bar');
+  const evalBarEl = rootEl.querySelector('#eval-bar');
   const resetAppearanceButtons = rootEl.querySelectorAll('[data-role="reset-appearance"]');
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
   const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
@@ -662,6 +669,15 @@ export function initUI(rootEl, handlers = {}) {
         handlers.onResetGame();
       }
     });
+  });
+
+  toggleEvalBarBtn.addEventListener('click', () => {
+    evalBarVisible = !evalBarVisible;
+    evalBarEl.classList.toggle('hidden', !evalBarVisible);
+    const buttonText = toggleEvalBarBtn.querySelector('span:last-child');
+    if (buttonText) {
+      buttonText.textContent = evalBarVisible ? 'Hide Eval Bar' : 'Show Eval Bar';
+    }
   });
 
   function resetAppearance() {
@@ -805,6 +821,7 @@ export function initUI(rootEl, handlers = {}) {
       return;
     }
 
+    evalBarTrack.classList.remove('analyzing');
     const clamped = Math.max(-500, Math.min(500, score));
     const percent = ((clamped + 500) / 1000) * 100;
     const display = (clamped / 100).toFixed(1);
@@ -816,6 +833,11 @@ export function initUI(rootEl, handlers = {}) {
     evalBarScore.classList.toggle('black-advantage', !whiteAdvantage);
     evalBarFill.style.height = `${percent}%`;
     evalBarScore.textContent = display;
+  }
+
+  function setEvalBarAnalyzing(isAnalyzing) {
+    if (!evalBarTrack) return;
+    evalBarTrack.classList.toggle('analyzing', isAnalyzing);
   }
 
   updateEvalBar(0);
@@ -896,6 +918,7 @@ export function initUI(rootEl, handlers = {}) {
       return { ...currentTimeControl };
     },
     updateEvalBar,
+    setEvalBarAnalyzing,
     updateMatchInfo,
     messageApi
   };
