@@ -567,7 +567,7 @@ export function createBoard(
     for (let file = 0; file < 8; file += 1) {
       const squareName = algebraicAt(file, rank);
       const squareEl = document.createElement("div");
-      squareEl.className = `square ${(rank + file) % 2 === 0 ? "dark" : "light"}`;
+      squareEl.className = `square ${(rank + file) % 2 === 0 ? "light" : "dark"}`;
       squareEl.dataset.square = squareName;
 
       const img = document.createElement("img");
