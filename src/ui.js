@@ -678,6 +678,9 @@ export function initUI(rootEl, handlers = {}) {
     if (buttonText) {
       buttonText.textContent = evalBarVisible ? 'Hide Eval Bar' : 'Show Eval Bar';
     }
+    if (handlers.onEvalBarVisibilityChange) {
+      handlers.onEvalBarVisibilityChange(evalBarVisible);
+    }
   });
 
   function resetAppearance() {
@@ -802,6 +805,9 @@ export function initUI(rootEl, handlers = {}) {
 
   closeEngineBtn.addEventListener('click', () => {
     enginePanel.classList.add('hidden');
+    if (handlers.onEnginePanelVisibilityChange) {
+      handlers.onEnginePanelVisibilityChange(false);
+    }
     if (handlers.onStopAnalysis) {
       handlers.onStopAnalysis();
     }
@@ -907,15 +913,24 @@ export function initUI(rootEl, handlers = {}) {
     },
     revealEnginePanel() {
       enginePanel.classList.remove('hidden');
+      if (handlers.onEnginePanelVisibilityChange) {
+        handlers.onEnginePanelVisibilityChange(true);
+      }
     },
     hideEnginePanel() {
       enginePanel.classList.add('hidden');
+      if (handlers.onEnginePanelVisibilityChange) {
+        handlers.onEnginePanelVisibilityChange(false);
+      }
     },
     setEngineOverlayMode(mode) {
       updateEngineOverlayButtons(mode);
     },
     getCurrentTimeControl() {
       return { ...currentTimeControl };
+    },
+    isEvalBarVisible() {
+      return evalBarVisible;
     },
     updateEvalBar,
     setEvalBarAnalyzing,

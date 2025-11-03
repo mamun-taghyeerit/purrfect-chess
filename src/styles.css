@@ -547,6 +547,15 @@ h1,
   min-width: 46px;
   height: 100%;
   padding: 8px 0;
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.eval-bar.hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .eval-bar-track {
