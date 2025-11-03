@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { setupEasterEgg, _testing } from '../../src/ui/easter-egg.js';
+import { setupEasterEgg, _testing } from '../../src/ui/easter-egg.ts';
 
 describe('Easter Egg Module', () => {
   let cheatTextEl;

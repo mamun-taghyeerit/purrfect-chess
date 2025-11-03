@@ -1,7 +1,8 @@
-import { formatRemainingTime } from './game/time-controls.js';
-import { setupEasterEgg } from './ui/easter-egg.js';
+import { formatRemainingTime } from './game/time-controls';
+import { setupEasterEgg } from './ui/easter-egg';
+import type { UIHandlers, MatchInfo, ClockState, EngineAnalysisLine, TimeControl } from './types';
 
-const timePresets = [
+const timePresets: TimeControl[] = [
   { label: '3 + 0', minutes: 3, increment: 0 },
   { label: '5 + 1', minutes: 5, increment: 1 },
   { label: '10 + 0', minutes: 10, increment: 0 },
@@ -227,7 +228,7 @@ function clearEnginePanel(engineLinesEl) {
   engineLinesEl.innerHTML = '<p class="engine-placeholder">Awaiting analysis…</p>';
 }
 
-export function initUI(rootEl, handlers = {}) {
+export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
   const messageBox = createMessageBox();
   const overlay = createConfirmationOverlay();
 
@@ -480,8 +481,8 @@ export function initUI(rootEl, handlers = {}) {
         `Switch to ${preset.minutes}+${preset.increment}?`,
         () => {
           currentTimeControl = { minutes: preset.minutes, increment: preset.increment };
-          rootEl.querySelector('#custom-minutes').value = preset.minutes;
-          rootEl.querySelector('#custom-increment').value = preset.increment;
+          (rootEl.querySelector('#custom-minutes') as HTMLInputElement).value = String(preset.minutes);
+          (rootEl.querySelector('#custom-increment') as HTMLInputElement).value = String(preset.increment);
           updateMatchInfo({
             event: `Purrfect Game - ${preset.minutes}+${preset.increment}`,
             timeControl: `${preset.minutes} + ${preset.increment}`
@@ -538,13 +539,13 @@ export function initUI(rootEl, handlers = {}) {
   buildAppearanceControls(appearanceGridRight, ['dark', 'blackPieces']);
   applyAppearance();
   clearEnginePanel(engineLinesEl);
-  stopAnalysisBtn.disabled = true;
+  (stopAnalysisBtn as HTMLButtonElement).disabled = true;
 
   function updateEngineOverlayButtons(mode) {
     if (!mode) return;
     engineOverlayMode = mode;
     engineOverlayButtons.forEach((button) => {
-      const value = button.dataset.engineOverlayMode;
+      const value = (button as HTMLElement).dataset.engineOverlayMode;
       const isActive = value === mode;
       button.classList.toggle('active', isActive);
       if (isActive) {
@@ -561,7 +562,7 @@ export function initUI(rootEl, handlers = {}) {
 
   engineOverlayButtons.forEach((button) => {
     button.addEventListener('click', () => {
-      const mode = button.dataset.engineOverlayMode;
+      const mode = (button as HTMLElement).dataset.engineOverlayMode;
       if (!mode || mode === engineOverlayMode) {
         return;
       }
@@ -578,7 +579,8 @@ export function initUI(rootEl, handlers = {}) {
   const matchTimeControlEl = rootEl.querySelector('#match-time-control');
   const matchSiteEl = rootEl.querySelector('#match-site');
 
-  function updateMatchInfo({ title, event, date, timeControl, site }) {
+  function updateMatchInfo(info: MatchInfo) {
+    const { title, event, date, timeControl, site } = info;
     if (title) {
       matchTitleEl.textContent = title;
     }
@@ -605,8 +607,8 @@ export function initUI(rootEl, handlers = {}) {
   });
 
   applyCustomBtn.addEventListener('click', () => {
-    const minutes = Number.parseInt(customMinutes.value, 10);
-    const increment = Number.parseInt(customIncrement.value, 10);
+    const minutes = Number.parseInt((customMinutes as HTMLInputElement).value, 10);
+    const increment = Number.parseInt((customIncrement as HTMLInputElement).value, 10);
     showConfirmation('Change Time Control', `Apply ${minutes}+${increment}?`, () => {
       currentTimeControl = { minutes, increment };
       updateMatchInfo({
@@ -718,7 +720,7 @@ export function initUI(rootEl, handlers = {}) {
   copyFenBtn.addEventListener('click', async () => {
     if (!handlers.onCopyFen) return;
     const fen = handlers.onCopyFen();
-    fenOutput.value = fen;
+    (fenOutput as HTMLTextAreaElement).value = fen;
     try {
       await navigator.clipboard.writeText(fen);
       messageApi.show('success', 'FEN copied to clipboard!');
@@ -742,7 +744,7 @@ export function initUI(rootEl, handlers = {}) {
   copyPgnBtn.addEventListener('click', async () => {
     if (!handlers.onCopyPgn) return;
     const pgn = handlers.onCopyPgn();
-    pgnOutput.value = pgn;
+    (pgnOutput as HTMLTextAreaElement).value = pgn;
     try {
       await navigator.clipboard.writeText(pgn);
       messageApi.show('success', 'PGN copied to clipboard!');
@@ -764,12 +766,12 @@ export function initUI(rootEl, handlers = {}) {
   }
 
   engineDepth.addEventListener('input', () => {
-    engineDepthValue.textContent = engineDepth.value;
+    engineDepthValue.textContent = (engineDepth as HTMLInputElement).value;
   });
 
   startAnalysisBtn.addEventListener('click', () => {
     if (handlers.onStartAnalysis) {
-      handlers.onStartAnalysis({ depth: Number.parseInt(engineDepth.value, 10) });
+      handlers.onStartAnalysis({ depth: Number.parseInt((engineDepth as HTMLInputElement).value, 10) });
     }
   });
 
@@ -798,7 +800,7 @@ export function initUI(rootEl, handlers = {}) {
     if (!validScore) {
       evalBarTrack.classList.remove('white-advantage', 'black-advantage');
       evalBarScore.classList.remove('white-advantage', 'black-advantage');
-      evalBarFill.style.height = '50%';
+      (evalBarFill as HTMLElement).style.height = '50%';
       evalBarScore.textContent = '–';
       return;
     }
@@ -813,7 +815,7 @@ export function initUI(rootEl, handlers = {}) {
     evalBarTrack.classList.toggle('black-advantage', !whiteAdvantage);
     evalBarScore.classList.toggle('white-advantage', whiteAdvantage);
     evalBarScore.classList.toggle('black-advantage', !whiteAdvantage);
-    evalBarFill.style.height = `${percent}%`;
+    (evalBarFill as HTMLElement).style.height = `${percent}%`;
     evalBarScore.textContent = display;
   }
 
@@ -854,8 +856,8 @@ export function initUI(rootEl, handlers = {}) {
       list.innerHTML = rows;
     },
     updateNotation({ pgn, fen }) {
-      pgnOutput.value = pgn;
-      fenOutput.value = fen;
+      (pgnOutput as HTMLTextAreaElement).value = pgn;
+      (fenOutput as HTMLTextAreaElement).value = fen;
     },
     getBoardElement() {
       return boardEl;
@@ -864,14 +866,14 @@ export function initUI(rootEl, handlers = {}) {
       return rootEl.querySelector('.board-container');
     },
     setEngineBusy(isBusy) {
-      startAnalysisBtn.disabled = isBusy;
-      stopAnalysisBtn.disabled = !isBusy;
+      (startAnalysisBtn as HTMLButtonElement).disabled = isBusy;
+      (stopAnalysisBtn as HTMLButtonElement).disabled = !isBusy;
     },
     setEngineDepth(depth) {
       if (!engineDepth) return;
       const fallback = Number.parseInt(engineDepth.getAttribute('min'), 10) || 18;
       const value = Number.isFinite(depth) ? depth : fallback;
-      engineDepth.value = value;
+      (engineDepth as HTMLInputElement).value = value;
       engineDepthValue.textContent = value;
     },
     updateEngineLines(lines) {
@@ -934,12 +936,12 @@ export function initUI(rootEl, handlers = {}) {
     showEvalBarDepthInfo(show = true) {
       const evalBarDepthInfo = rootEl.querySelector('#eval-bar-depth-info');
       if (evalBarDepthInfo) {
-        evalBarDepthInfo.style.display = show ? 'block' : 'none';
+        (evalBarDepthInfo as HTMLElement).style.display = show ? 'block' : 'none';
       }
     },
     showMoveReviewStatus(show = true) {
       if (moveReviewStatus) {
-        moveReviewStatus.style.display = show ? 'block' : 'none';
+        (moveReviewStatus as HTMLElement).style.display = show ? 'block' : 'none';
       }
     },
     updateMoveReviewStatus({ remainingTime, totalTime, depth }) {

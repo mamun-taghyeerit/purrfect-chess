@@ -1,6 +1,7 @@
 import { Chess } from 'chess.js';
+import type { TimeControl, GameHandlers, MoveInfo, ClockState } from './types';
 
-const DEFAULT_TIME = { minutes: 5, increment: 0 };
+const DEFAULT_TIME: TimeControl = { minutes: 5, increment: 0 };
 
 const state = {
   game: new Chess(),
@@ -133,7 +134,8 @@ function notifyMove(move, status) {
   }
 }
 
-export function initGame({ onMove, onGameOver } = {}) {
+export function initGame(handlers: GameHandlers = {}) {
+  const { onMove, onGameOver } = handlers;
   state.onMove = onMove || null;
   state.onGameOver = onGameOver || null;
 
@@ -161,33 +163,33 @@ export function getPgn() {
   return state.game.pgn();
 }
 
-export function getClocks() {
+export function getClocks(): ClockState {
   return {
     white: Math.max(0, Math.round(state.whiteTime)),
     black: Math.max(0, Math.round(state.blackTime)),
-    active: state.activeColor
+    active: state.activeColor as 'w' | 'b'
   };
 }
 
-export function getTimeControl() {
+export function getTimeControl(): TimeControl {
   return { ...state.timeControl };
 }
 
-export function getLastMoveInfo() {
+export function getLastMoveInfo(): MoveInfo | null {
   return state.lastMoveInfo ? { ...state.lastMoveInfo } : null;
 }
 
-export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
-  const minutesVal = Number.isFinite(minutes) ? minutes : DEFAULT_TIME.minutes;
-  const incrementVal = Number.isFinite(increment) ? increment : DEFAULT_TIME.increment;
+export function startNewGame(control: Partial<TimeControl> = {}) {
+  const minutes = Number.isFinite(control.minutes) ? control.minutes : DEFAULT_TIME.minutes;
+  const increment = Number.isFinite(control.increment) ? control.increment : DEFAULT_TIME.increment;
 
   stopTimer();
   state.timerId = null;
 
-  state.timeControl = { minutes: minutesVal, increment: incrementVal };
-  state.whiteTime = minutesVal * 60 * 1000;
-  state.blackTime = minutesVal * 60 * 1000;
-  state.incrementMs = incrementVal * 1000;
+  state.timeControl = { minutes, increment };
+  state.whiteTime = minutes * 60 * 1000;
+  state.blackTime = minutes * 60 * 1000;
+  state.incrementMs = increment * 1000;
   state.activeColor = 'w';
   state.lastMove = null;
   state.lastMoveInfo = null;
@@ -198,7 +200,8 @@ export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   notifyMove(null, { type: 'reset' });
 }
 
-function resetAfterExternalLoad({ lastMove } = {}) {
+function resetAfterExternalLoad(options: { lastMove?: any } = {}) {
+  const { lastMove } = options;
   stopTimer();
   state.timerId = null;
   state.lastTick = null;
@@ -256,7 +259,8 @@ export function loadPgn(pgn) {
   return { success: true };
 }
 
-function attemptMove(from, to, { promotion } = {}) {
+function attemptMove(from: string, to: string, options: { promotion?: string } = {}) {
+  const { promotion } = options;
   if (state.gameOver) {
     return { success: false };
   }

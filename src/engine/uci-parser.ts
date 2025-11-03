@@ -8,27 +8,45 @@
  */
 
 /**
+ * Score type from UCI protocol
+ */
+export interface UciScore {
+  type: 'cp' | 'mate';
+  value: number;
+}
+
+/**
+ * Parsed UCI info line data
+ */
+export interface UciInfoResult {
+  depth: number | null;
+  multipv: number | null;
+  score: UciScore | null;
+  pv: string | null;           // First move in UCI format (e.g., "e2e4")
+  pvLine: string | null;        // Full PV line, space-separated moves
+  nodes: number | null;
+  time: number | null;
+  nps: number | null;           // Nodes per second
+  hashfull: number | null;      // Hash table utilization (0-1000)
+  seldepth: number | null;      // Selective search depth
+  tbhits: number | null;        // Tablebase hits
+}
+
+/**
+ * Parsed UCI bestmove data
+ */
+export interface UciBestMoveResult {
+  bestmove: string | null;      // Best move in UCI format (e.g., "e2e4"), or null if no legal move
+  ponder: string | null;         // Ponder move in UCI format (e.g., "e7e5"), or null if not present
+}
+
+/**
  * Parses a UCI "info" line and extracts relevant analysis data.
  * 
- * @param {string} line - The raw UCI info line (e.g., "info depth 20 multipv 1 score cp 25 pv e2e4 e7e5")
- * @returns {Object|null} Parsed info object or null if line is invalid/incomplete
- * 
- * Returned object structure:
- * {
- *   depth: number | null,
- *   multipv: number | null,
- *   score: { type: 'cp' | 'mate', value: number } | null,
- *   pv: string | null,           // First move in UCI format (e.g., "e2e4")
- *   pvLine: string | null,        // Full PV line, space-separated moves
- *   nodes: number | null,
- *   time: number | null,
- *   nps: number | null,           // Nodes per second
- *   hashfull: number | null,      // Hash table utilization (0-1000)
- *   seldepth: number | null,      // Selective search depth
- *   tbhits: number | null         // Tablebase hits
- * }
+ * @param line - The raw UCI info line (e.g., "info depth 20 multipv 1 score cp 25 pv e2e4 e7e5")
+ * @returns Parsed info object or null if line is invalid/incomplete
  */
-export function parseInfoLine(line) {
+export function parseInfoLine(line: string): UciInfoResult | null {
   if (!line || typeof line !== 'string') {
     return null;
   }
@@ -39,7 +57,7 @@ export function parseInfoLine(line) {
     return null;
   }
 
-  const result = {
+  const result: UciInfoResult = {
     depth: null,
     multipv: null,
     score: null,
@@ -86,7 +104,7 @@ export function parseInfoLine(line) {
     const value = Number.parseInt(scoreMatch[2], 10);
     if (Number.isFinite(value)) {
       result.score = {
-        type: scoreMatch[1],
+        type: scoreMatch[1] as 'cp' | 'mate',
         value: value
       };
     }
@@ -157,16 +175,10 @@ export function parseInfoLine(line) {
 /**
  * Parses a UCI "bestmove" line.
  * 
- * @param {string} line - The raw UCI bestmove line (e.g., "bestmove e2e4" or "bestmove e2e4 ponder e7e5")
- * @returns {Object|null} Parsed bestmove object or null if invalid
- * 
- * Returned object structure:
- * {
- *   bestmove: string,      // Best move in UCI format (e.g., "e2e4")
- *   ponder: string | null  // Ponder move in UCI format (e.g., "e7e5"), or null if not present
- * }
+ * @param line - The raw UCI bestmove line (e.g., "bestmove e2e4" or "bestmove e2e4 ponder e7e5")
+ * @returns Parsed bestmove object or null if invalid
  */
-export function parseBestMove(line) {
+export function parseBestMove(line: string): UciBestMoveResult | null {
   if (!line || typeof line !== 'string') {
     return null;
   }
@@ -194,7 +206,7 @@ export function parseBestMove(line) {
   }
 
   // Extract optional ponder move
-  let ponder = null;
+  let ponder: string | null = null;
   const ponderMatch = trimmed.match(/\bponder\s+([a-h][1-8][a-h][1-8][qrbn]?)/);
   if (ponderMatch) {
     ponder = ponderMatch[1];

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { validateMove, sanToMove } from '../../src/game/move-validator.js';
+import { validateMove, sanToMove } from '../../src/game/move-validator.ts';
 
 describe('validateMove', () => {
   describe('valid moves', () => {

@@ -6,18 +6,32 @@
  */
 
 /**
+ * Board state from FEN parsing
+ */
+export interface FenBoardState {
+  piecePlacement: string;
+  activeColor: 'w' | 'b';
+  castling: string;
+  enPassant: string;
+  halfmove: number;
+  fullmove: number;
+}
+
+/**
+ * Chess piece representation
+ */
+export interface Piece {
+  type: string;
+  color: 'w' | 'b';
+}
+
+/**
  * Parse a FEN string into a plain JS object representing board state
  * 
- * @param {string} fen - FEN string to parse
- * @returns {Object|null} Board state object or null if invalid
- * @property {string} piecePlacement - Piece placement data (ranks separated by /)
- * @property {string} activeColor - Active color ('w' or 'b')
- * @property {string} castling - Castling availability (KQkq or -)
- * @property {string} enPassant - En passant target square (e.g., 'e3' or '-')
- * @property {number} halfmove - Halfmove clock
- * @property {number} fullmove - Fullmove number
+ * @param fen - FEN string to parse
+ * @returns Board state object or null if invalid
  */
-export function parseFEN(fen) {
+export function parseFEN(fen: string): FenBoardState | null {
   if (typeof fen !== 'string' || !fen.trim()) {
     return null;
   }
@@ -57,16 +71,10 @@ export function parseFEN(fen) {
 /**
  * Generate a FEN string from a board state object
  * 
- * @param {Object} boardState - Board state object
- * @param {string} boardState.piecePlacement - Piece placement data
- * @param {string} boardState.activeColor - Active color ('w' or 'b')
- * @param {string} boardState.castling - Castling availability
- * @param {string} boardState.enPassant - En passant target square
- * @param {number} [boardState.halfmove=0] - Halfmove clock
- * @param {number} [boardState.fullmove=1] - Fullmove number
- * @returns {string|null} FEN string or null if invalid
+ * @param boardState - Board state object
+ * @returns FEN string or null if invalid
  */
-export function generateFEN(boardState) {
+export function generateFEN(boardState: Partial<FenBoardState>): string | null {
   if (!boardState || typeof boardState !== 'object') {
     return null;
   }
@@ -114,21 +122,20 @@ export function generateFEN(boardState) {
  * This is a convenience function that parses the FEN and extracts
  * the piece placement into an 8x8 array structure.
  * 
- * @param {string} fen - FEN string
- * @returns {Array<Array<Object|null>>|null} 8x8 board array or null if invalid
- * Each cell contains {type: string, color: string} or null for empty squares
+ * @param fen - FEN string
+ * @returns 8x8 board array or null if invalid. Each cell contains {type: string, color: string} or null for empty squares
  */
-export function boardFromFEN(fen) {
+export function boardFromFEN(fen: string): (Piece | null)[][] | null {
   const state = parseFEN(fen);
   if (!state) {
     return null;
   }
 
-  const board = [];
+  const board: (Piece | null)[][] = [];
   const ranks = state.piecePlacement.split('/');
 
   for (const rank of ranks) {
-    const row = [];
+    const row: (Piece | null)[] = [];
     for (const char of rank) {
       if (char >= '1' && char <= '8') {
         // Empty squares

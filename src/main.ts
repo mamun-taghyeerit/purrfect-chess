@@ -11,11 +11,11 @@ import {
   loadFen,
   loadPgn,
   getLastMoveInfo,
-} from "./game.js";
-import { createBoard, renderPosition } from "./board.js";
-import { initEngine, analyze, stop as stopEngine } from "./engine.js";
-import { initUI } from "./ui.js";
-import { computeEvalDepth } from "./game/time-controls.js";
+} from "./game";
+import { createBoard, renderPosition } from "./board";
+import { initEngine, analyze, stop as stopEngine } from "./engine";
+import { initUI } from "./ui";
+import { computeEvalDepth } from "./game/time-controls";
 
 const state = {
   selectedSquare: null,
@@ -77,12 +77,12 @@ function refreshMatchDetails() {
 function renderBoard() {
   renderPosition(getGame(), {
     selectedSquare: state.selectedSquare,
-    legalMoves: Array.from(state.legalMoves),
-    captureMoves: Array.from(state.captureMoves),
+    legalMoves: Array.from(state.legalMoves) as string[],
+    captureMoves: Array.from(state.captureMoves) as string[],
     lastMove: state.lastMove,
-    customHighlights: Array.from(state.customHighlights),
+    customHighlights: Array.from(state.customHighlights) as string[],
     engineHighlights: state.engineHighlights,
-    engineDisplayMode: state.engineDisplayMode,
+    engineDisplayMode: state.engineDisplayMode as 'both' | 'arrows' | 'squares',
     isDragging: state.isDragging,  // Pass drag state to render lighter highlights
   });
 }
@@ -451,7 +451,11 @@ function startAnalysis({ depth }) {
 }
 
 // Helper function to create a status update interval for move review
-function createMoveReviewStatusUpdater(startTime, totalTime, onProgress) {
+function createMoveReviewStatusUpdater(
+  startTime: number, 
+  totalTime: number, 
+  onProgress?: ((data: { depth: number }) => void)
+) {
   let currentDepth = 0;
   
   const updateStatus = () => {
