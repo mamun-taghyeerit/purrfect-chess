@@ -657,7 +657,8 @@ h1,
 }
 
 .square img {
-  pointer-events: none;
+  /* DO NOT set pointer-events: none - it prevents drag events from firing! */
+  /* Images need to receive pointer events for HTML5 drag-and-drop to work */
   width: 90%;
   height: 90%;
   object-fit: contain;
@@ -666,6 +667,15 @@ h1,
   left: 50%;
   transform: translate(-50%, -50%);
   transition: transform 0.15s ease;
+}
+
+/* Show grab cursor for draggable pieces */
+.square img[draggable="true"] {
+  cursor: grab;
+}
+
+.square img[draggable="true"]:active {
+  cursor: grabbing;
 }
 
 .square.white-piece img {
