@@ -603,7 +603,8 @@ export function createBoard(
       squareEl.dataset.square = squareName;
 
       const img = document.createElement("img");
-      img.draggable = false;
+      // Note: draggable attribute is managed by renderPosition() based on piece presence
+      // Setting draggable=false here would prevent drag events from firing
       img.alt = "";
 
       img.addEventListener("dragstart", handleDragStart);
