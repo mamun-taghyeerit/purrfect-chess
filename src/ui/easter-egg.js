@@ -100,32 +100,19 @@ export function setupEasterEgg(cheatTextEl, enginePanelEl, onReveal) {
   
   // Listen for selection changes globally
   document.addEventListener('selectionchange', () => {
-    const selection = window.getSelection();
-    if (!selection || !selection.toString()) {
-      return;
-    }
-    
-    try {
-      if (typeof selection.containsNode === 'function' && 
-          selection.containsNode(cheatTextEl, true)) {
-        cheatPrimed = true;
-        cheatProgress = 0;
-      }
-    } catch (error) {
-      // Ignore selection errors
+    if (checkSelectedText(cheatTextEl)) {
+      cheatPrimed = true;
+      cheatProgress = 0;
     }
   });
   
-  // Listen for keydown events to check the cheatcode sequence
-  document.addEventListener('keydown', (event) => {
-    handleKeydown(event, enginePanelEl, onReveal);
-  });
-  
-  // Listen for Escape key to reset the cheatcode state
+  // Listen for keydown events (cheatcode sequence and Escape to reset)
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       cheatPrimed = false;
       cheatProgress = 0;
+    } else {
+      handleKeydown(event, enginePanelEl, onReveal);
     }
   });
 }
