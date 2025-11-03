@@ -1,3 +1,5 @@
+import { formatRemainingTime } from './game/time-controls.js';
+
 const timePresets = [
   { label: '3 + 0', minutes: 3, increment: 0 },
   { label: '5 + 1', minutes: 5, increment: 1 },
@@ -998,9 +1000,9 @@ export function initUI(rootEl, handlers = {}) {
     },
     updateMoveReviewStatus({ remainingTime, totalTime, depth }) {
       if (moveReviewTime && Number.isFinite(remainingTime) && Number.isFinite(totalTime)) {
-        const remainingSeconds = (remainingTime / 1000).toFixed(2);
-        const totalSeconds = (totalTime / 1000).toFixed(2);
-        moveReviewTime.textContent = `${remainingSeconds}s/${totalSeconds}`;
+        const remainingSeconds = remainingTime / 1000;
+        const totalSeconds = totalTime / 1000;
+        moveReviewTime.textContent = formatRemainingTime(remainingSeconds, totalSeconds);
       }
       if (moveReviewDepth && Number.isFinite(depth)) {
         moveReviewDepth.textContent = depth;
