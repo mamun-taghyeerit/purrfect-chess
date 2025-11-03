@@ -353,6 +353,10 @@ export function initUI(rootEl, handlers = {}) {
             <span class="button-icon">📊</span>
             <span>Show Eval Bar</span>
           </button>
+          <button id="move-review" type="button" class="button button-outline icon-button button-small">
+            <span class="button-icon">⭐</span>
+            <span>Move Review</span>
+          </button>
         </div>
         <div class="match-card" id="match-card">
           <div class="match-title" id="match-title">Purrfect Game</div>
@@ -546,6 +550,7 @@ export function initUI(rootEl, handlers = {}) {
   const startBtn = rootEl.querySelector('#start-new-game');
   const resetGameBtn = rootEl.querySelector('#reset-game');
   const toggleEvalBarBtn = rootEl.querySelector('#toggle-eval-bar');
+  const moveReviewBtn = rootEl.querySelector('#move-review');
   const evalBarEl = rootEl.querySelector('#eval-bar');
   const resetAppearanceButtons = rootEl.querySelectorAll('[data-role="reset-appearance"]');
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
@@ -684,6 +689,12 @@ export function initUI(rootEl, handlers = {}) {
     }
     if (handlers.onEvalBarVisibilityChange) {
       handlers.onEvalBarVisibilityChange(evalBarVisible);
+    }
+  });
+
+  moveReviewBtn.addEventListener('click', () => {
+    if (handlers.onMoveReview) {
+      handlers.onMoveReview();
     }
   });
 
@@ -887,6 +898,9 @@ export function initUI(rootEl, handlers = {}) {
     },
     getBoardElement() {
       return boardEl;
+    },
+    getBoardContainer() {
+      return rootEl.querySelector('.board-container');
     },
     setEngineBusy(isBusy) {
       startAnalysisBtn.disabled = isBusy;

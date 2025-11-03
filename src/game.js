@@ -14,7 +14,8 @@ const state = {
   timerId: null,
   lastTick: null,
   gameOver: false,
-  timeControl: { ...DEFAULT_TIME }
+  timeControl: { ...DEFAULT_TIME },
+  lastMoveInfo: null
 };
 
 function getTimeControlSettings() {
@@ -143,7 +144,8 @@ export function initGame({ onMove, onGameOver } = {}) {
     getFen,
     getPgn,
     getClocks,
-    getTimeControl
+    getTimeControl,
+    getLastMoveInfo
   };
 }
 
@@ -171,6 +173,10 @@ export function getTimeControl() {
   return { ...state.timeControl };
 }
 
+export function getLastMoveInfo() {
+  return state.lastMoveInfo ? { ...state.lastMoveInfo } : null;
+}
+
 export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   const minutesVal = Number.isFinite(minutes) ? minutes : DEFAULT_TIME.minutes;
   const incrementVal = Number.isFinite(increment) ? increment : DEFAULT_TIME.increment;
@@ -184,6 +190,7 @@ export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   state.incrementMs = incrementVal * 1000;
   state.activeColor = 'w';
   state.lastMove = null;
+  state.lastMoveInfo = null;
   state.game.reset();
   state.gameOver = false;
   state.lastTick = null;
@@ -260,6 +267,9 @@ function attemptMove(from, to, { promotion } = {}) {
     promotion: promotion || 'q'
   };
 
+  // Capture FEN before move
+  const preFen = state.game.fen();
+
   let move;
   try {
     move = state.game.move(movePayload);
@@ -272,6 +282,19 @@ function attemptMove(from, to, { promotion } = {}) {
   }
 
   state.lastMove = { from: move.from, to: move.to, san: move.san };
+
+  // Capture detailed move info for review
+  const postFen = state.game.fen();
+  state.lastMoveInfo = {
+    from: move.from,
+    to: move.to,
+    san: move.san,
+    color: move.color,
+    preFen,
+    postFen,
+    promotion: move.promotion || null,
+    moveNumber: state.game.history().length,
+  };
 
   if (move.color === 'w') {
     state.whiteTime += state.incrementMs;

@@ -62,13 +62,17 @@ function handleInfo(line) {
   const entry = currentAnalysis.partials.get(index) || {
     multipv: index,
     pv: null,
+    pvLine: null,
     score: null,
     result: null
   };
 
-  const pvMatch = line.match(/pv\s+([a-h][1-8][a-h][1-8][nbrqNBRQ]?)/);
+  const pvMatch = line.match(/pv\s+(.+)$/);
   if (pvMatch) {
-    entry.pv = pvMatch[1];
+    const fullPv = pvMatch[1].trim();
+    const moves = fullPv.split(/\s+/);
+    entry.pv = moves[0]; // First move
+    entry.pvLine = fullPv; // Full PV line
   }
 
   const scoreMatch = line.match(/score\s+(cp|mate)\s+(-?\d+)/);
@@ -80,14 +84,22 @@ function handleInfo(line) {
   }
 
   if (entry.pv && entry.score) {
-    entry.result = buildResult(entry);
+    const result = buildResult(entry);
+    if (result) {
+      entry.result = result;
+    }
   }
 
   currentAnalysis.partials.set(index, entry);
 }
 
 function buildResult(entry) {
-  const { pv, score, multipv } = entry;
+  const { pv, pvLine, score, multipv } = entry;
+  if (!pv) {
+    // If pv is missing, we can't build a result
+    return null;
+  }
+  
   const moves = pv.split(/\s+/);
   const uci = moves[0];
   const from = uci.slice(0, 2);
@@ -120,7 +132,8 @@ function buildResult(entry) {
     san,
     score: normalizedScore,
     scoreType: score.type,
-    rawScore: score.value
+    rawScore: score.value,
+    pvLine: pvLine || pv
   };
 }
 
@@ -157,7 +170,7 @@ export function initEngine() {
   return promise;
 }
 
-export function analyze(fen, { depth = 16, multipv = 3 } = {}) {
+export function analyze(fen, { depth = 16, multipv = 3, movetime = null } = {}) {
   if (!worker || !isReady) {
     throw new Error('Engine not initialized');
   }
@@ -185,7 +198,11 @@ export function analyze(fen, { depth = 16, multipv = 3 } = {}) {
   return new Promise((resolve, reject) => {
     analyzeResolver = resolve;
     analyzeRejecter = reject;
-    post(`go depth ${searchDepth}`);
+    if (movetime !== null && Number.isFinite(movetime) && movetime > 0) {
+      post(`go movetime ${movetime}`);
+    } else {
+      post(`go depth ${searchDepth}`);
+    }
   });
 }
 

@@ -10,6 +10,7 @@ import {
   getTimeControl,
   loadFen,
   loadPgn,
+  getLastMoveInfo,
 } from "./game.js";
 import { createBoard, renderPosition } from "./board.js";
 import { initEngine, analyze, stop as stopEngine } from "./engine.js";
@@ -384,6 +385,219 @@ function startAnalysis({ depth }) {
     });
 }
 
+async function reviewLastMove() {
+  const lastMoveInfo = getLastMoveInfo();
+  
+  if (!lastMoveInfo) {
+    ui.showMessage('info', 'No move to review.');
+    return;
+  }
+
+  if (!engineReady) {
+    ui.showMessage('error', 'Engine is not ready yet.');
+    return;
+  }
+
+  if (state.engineBusy) {
+    ui.showMessage('info', 'Engine is busy. Stop current analysis first.');
+    return;
+  }
+
+  try {
+    ui.showMessage('info', 'Analyzing move...');
+
+    // Analyze position before the move
+    const preAnalysis = await analyze(lastMoveInfo.preFen, { movetime: 5000, multipv: 1 });
+    const preEval = preAnalysis && preAnalysis.length > 0 ? preAnalysis[0] : null;
+
+    // Analyze position after the move
+    const postAnalysis = await analyze(lastMoveInfo.postFen, { movetime: 5000, multipv: 1 });
+    const postEval = postAnalysis && postAnalysis.length > 0 ? postAnalysis[0] : null;
+
+    // Classify the move
+    const classification = classifyMove(lastMoveInfo, preEval, postEval);
+
+    // Display the badge
+    displayMoveBadge(classification, lastMoveInfo.to);
+
+    ui.showMessage('success', `Move classified as: ${classification.type}`);
+  } catch (error) {
+    if (error && error.message !== 'Analysis stopped' && error.message !== 'Analysis superseded') {
+      ui.showMessage('error', 'Failed to analyze move.');
+    }
+  }
+}
+
+function classifyMove(moveInfo, preEval, postEval) {
+  // Build played UCI
+  const playedUci = moveInfo.from + moveInfo.to + (moveInfo.promotion || '');
+
+  // Extract scores with proper POV handling
+  const preCp = preEval?.scoreType === 'cp' ? preEval.score : null;
+  const postCp = postEval?.scoreType === 'cp' ? -postEval.score : null;
+  const delta = (preCp != null && postCp != null) ? (postCp - preCp) : null;
+
+  const engineMove = preEval?.uci || null;
+  const wasWinningBefore = preCp !== null && preCp >= 150;
+  const wasMuchWorseBefore = preCp !== null && preCp <= -150;
+  const nowEqual = postCp !== null && Math.abs(postCp) <= 30;
+
+  // If engine data missing, classify as inaccuracy
+  if (delta === null) {
+    return {
+      type: 'inaccuracy',
+      asset: getAssetPath('inaccuracy'),
+      delta: null,
+    };
+  }
+
+  // 1. forced
+  if (preEval?.scoreType === 'mate' && playedUci === engineMove) {
+    return { type: 'forced', asset: getAssetPath('forced'), delta };
+  }
+  if (playedUci === engineMove && Math.abs(delta) <= 15) {
+    return { type: 'forced', asset: getAssetPath('forced'), delta };
+  }
+
+  // 2. great
+  if (playedUci === engineMove && (preCp <= -120 || preEval?.scoreType === 'mate') && delta >= -20) {
+    return { type: 'great', asset: getAssetPath('great'), delta };
+  }
+
+  // 3. book
+  if (moveInfo.moveNumber <= 10 && Math.abs(delta) <= 10) {
+    return { type: 'book', asset: getAssetPath('book'), delta };
+  }
+
+  // 4. best
+  if (playedUci === engineMove) {
+    return { type: 'best', asset: getAssetPath('best'), delta };
+  }
+
+  // 5. brilliant
+  if (playedUci !== engineMove && delta >= 120 && TACTICAL_MOVE_PATTERN.test(moveInfo.san)) {
+    return { type: 'brilliant', asset: getAssetPath('brilliant'), delta };
+  }
+
+  // 6. miss
+  // Case A: missed win
+  if (wasWinningBefore && delta <= -120) {
+    return { type: 'miss', asset: getAssetPath('miss'), delta };
+  }
+  // Case B: missed equalizer
+  // Check if we were worse, and the engine's best move would have led to equality
+  if (wasMuchWorseBefore && playedUci !== engineMove) {
+    // The engine evaluation shows what the position would be after the engine's move
+    // Since preEval is from the mover's POV, a score near 0 means equality
+    const engineLeadsToEquality = preEval?.scoreType === 'cp' && Math.abs(preEval.score) <= 30;
+    // And our move didn't achieve equality
+    if (engineLeadsToEquality && !nowEqual) {
+      return { type: 'miss', asset: getAssetPath('miss'), delta };
+    }
+  }
+
+  // 7. excellent
+  if (delta >= -20) {
+    return { type: 'excellent', asset: getAssetPath('excellent'), delta };
+  }
+
+  // 8. good
+  if (delta >= -90) {
+    return { type: 'good', asset: getAssetPath('good'), delta };
+  }
+
+  // 9. inaccuracy
+  if (delta >= -200) {
+    return { type: 'inaccuracy', asset: getAssetPath('inaccuracy'), delta };
+  }
+
+  // 10. mistake
+  if (delta >= -400) {
+    return { type: 'mistake', asset: getAssetPath('mistake'), delta };
+  }
+
+  // 11. blunder
+  return { type: 'blunder', asset: getAssetPath('blunder'), delta };
+}
+
+function getAssetPath(type) {
+  // Use relative path that works in all deployment scenarios
+  const assetPath = `assets/${type}.png`;
+  return assetPath;
+}
+
+let currentBadge = null;
+
+// Pattern to identify tactical moves (captures, promotions, checks)
+const TACTICAL_MOVE_PATTERN = /[x=+]/;
+
+function displayMoveBadge(classification, targetSquare) {
+  // Remove existing badge
+  if (currentBadge) {
+    currentBadge.remove();
+    currentBadge = null;
+  }
+
+  const boardContainer = ui.getBoardContainer();
+  if (!boardContainer) return;
+
+  // Create badge element
+  const badge = document.createElement('img');
+  badge.className = `move-badge move-badge--${classification.type}`;
+  badge.src = classification.asset;
+  badge.alt = classification.type;
+
+  // Handle image load error - fall back to good.png
+  badge.onerror = () => {
+    if (badge.src !== 'assets/good.png' && !badge.src.endsWith('/good.png')) {
+      badge.src = 'assets/good.png';
+    }
+  };
+
+  boardContainer.appendChild(badge);
+  currentBadge = badge;
+
+  // Get target square position
+  const boardElement = ui.getBoardElement();
+  const squares = boardElement.querySelectorAll('.square');
+  let targetSquareElement = null;
+  
+  for (const square of squares) {
+    if (square.dataset.square === targetSquare) {
+      targetSquareElement = square;
+      break;
+    }
+  }
+
+  // Start animation after a brief delay to ensure the badge is rendered
+  requestAnimationFrame(() => {
+    if (targetSquareElement) {
+      // Calculate the position of the target square relative to the board container
+      const containerRect = boardContainer.getBoundingClientRect();
+      const squareRect = targetSquareElement.getBoundingClientRect();
+      
+      // Position at top-right corner, more towards the outer edge
+      const badgeSize = 24; // Final badge size (smaller)
+      const edgeOffset = 4; // Pixels from the edge
+      const offsetX = squareRect.left - containerRect.left + squareRect.width - edgeOffset;
+      const offsetY = squareRect.top - containerRect.top + edgeOffset;
+      
+      // Set CSS custom properties for the target position
+      badge.style.setProperty('--target-x', `${offsetX}px`);
+      badge.style.setProperty('--target-y', `${offsetY}px`);
+      badge.setAttribute('data-target', targetSquare);
+      
+      // Trigger animation by adding the animated class
+      requestAnimationFrame(() => {
+        badge.classList.add('move-badge--animated');
+      });
+    } else {
+      // No target square, just fade in at center
+      badge.classList.add('move-badge--animated');
+    }
+  });
+}
+
 function setupClockUpdater() {
   if (clockInterval) {
     clearInterval(clockInterval);
@@ -403,6 +617,11 @@ function initialize() {
       if (ui && typeof ui.updateEvalBar === "function") {
         ui.updateEvalBar(0);
       }
+      // Clear any existing move review badge
+      if (currentBadge) {
+        currentBadge.remove();
+        currentBadge = null;
+      }
       startNewGame(control);
       queueAutoEvaluation();
     },
@@ -413,6 +632,11 @@ function initialize() {
       if (ui && typeof ui.updateEvalBar === "function") {
         ui.updateEvalBar(0);
       }
+      // Clear any existing move review badge
+      if (currentBadge) {
+        currentBadge.remove();
+        currentBadge = null;
+      }
       startNewGame(control);
       queueAutoEvaluation();
     },
@@ -422,6 +646,11 @@ function initialize() {
       updateDepthFromControl(control);
       if (ui && typeof ui.updateEvalBar === "function") {
         ui.updateEvalBar(0);
+      }
+      // Clear any existing move review badge
+      if (currentBadge) {
+        currentBadge.remove();
+        currentBadge = null;
       }
       startNewGame(control);
       queueAutoEvaluation();
@@ -476,6 +705,7 @@ function initialize() {
         cancelAutoEvaluation({ stopEngine: true });
       }
     },
+    onMoveReview: () => reviewLastMove(),
   });
 
   if (typeof ui.setEngineOverlayMode === "function") {
