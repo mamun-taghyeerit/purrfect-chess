@@ -564,7 +564,18 @@ function displayMoveBadge(classification, targetSquare) {
   // Start animation after a brief delay to ensure the badge is rendered
   requestAnimationFrame(() => {
     if (targetSquareElement) {
+      // Calculate the position of the target square relative to the board container
+      const containerRect = boardContainer.getBoundingClientRect();
+      const squareRect = targetSquareElement.getBoundingClientRect();
+      
+      const offsetX = squareRect.left - containerRect.left + squareRect.width / 2;
+      const offsetY = squareRect.top - containerRect.top + squareRect.height / 2;
+      
+      // Set CSS custom properties for the target position
+      badge.style.setProperty('--target-x', `${offsetX}px`);
+      badge.style.setProperty('--target-y', `${offsetY}px`);
       badge.setAttribute('data-target', targetSquare);
+      
       // Trigger animation by adding the animated class
       requestAnimationFrame(() => {
         badge.classList.add('move-badge--animated');

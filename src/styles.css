@@ -1019,116 +1019,73 @@ h1,
   gap: 12px;
 }
 
-textarea,
-input,
-button {
-  font-family: inherit;
-}
-
-@media (min-width: 1100px) {
-  .main-layout {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: center;
-  }
-
-  .layout-panel {
-    width: auto;
-    max-width: none;
-  }
-
-  .controls-panel {
-    order: 1;
-    flex: 1 1 280px;
-    max-width: 320px;
-  }
-
-  .board-panel {
-    order: 2;
-    flex: 0 0 auto;
-  }
-
-  .game-panel {
-    order: 3;
-    flex: 1 1 280px;
-    max-width: 320px;
-  }
-}
-
-@media (max-width: 768px) {
-  .button-row {
-    flex-direction: column;
-  }
-
-  .button-row .button {
-    width: 100%;
-  }
-
-  .custom-time-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Move Badge Styles */
 .move-badge {
   position: absolute;
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1000;
   pointer-events: none;
   opacity: 0;
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.move-badge--animated {
-  opacity: 1;
+/* Badge animations based on type - all move from center to target */
+.move-badge[data-target] {
+  --target-x: 50%;
+  --target-y: 50%;
 }
 
-/* Badge animations based on type */
-.move-badge--blunder.move-badge--animated {
+.move-badge--blunder.move-badge--animated[data-target] {
   animation: blunder-spiral 1s ease-out forwards;
 }
 
-.move-badge--mistake.move-badge--animated {
-  animation: mistake-shake 0.5s ease-out forwards;
+.move-badge--mistake.move-badge--animated[data-target] {
+  animation: mistake-shake 0.7s ease-out forwards;
 }
 
-.move-badge--inaccuracy.move-badge--animated {
+.move-badge--inaccuracy.move-badge--animated[data-target] {
   animation: inaccuracy-fade 0.8s ease-out forwards;
 }
 
-.move-badge--brilliant.move-badge--animated {
+.move-badge--brilliant.move-badge--animated[data-target] {
   animation: brilliant-glow 1s ease-out forwards;
 }
 
-.move-badge--best.move-badge--animated {
+.move-badge--best.move-badge--animated[data-target] {
   animation: best-pop 0.6s ease-out forwards;
 }
 
-.move-badge--forced.move-badge--animated {
+.move-badge--forced.move-badge--animated[data-target] {
   animation: forced-snap 0.4s ease-out forwards;
 }
 
-.move-badge--great.move-badge--animated {
+.move-badge--great.move-badge--animated[data-target] {
   animation: great-glow 0.7s ease-out forwards;
 }
 
-.move-badge--book.move-badge--animated {
+.move-badge--book.move-badge--animated[data-target] {
   animation: book-fade 0.8s ease-out forwards;
 }
 
-.move-badge--excellent.move-badge--animated,
-.move-badge--good.move-badge--animated,
-.move-badge--miss.move-badge--animated {
+.move-badge--excellent.move-badge--animated[data-target],
+.move-badge--good.move-badge--animated[data-target],
+.move-badge--miss.move-badge--animated[data-target] {
   animation: default-slide 0.7s ease-out forwards;
 }
 
-/* Keyframe animations */
+/* Fallback for badges without target */
+.move-badge--animated:not([data-target]) {
+  animation: center-fade 0.5s ease-out forwards;
+}
+
+/* Keyframe animations - all end at target position */
 @keyframes blunder-spiral {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
     opacity: 0;
   }
@@ -1137,29 +1094,37 @@ button {
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -50%) rotate(360deg) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) rotate(360deg) scale(0.8);
     opacity: 1;
   }
 }
 
 @keyframes mistake-shake {
-  0%, 100% {
+  0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) translateX(0);
     opacity: 0;
   }
   10% { opacity: 1; }
-  20% { transform: translate(-50%, -50%) translateX(-10px); }
-  40% { transform: translate(-50%, -50%) translateX(10px); }
-  60% { transform: translate(-50%, -50%) translateX(-8px); }
-  80% { transform: translate(-50%, -50%) translateX(8px); }
+  30% { transform: translate(-50%, -50%) translateX(-10px); }
+  50% { transform: translate(-50%, -50%) translateX(10px); }
+  70% { transform: translate(-50%, -50%) translateX(-5px); }
+  85% { transform: translate(-50%, -50%) translateX(5px); }
   100% {
-    transform: translate(-50%, -50%) translateX(0);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) translateX(0) scale(0.8);
     opacity: 1;
   }
 }
 
 @keyframes inaccuracy-fade {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0.8);
     opacity: 0;
   }
@@ -1168,13 +1133,17 @@ button {
     opacity: 0.8;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 1;
   }
 }
 
 @keyframes brilliant-glow {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0.5);
     opacity: 0;
     filter: drop-shadow(0 0 0px rgba(255, 215, 0, 0));
@@ -1185,7 +1154,9 @@ button {
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 1;
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
   }
@@ -1193,6 +1164,8 @@ button {
 
 @keyframes best-pop {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
   }
@@ -1201,24 +1174,32 @@ button {
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 1;
   }
 }
 
 @keyframes forced-snap {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0);
     opacity: 0;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 1;
   }
 }
 
 @keyframes great-glow {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0.5);
     opacity: 0;
     filter: drop-shadow(0 0 0px rgba(100, 200, 255, 0));
@@ -1229,7 +1210,9 @@ button {
     filter: drop-shadow(0 0 15px rgba(100, 200, 255, 0.6));
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 1;
     filter: drop-shadow(0 0 5px rgba(100, 200, 255, 0.3));
   }
@@ -1237,22 +1220,41 @@ button {
 
 @keyframes book-fade {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     opacity: 0;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.8);
     opacity: 1;
   }
 }
 
 @keyframes default-slide {
   0% {
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%) translateY(-20px) scale(0.8);
     opacity: 0;
   }
   100% {
-    transform: translate(-50%, -50%) translateY(0) scale(1);
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) translateY(0) scale(0.8);
+    opacity: 1;
+  }
+}
+
+@keyframes center-fade {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
 }
