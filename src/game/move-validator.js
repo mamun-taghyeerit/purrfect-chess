@@ -87,7 +87,8 @@ function isValidSquare(square) {
  * 
  * @param {string} san - SAN notation string
  * @param {Object} [boardState] - Optional board state (not used in basic conversion)
- * @returns {Object|null} Move object or null if cannot parse
+ * @returns {Object|null} Move object or null if cannot parse. Note: disambiguation 
+ *   (Nbd7, R1a3) is not supported - returns null for such moves.
  * @property {string|null} from - Source square (null for piece moves without board state)
  * @property {string} to - Destination square
  * @property {string} [promotion] - Promotion piece type if applicable

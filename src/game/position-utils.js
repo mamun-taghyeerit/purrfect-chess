@@ -94,8 +94,16 @@ export function generateFEN(boardState) {
     return null;
   }
 
-  const halfmoveNum = typeof halfmove === 'number' ? Math.max(0, Math.floor(halfmove)) : 0;
-  const fullmoveNum = typeof fullmove === 'number' ? Math.max(1, Math.floor(fullmove)) : 1;
+  // Validate halfmove and fullmove numbers
+  if (typeof halfmove === 'number' && (!Number.isFinite(halfmove) || Math.floor(halfmove) < 0)) {
+    return null;
+  }
+  if (typeof fullmove === 'number' && (!Number.isFinite(fullmove) || Math.floor(fullmove) < 1)) {
+    return null;
+  }
+
+  const halfmoveNum = typeof halfmove === 'number' ? Math.floor(halfmove) : 0;
+  const fullmoveNum = typeof fullmove === 'number' ? Math.floor(fullmove) : 1;
 
   return `${piecePlacement} ${activeColor} ${castling} ${enPassant} ${halfmoveNum} ${fullmoveNum}`;
 }

@@ -164,16 +164,66 @@ describe('generateFEN', () => {
       expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
     });
 
-    it('should clamp negative values', () => {
+    it('should handle zero halfmove', () => {
+      const state = {
+        piecePlacement: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+        activeColor: 'w',
+        castling: 'KQkq',
+        enPassant: '-',
+        halfmove: 0,
+        fullmove: 1,
+      };
+      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    });
+
+    it('should handle large move numbers', () => {
+      const state = {
+        piecePlacement: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+        activeColor: 'w',
+        castling: 'KQkq',
+        enPassant: '-',
+        halfmove: 50,
+        fullmove: 100,
+      };
+      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 50 100');
+    });
+  });
+
+  describe('invalid board states', () => {
+    it('should return null for negative halfmove', () => {
       const state = {
         piecePlacement: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
         activeColor: 'w',
         castling: 'KQkq',
         enPassant: '-',
         halfmove: -5,
+        fullmove: 1,
+      };
+      expect(generateFEN(state)).toBeNull();
+    });
+
+    it('should return null for negative fullmove', () => {
+      const state = {
+        piecePlacement: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+        activeColor: 'w',
+        castling: 'KQkq',
+        enPassant: '-',
+        halfmove: 0,
         fullmove: -10,
       };
-      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+      expect(generateFEN(state)).toBeNull();
+    });
+
+    it('should return null for zero fullmove', () => {
+      const state = {
+        piecePlacement: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+        activeColor: 'w',
+        castling: 'KQkq',
+        enPassant: '-',
+        halfmove: 0,
+        fullmove: 0,
+      };
+      expect(generateFEN(state)).toBeNull();
     });
   });
 
