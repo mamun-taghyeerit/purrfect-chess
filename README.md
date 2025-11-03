@@ -4,6 +4,26 @@ Cat-themed chess board with local Stockfish, appearance sliders, time controls, 
 
 Built with **TypeScript** for improved type safety and developer experience.
 
+## 🚀 Next.js Migration
+
+**This project is being migrated to Next.js!** See [`MIGRATION.md`](./MIGRATION.md) for details about the Next.js skeleton and incremental migration strategy (relates to [Issue #31](https://github.com/purrfectsoft/purrfect-chess/issues/31)).
+
+### Running the Next.js App (New)
+
+```bash
+yarn next:dev   # Next.js development server (http://localhost:3000)
+```
+
+### Running the Original Vite App
+
+```bash
+yarn dev        # Vite development server (original app)
+```
+
+Both versions can coexist during the migration phase.
+
+---
+
 ## Requirements
 
 - Node.js (see `.nvmrc` for the recommended version)
@@ -65,9 +85,11 @@ Select the grey text inside the board column that reads `(Reserved for future us
 ## Development
 
 ### TypeScript
+
 This project uses TypeScript for type safety and improved developer experience. The TypeScript configuration is optimized for gradual typing with a relaxed mode to support the migration from JavaScript.
 
 ### Testing
+
 ```bash
 yarn test              # Run all tests
 yarn test:watch        # Run tests in watch mode
@@ -75,6 +97,7 @@ yarn test:coverage     # Generate coverage report
 ```
 
 ### Building
+
 ```bash
 yarn build             # Production build
 yarn preview           # Preview production build

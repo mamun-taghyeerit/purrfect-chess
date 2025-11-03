@@ -1,6 +1,6 @@
 /**
  * Move validation utilities for Purrfect Chess
- * 
+ *
  * Provides basic move validation and SAN (Standard Algebraic Notation) parsing.
  * Note: This module provides conservative validation and does NOT implement full
  * chess engine legality checks (e.g., king-in-check). Use chess.js for full validation.
@@ -8,17 +8,17 @@
 
 /**
  * Validate a move with basic sanity checks
- * 
+ *
  * Performs conservative validation:
  * - Source and destination squares must be in valid range (a1-h8)
  * - Source and destination must be different
  * - Basic format checks
- * 
+ *
  * Does NOT check:
  * - Full chess legality (e.g., whether move puts king in check)
  * - Piece movement rules
  * - Turn order
- * 
+ *
  * @param {Object} move - Move object
  * @param {string} move.from - Source square (e.g., 'e2')
  * @param {string} move.to - Destination square (e.g., 'e4')
@@ -54,7 +54,7 @@ export function validateMove(move, boardState) {
 
 /**
  * Check if a square name is valid (a1-h8)
- * 
+ *
  * @param {string} square - Square name to validate
  * @returns {boolean} True if valid square name
  */
@@ -71,23 +71,23 @@ function isValidSquare(square) {
 
 /**
  * Convert basic SAN notation to move object
- * 
+ *
  * Supports common cases:
  * - Pawn moves: e4, e5, d4
  * - Piece moves: Nf3, Bc4, Qd1
  * - Captures: exd5, Nxf7
  * - Castling: O-O (kingside), O-O-O (queenside)
  * - Promotions: e8=Q, e8Q
- * 
+ *
  * Limitations (documented for future enhancement):
  * - Does not handle disambiguation (Nbd7, R1a3)
  * - Does not validate move legality
  * - Does not determine source square for piece moves (returns null)
  * - Check (+) and checkmate (#) symbols are stripped but not validated
- * 
+ *
  * @param {string} san - SAN notation string
  * @param {Object} [boardState] - Optional board state (not used in basic conversion)
- * @returns {Object|null} Move object or null if cannot parse. Note: disambiguation 
+ * @returns {Object|null} Move object or null if cannot parse. Note: disambiguation
  *   (Nbd7, R1a3) is not supported - returns null for such moves.
  * @property {string|null} from - Source square (null for piece moves without board state)
  * @property {string} to - Destination square

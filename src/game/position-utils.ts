@@ -1,6 +1,6 @@
 /**
  * Position utilities for Purrfect Chess
- * 
+ *
  * Provides helpers for parsing and generating FEN (Forsyth-Edwards Notation) strings
  * and converting them to/from board representations.
  */
@@ -27,7 +27,7 @@ export interface Piece {
 
 /**
  * Parse a FEN string into a plain JS object representing board state
- * 
+ *
  * @param fen - FEN string to parse
  * @returns Board state object or null if invalid
  */
@@ -41,7 +41,14 @@ export function parseFEN(fen: string): FenBoardState | null {
     return null; // Minimum required: piece placement, active color, castling, en passant
   }
 
-  const [piecePlacement, activeColor, castling, enPassant, halfmoveStr, fullmoveStr] = parts;
+  const [
+    piecePlacement,
+    activeColor,
+    castling,
+    enPassant,
+    halfmoveStr,
+    fullmoveStr,
+  ] = parts;
 
   // Validate piece placement (should have 8 ranks separated by /)
   const ranks = piecePlacement.split('/');
@@ -70,7 +77,7 @@ export function parseFEN(fen: string): FenBoardState | null {
 
 /**
  * Generate a FEN string from a board state object
- * 
+ *
  * @param boardState - Board state object
  * @returns FEN string or null if invalid
  */
@@ -103,10 +110,16 @@ export function generateFEN(boardState: Partial<FenBoardState>): string | null {
   }
 
   // Validate halfmove and fullmove numbers
-  if (typeof halfmove === 'number' && (!Number.isFinite(halfmove) || Math.floor(halfmove) < 0)) {
+  if (
+    typeof halfmove === 'number' &&
+    (!Number.isFinite(halfmove) || Math.floor(halfmove) < 0)
+  ) {
     return null;
   }
-  if (typeof fullmove === 'number' && (!Number.isFinite(fullmove) || Math.floor(fullmove) < 1)) {
+  if (
+    typeof fullmove === 'number' &&
+    (!Number.isFinite(fullmove) || Math.floor(fullmove) < 1)
+  ) {
     return null;
   }
 
@@ -118,10 +131,10 @@ export function generateFEN(boardState: Partial<FenBoardState>): string | null {
 
 /**
  * Convert a FEN string to a board array suitable for rendering
- * 
+ *
  * This is a convenience function that parses the FEN and extracts
  * the piece placement into an 8x8 array structure.
- * 
+ *
  * @param fen - FEN string
  * @returns 8x8 board array or null if invalid. Each cell contains {type: string, color: string} or null for empty squares
  */

@@ -10,7 +10,7 @@ import type { Chess } from 'chess.js';
 export interface TimeControl {
   minutes: number;
   increment: number;
-  label?: string;  // Optional label for time control presets
+  label?: string; // Optional label for time control presets
 }
 
 /**

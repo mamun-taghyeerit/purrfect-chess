@@ -1,32 +1,32 @@
 import type { Chess } from 'chess.js';
 import type { BoardCallbacks, BoardRenderOptions } from './types';
 
-const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 const pieceImages = {
   w: {
-    p: "/assets/w_pawn.png",
-    r: "/assets/w_rook.png",
-    n: "/assets/w_knight.png",
-    b: "/assets/w_bishop.png",
-    q: "/assets/w_queen.png",
-    k: "/assets/w_king.png",
+    p: '/assets/w_pawn.png',
+    r: '/assets/w_rook.png',
+    n: '/assets/w_knight.png',
+    b: '/assets/w_bishop.png',
+    q: '/assets/w_queen.png',
+    k: '/assets/w_king.png',
   },
   b: {
-    p: "/assets/b_pawn.png",
-    r: "/assets/b_rook.png",
-    n: "/assets/b_knight.png",
-    b: "/assets/b_bishop.png",
-    q: "/assets/b_queen.png",
-    k: "/assets/b_king.png",
+    p: '/assets/b_pawn.png',
+    r: '/assets/b_rook.png',
+    n: '/assets/b_knight.png',
+    b: '/assets/b_bishop.png',
+    q: '/assets/b_queen.png',
+    k: '/assets/b_king.png',
   },
 };
 
-const SVG_NS = "http://www.w3.org/2000/svg";
-const ARROW_STROKE = "rgba(145, 152, 229, 0.85)";
-const ARROW_PREVIEW_STROKE = "rgba(145, 152, 229, 0.6)";
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const ARROW_STROKE = 'rgba(145, 152, 229, 0.85)';
+const ARROW_PREVIEW_STROKE = 'rgba(145, 152, 229, 0.6)';
 const ARROW_THICKNESS = 0.16;
-const ARROW_HEAD_ID = "board-arrow-head";
+const ARROW_HEAD_ID = 'board-arrow-head';
 const ARROW_HEAD_SIZE = 0.35;
 const ARROW_HEAD_LENGTH = 0.1;
 const ARROW_TAIL_OFFSET = 0.32;
@@ -41,8 +41,8 @@ const boardState = {
     onSquareClick: null,
     onDrop: null,
     onSquareContext: null,
-    onDragStart: null,  // Callback when drag starts
-    onDragEnd: null,    // Callback when drag ends
+    onDragStart: null, // Callback when drag starts
+    onDragEnd: null, // Callback when drag ends
   },
   dragFrom: null,
   interactive: true,
@@ -61,7 +61,7 @@ function algebraicAt(fileIndex, rankIndex) {
 }
 
 function parseSquare(square) {
-  if (typeof square !== "string" || square.length < 2) return null;
+  if (typeof square !== 'string' || square.length < 2) return null;
   const fileIndex = files.indexOf(square[0]);
   const rankValue = Number.parseInt(square[1], 10);
   if (fileIndex === -1 || Number.isNaN(rankValue)) return null;
@@ -150,7 +150,7 @@ function buildPath(points) {
   rest.forEach((pt) => {
     commands.push(`L ${pt.x} ${pt.y}`);
   });
-  return commands.join(" ");
+  return commands.join(' ');
 }
 
 function buildPreviewPath(fromPoint, toPoint) {
@@ -218,8 +218,8 @@ function findArrowHit(point, tolerance = ARROW_HIT_TOLERANCE) {
     const originSquareEl = boardState.squares.get(arrow.from);
     const originHasPiece =
       originSquareEl &&
-      (originSquareEl.classList.contains("white-piece") ||
-        originSquareEl.classList.contains("black-piece"));
+      (originSquareEl.classList.contains('white-piece') ||
+        originSquareEl.classList.contains('black-piece'));
     if (originHasPiece) {
       const originDistance = Math.hypot(point.x - origin.x, point.y - origin.y);
       if (originDistance <= ARROW_ORIGIN_PROTECT_RADIUS) {
@@ -248,36 +248,36 @@ function findArrowHit(point, tolerance = ARROW_HIT_TOLERANCE) {
 function ensureArrowLayer() {
   if (!boardState.root) return null;
   if (boardState.arrowLayer) return boardState.arrowLayer;
-  const svg = document.createElementNS(SVG_NS, "svg");
-  svg.classList.add("board-arrow-layer");
-  svg.setAttribute("viewBox", "0 0 8 8");
-  svg.setAttribute("preserveAspectRatio", "none");
-  svg.setAttribute("aria-hidden", "true");
-  svg.setAttribute("focusable", "false");
-  svg.setAttribute("width", "100%");
-  svg.setAttribute("height", "100%");
-  svg.style.pointerEvents = "none";
-  svg.style.position = "absolute";
-  svg.style.top = "0";
-  svg.style.right = "0";
-  svg.style.bottom = "0";
-  svg.style.left = "0";
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.classList.add('board-arrow-layer');
+  svg.setAttribute('viewBox', '0 0 8 8');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+  svg.style.pointerEvents = 'none';
+  svg.style.position = 'absolute';
+  svg.style.top = '0';
+  svg.style.right = '0';
+  svg.style.bottom = '0';
+  svg.style.left = '0';
 
-  const defs = document.createElementNS(SVG_NS, "defs");
-  const marker = document.createElementNS(SVG_NS, "marker");
-  marker.setAttribute("id", ARROW_HEAD_ID);
-  marker.setAttribute("markerWidth", `${ARROW_HEAD_SIZE}`);
-  marker.setAttribute("markerHeight", `${ARROW_HEAD_SIZE}`);
-  marker.setAttribute("refX", "1");
-  marker.setAttribute("refY", "0.5");
-  marker.setAttribute("orient", "auto");
-  marker.setAttribute("markerUnits", "userSpaceOnUse");
-  marker.setAttribute("viewBox", "0 0 1 1");
+  const defs = document.createElementNS(SVG_NS, 'defs');
+  const marker = document.createElementNS(SVG_NS, 'marker');
+  marker.setAttribute('id', ARROW_HEAD_ID);
+  marker.setAttribute('markerWidth', `${ARROW_HEAD_SIZE}`);
+  marker.setAttribute('markerHeight', `${ARROW_HEAD_SIZE}`);
+  marker.setAttribute('refX', '1');
+  marker.setAttribute('refY', '0.5');
+  marker.setAttribute('orient', 'auto');
+  marker.setAttribute('markerUnits', 'userSpaceOnUse');
+  marker.setAttribute('viewBox', '0 0 1 1');
 
-  const markerPath = document.createElementNS(SVG_NS, "path");
-  markerPath.setAttribute("d", "M 0 0 L 1 0.5 L 0 1 Z");
-  markerPath.setAttribute("fill", "context-stroke");
-  markerPath.setAttribute("stroke", "none");
+  const markerPath = document.createElementNS(SVG_NS, 'path');
+  markerPath.setAttribute('d', 'M 0 0 L 1 0.5 L 0 1 Z');
+  markerPath.setAttribute('fill', 'context-stroke');
+  markerPath.setAttribute('stroke', 'none');
 
   marker.appendChild(markerPath);
   defs.appendChild(marker);
@@ -298,17 +298,17 @@ function ensureArrowPreview() {
   ) {
     return boardState.arrowPreview;
   }
-  const path = document.createElementNS(SVG_NS, "path");
-  path.dataset.arrowPreview = "true";
-  path.classList.add("board-arrow", "board-arrow-preview");
-  path.setAttribute("fill", "none");
-  path.setAttribute("stroke", ARROW_PREVIEW_STROKE);
-  path.setAttribute("stroke-width", String(ARROW_THICKNESS));
-  path.setAttribute("stroke-linecap", "butt");
-  path.setAttribute("stroke-linejoin", "round");
-  path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
-  path.setAttribute("pointer-events", "none");
-  path.style.display = "none";
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.dataset.arrowPreview = 'true';
+  path.classList.add('board-arrow', 'board-arrow-preview');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', ARROW_PREVIEW_STROKE);
+  path.setAttribute('stroke-width', String(ARROW_THICKNESS));
+  path.setAttribute('stroke-linecap', 'butt');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('marker-end', `url(#${ARROW_HEAD_ID})`);
+  path.setAttribute('pointer-events', 'none');
+  path.style.display = 'none';
   layer.appendChild(path);
   boardState.arrowPreview = path;
   return path;
@@ -332,7 +332,7 @@ function removeArrow(key) {
 function renderArrows() {
   const layer = ensureArrowLayer();
   if (!layer) return;
-  layer.querySelectorAll("[data-arrow-line]").forEach((node) => node.remove());
+  layer.querySelectorAll('[data-arrow-line]').forEach((node) => node.remove());
   const preview = boardState.arrowPreview;
   if (preview && preview.parentElement) {
     preview.parentElement.removeChild(preview);
@@ -341,33 +341,36 @@ function renderArrows() {
   boardState.engineArrows.forEach((arrow, index) => {
     const pathData = buildArrowPath(arrow.from, arrow.to);
     if (!pathData) return;
-    const rank = Math.min(Math.max(Number.parseInt(arrow.rank, 10) || index + 1, 1), 3);
-    const path = document.createElementNS(SVG_NS, "path");
+    const rank = Math.min(
+      Math.max(Number.parseInt(arrow.rank, 10) || index + 1, 1),
+      3
+    );
+    const path = document.createElementNS(SVG_NS, 'path');
     path.dataset.arrowLine = `engine-${index}`;
-    path.classList.add("board-arrow", "engine-arrow", `engine-arrow-${rank}`);
-    path.setAttribute("d", pathData);
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke-width", String(ARROW_THICKNESS));
-    path.setAttribute("stroke-linecap", "butt");
-    path.setAttribute("stroke-linejoin", "round");
-    path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
-    path.setAttribute("pointer-events", "none");
+    path.classList.add('board-arrow', 'engine-arrow', `engine-arrow-${rank}`);
+    path.setAttribute('d', pathData);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-width', String(ARROW_THICKNESS));
+    path.setAttribute('stroke-linecap', 'butt');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('marker-end', `url(#${ARROW_HEAD_ID})`);
+    path.setAttribute('pointer-events', 'none');
     layer.appendChild(path);
   });
 
   boardState.arrows.forEach((arrow, key) => {
     const pathData = buildArrowPath(arrow.from, arrow.to);
     if (!pathData) return;
-    const path = document.createElementNS(SVG_NS, "path");
+    const path = document.createElementNS(SVG_NS, 'path');
     path.dataset.arrowLine = key;
-    path.classList.add("board-arrow");
-    path.setAttribute("d", pathData);
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke", ARROW_STROKE);
-    path.setAttribute("stroke-width", String(ARROW_THICKNESS));
-    path.setAttribute("stroke-linecap", "butt");
-    path.setAttribute("stroke-linejoin", "round");
-    path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
+    path.classList.add('board-arrow');
+    path.setAttribute('d', pathData);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', ARROW_STROKE);
+    path.setAttribute('stroke-width', String(ARROW_THICKNESS));
+    path.setAttribute('stroke-linecap', 'butt');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('marker-end', `url(#${ARROW_HEAD_ID})`);
     layer.appendChild(path);
   });
   if (boardState.arrowPreview) {
@@ -410,10 +413,10 @@ function startArrowDrag(square, event) {
   const preview = boardState.arrowPreview;
   if (preview) {
     preview.setAttribute(
-      "d",
+      'd',
       `M ${fromPoint.x} ${fromPoint.y} L ${fromPoint.x} ${fromPoint.y}`
     );
-    preview.style.display = "none";
+    preview.style.display = 'none';
   }
 }
 
@@ -425,7 +428,7 @@ function updateArrowPreview(event) {
 
   const fromPoint = squareCenter(drag.fromSquare);
   if (!fromPoint) {
-    preview.style.display = "none";
+    preview.style.display = 'none';
     return;
   }
 
@@ -433,7 +436,7 @@ function updateArrowPreview(event) {
   const targetSquare = squareFromClient(event.clientX, event.clientY);
   let pathData = null;
   if (!targetPoint) {
-    preview.style.display = "none";
+    preview.style.display = 'none';
   } else {
     if (targetSquare) {
       drag.currentSquare = targetSquare;
@@ -442,10 +445,10 @@ function updateArrowPreview(event) {
       pathData = buildPreviewPath(fromPoint, targetPoint);
     }
     if (pathData) {
-      preview.setAttribute("d", pathData);
-      preview.style.display = "block";
+      preview.setAttribute('d', pathData);
+      preview.style.display = 'block';
     } else {
-      preview.style.display = "none";
+      preview.style.display = 'none';
     }
   }
   const distance = Math.hypot(
@@ -460,7 +463,7 @@ function finalizeArrowDrag(event, { canceled = false } = {}) {
   boardState.arrowDrag = null;
 
   if (boardState.arrowPreview) {
-    boardState.arrowPreview.style.display = "none";
+    boardState.arrowPreview.style.display = 'none';
   }
 
   if (!drag) return;
@@ -536,44 +539,47 @@ function handleContext(event) {
  */
 
 function handleDragStart(event) {
-  console.log("[DRAG] handleDragStart called", {
+  console.log('[DRAG] handleDragStart called', {
     interactive: boardState.interactive,
     target: event.currentTarget.tagName,
     src: event.currentTarget.src,
     display: event.currentTarget.style.display,
-    draggable: event.currentTarget.draggable
+    draggable: event.currentTarget.draggable,
   });
-  
+
   // Only allow dragging when board is interactive
   if (!boardState.interactive) {
-    console.log("[DRAG] Prevented: board not interactive");
+    console.log('[DRAG] Prevented: board not interactive');
     event.preventDefault();
     return;
   }
-  
+
   // Get the square being dragged from
   const img = event.currentTarget;
   const square = img.parentElement.dataset.square;
-  
-  console.log("[DRAG] Square:", square);
-  
+
+  console.log('[DRAG] Square:', square);
+
   // Verify there's actually a piece to drag
-  if (!img.src || img.style.display === "none") {
-    console.log("[DRAG] Prevented: no piece to drag", { src: img.src, display: img.style.display });
+  if (!img.src || img.style.display === 'none') {
+    console.log('[DRAG] Prevented: no piece to drag', {
+      src: img.src,
+      display: img.style.display,
+    });
     event.preventDefault();
     return;
   }
-  
+
   // Store drag source and set up data transfer
   boardState.dragFrom = square;
-  event.dataTransfer.effectAllowed = "move";
-  event.dataTransfer.setData("text/plain", square);
-  
-  console.log("[DRAG] Drag started from", square);
-  
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', square);
+
+  console.log('[DRAG] Drag started from', square);
+
   // Add visual feedback
-  img.style.opacity = "0.4";
-  
+  img.style.opacity = '0.4';
+
   // Notify game layer to show legal moves (in lighter shade)
   if (boardState.callbacks.onDragStart) {
     boardState.callbacks.onDragStart(square);
@@ -583,32 +589,32 @@ function handleDragStart(event) {
 function handleDragEnd(event) {
   // Reset visual feedback
   const img = event.currentTarget;
-  img.style.opacity = "1";
-  
+  img.style.opacity = '1';
+
   // Clear all drag-over highlights
-  boardState.squares.forEach((el) => el.classList.remove("drag-over"));
-  
+  boardState.squares.forEach((el) => el.classList.remove('drag-over'));
+
   // Notify game layer to clear highlights
   if (boardState.callbacks.onDragEnd) {
     boardState.callbacks.onDragEnd();
   }
-  
+
   // Clear drag source
   boardState.dragFrom = null;
 }
 
 function handleDragOver(event) {
   if (!boardState.interactive) return;
-  
+
   // Prevent default to allow drop
   event.preventDefault();
-  event.dataTransfer.dropEffect = "move";
-  
+  event.dataTransfer.dropEffect = 'move';
+
   // Add visual feedback for valid drop target
   const square = event.currentTarget.dataset.square;
   const squareEl = boardState.squares.get(square);
   if (squareEl) {
-    squareEl.classList.add("drag-over");
+    squareEl.classList.add('drag-over');
   }
 }
 
@@ -617,47 +623,48 @@ function handleDragLeave(event) {
   const square = event.currentTarget.dataset.square;
   const squareEl = boardState.squares.get(square);
   if (squareEl) {
-    squareEl.classList.remove("drag-over");
+    squareEl.classList.remove('drag-over');
   }
 }
 
 function handleDrop(event) {
-  console.log("[DRAG] handleDrop called", {
+  console.log('[DRAG] handleDrop called', {
     interactive: boardState.interactive,
-    target: event.currentTarget.dataset.square
+    target: event.currentTarget.dataset.square,
   });
-  
+
   if (!boardState.interactive) return;
-  
+
   event.preventDefault();
   event.stopPropagation();
-  
+
   // Get target square
   const targetSquare = event.currentTarget.dataset.square;
-  
+
   // Get source square from state or data transfer
-  const fromSquare = boardState.dragFrom || event.dataTransfer.getData("text/plain");
-  
-  console.log("[DRAG] Drop:", { from: fromSquare, to: targetSquare });
-  
+  const fromSquare =
+    boardState.dragFrom || event.dataTransfer.getData('text/plain');
+
+  console.log('[DRAG] Drop:', { from: fromSquare, to: targetSquare });
+
   // Remove visual feedback
   const targetEl = boardState.squares.get(targetSquare);
   if (targetEl) {
-    targetEl.classList.remove("drag-over");
+    targetEl.classList.remove('drag-over');
   }
-  
+
   // Execute move if we have valid source and target
   if (fromSquare && targetSquare && boardState.callbacks.onDrop) {
-    console.log("[DRAG] Executing move via onDrop callback");
+    console.log('[DRAG] Executing move via onDrop callback');
     boardState.callbacks.onDrop(fromSquare, targetSquare);
   } else {
-    console.log("[DRAG] Move not executed", {
+    console.log('[DRAG] Move not executed', {
       hasFrom: !!fromSquare,
       hasTo: !!targetSquare,
-      hasCallback: !!boardState.callbacks.onDrop
+      hasCallback: !!boardState.callbacks.onDrop,
     });
   }
-  
+
   // Clear drag state
   boardState.dragFrom = null;
 }
@@ -666,10 +673,11 @@ export function createBoard(
   rootEl: HTMLElement,
   callbacks: BoardCallbacks = {}
 ) {
-  const { onSquareClick, onDrop, onSquareContext, onDragStart, onDragEnd } = callbacks;
+  const { onSquareClick, onDrop, onSquareContext, onDragStart, onDragEnd } =
+    callbacks;
   boardState.root = rootEl;
   if (!rootEl.style.position) {
-    rootEl.style.position = "relative";
+    rootEl.style.position = 'relative';
   }
   boardState.callbacks.onSquareClick = onSquareClick;
   boardState.callbacks.onDrop = onDrop;
@@ -678,40 +686,40 @@ export function createBoard(
   boardState.callbacks.onDragEnd = onDragEnd;
 
   boardState.squares.clear();
-  rootEl.innerHTML = "";
+  rootEl.innerHTML = '';
   boardState.arrows.clear();
   boardState.arrowLayer = null;
   boardState.arrowPreview = null;
   boardState.arrowDrag = null;
-  rootEl.addEventListener("contextmenu", handleContext);
+  rootEl.addEventListener('contextmenu', handleContext);
 
   for (let rank = 0; rank < 8; rank += 1) {
     for (let file = 0; file < 8; file += 1) {
       const squareName = algebraicAt(file, rank);
-      const squareEl = document.createElement("div");
-      squareEl.className = `square ${(rank + file) % 2 === 0 ? "light" : "dark"}`;
+      const squareEl = document.createElement('div');
+      squareEl.className = `square ${(rank + file) % 2 === 0 ? 'light' : 'dark'}`;
       squareEl.dataset.square = squareName;
 
       // Create piece image element
-      const img = document.createElement("img");
-      img.alt = "";
-      img.style.display = "none"; // Hidden by default, shown when piece is rendered
+      const img = document.createElement('img');
+      img.alt = '';
+      img.style.display = 'none'; // Hidden by default, shown when piece is rendered
       img.draggable = false; // Explicitly set to false initially, will be set to true when piece is rendered
-      
+
       // Attach drag event listeners to the image element
       // These listeners remain attached and work regardless of draggable attribute
-      img.addEventListener("dragstart", handleDragStart);
-      img.addEventListener("dragend", handleDragEnd);
+      img.addEventListener('dragstart', handleDragStart);
+      img.addEventListener('dragend', handleDragEnd);
 
       squareEl.appendChild(img);
 
       // Square-level event listeners for drop targets and clicks
-      squareEl.addEventListener("click", handleClick);
-      squareEl.addEventListener("contextmenu", handleContext);
-      squareEl.addEventListener("mousedown", handleMouseDown);
-      squareEl.addEventListener("dragover", handleDragOver);
-      squareEl.addEventListener("dragleave", handleDragLeave);
-      squareEl.addEventListener("drop", handleDrop);
+      squareEl.addEventListener('click', handleClick);
+      squareEl.addEventListener('contextmenu', handleContext);
+      squareEl.addEventListener('mousedown', handleMouseDown);
+      squareEl.addEventListener('dragover', handleDragOver);
+      squareEl.addEventListener('dragleave', handleDragLeave);
+      squareEl.addEventListener('drop', handleDrop);
 
       rootEl.appendChild(squareEl);
       boardState.squares.set(squareName, squareEl);
@@ -721,8 +729,8 @@ export function createBoard(
   renderArrows();
 
   if (!boardState.listenersBound) {
-    document.addEventListener("mousemove", handleDocumentMouseMove);
-    document.addEventListener("mouseup", handleDocumentMouseUp);
+    document.addEventListener('mousemove', handleDocumentMouseMove);
+    document.addEventListener('mouseup', handleDocumentMouseUp);
     boardState.listenersBound = true;
   }
 
@@ -730,8 +738,8 @@ export function createBoard(
     setInteractive(value) {
       boardState.interactive = Boolean(value);
       boardState.root.style.pointerEvents = boardState.interactive
-        ? "auto"
-        : "none";
+        ? 'auto'
+        : 'none';
       if (!boardState.interactive && boardState.arrowDrag) {
         const drag = boardState.arrowDrag;
         finalizeArrowDrag(
@@ -744,7 +752,7 @@ export function createBoard(
       boardState.arrows.clear();
       renderArrows();
       if (boardState.arrowPreview) {
-        boardState.arrowPreview.style.display = "none";
+        boardState.arrowPreview.style.display = 'none';
       }
     },
   };
@@ -752,19 +760,19 @@ export function createBoard(
 
 function clearClasses(squareEl) {
   squareEl.classList.remove(
-    "selected",
-    "drag-selected",  // For lighter drag highlight
-    "last-move",
-    "legal-move-hint",
-    "legal-capture-hint",
-    "drag-move-hint",  // For lighter drag move hints
-    "drag-capture-hint",  // For lighter drag capture hints
-    "user-highlight",
-    "engine-move-1",
-    "engine-move-2",
-    "engine-move-3"
+    'selected',
+    'drag-selected', // For lighter drag highlight
+    'last-move',
+    'legal-move-hint',
+    'legal-capture-hint',
+    'drag-move-hint', // For lighter drag move hints
+    'drag-capture-hint', // For lighter drag capture hints
+    'user-highlight',
+    'engine-move-1',
+    'engine-move-2',
+    'engine-move-3'
   );
-  squareEl.classList.remove("white-piece", "black-piece");
+  squareEl.classList.remove('white-piece', 'black-piece');
 }
 
 export function renderPosition(game: Chess, options: BoardRenderOptions = {}) {
@@ -776,8 +784,8 @@ export function renderPosition(game: Chess, options: BoardRenderOptions = {}) {
     lastMove = null,
     customHighlights = [],
     engineHighlights = [],
-    engineDisplayMode = "both",
-    isDragging = false,  // Flag to render lighter highlights during drag
+    engineDisplayMode = 'both',
+    isDragging = false, // Flag to render lighter highlights during drag
   } = options;
 
   const legalSet = new Set(legalMoves);
@@ -797,15 +805,18 @@ export function renderPosition(game: Chess, options: BoardRenderOptions = {}) {
     : [];
 
   const showEngineSquares =
-    engineDisplayMode === "both" || engineDisplayMode === "squares";
+    engineDisplayMode === 'both' || engineDisplayMode === 'squares';
   const showEngineArrows =
-    engineDisplayMode === "both" || engineDisplayMode === "arrows";
+    engineDisplayMode === 'both' || engineDisplayMode === 'arrows';
 
   const engineSquareMap = new Map();
   const engineArrows = [];
 
   normalizedHighlights.forEach((entry, index) => {
-    const rank = Math.min(Math.max(Number.parseInt(String(entry.rank), 10) || index + 1, 1), 3);
+    const rank = Math.min(
+      Math.max(Number.parseInt(String(entry.rank), 10) || index + 1, 1),
+      3
+    );
     if (showEngineSquares) {
       [entry.from, entry.to].forEach((square) => {
         if (!square) return;
@@ -837,47 +848,51 @@ export function renderPosition(game: Chess, options: BoardRenderOptions = {}) {
       clearClasses(squareEl);
 
       // Get the img element for this square
-      const img = squareEl.querySelector("img");
-      
+      const img = squareEl.querySelector('img');
+
       if (piece) {
         // Render piece image
         const src = pieceImages[piece.color][piece.type];
         if (src) {
           img.src = src;
-          img.style.display = "block";
-          img.style.opacity = "1"; // Reset any drag opacity
+          img.style.display = 'block';
+          img.style.opacity = '1'; // Reset any drag opacity
           // Enable dragging for pieces
           img.draggable = true;
         }
         squareEl.classList.add(
-          piece.color === "w" ? "white-piece" : "black-piece"
+          piece.color === 'w' ? 'white-piece' : 'black-piece'
         );
       } else {
         // Empty square - hide image and disable dragging
-        img.src = "";
-        img.style.display = "none";
-        img.style.opacity = "1";
+        img.src = '';
+        img.style.display = 'none';
+        img.style.opacity = '1';
         img.draggable = false;
       }
 
       // Apply highlights - use drag-specific classes during drag operations
       if (squareName === selectedSquare) {
-        squareEl.classList.add(isDragging ? "drag-selected" : "selected");
+        squareEl.classList.add(isDragging ? 'drag-selected' : 'selected');
       }
       if (
         lastMove &&
         (squareName === lastMove.from || squareName === lastMove.to)
       ) {
-        squareEl.classList.add("last-move");
+        squareEl.classList.add('last-move');
       }
       if (legalSet.has(squareName)) {
-        squareEl.classList.add(isDragging ? "drag-move-hint" : "legal-move-hint");
+        squareEl.classList.add(
+          isDragging ? 'drag-move-hint' : 'legal-move-hint'
+        );
       }
       if (captureSet.has(squareName)) {
-        squareEl.classList.add(isDragging ? "drag-capture-hint" : "legal-capture-hint");
+        squareEl.classList.add(
+          isDragging ? 'drag-capture-hint' : 'legal-capture-hint'
+        );
       }
       if (customSet.has(squareName)) {
-        squareEl.classList.add("user-highlight");
+        squareEl.classList.add('user-highlight');
       }
       if (engineSquareMap.has(squareName)) {
         squareEl.classList.add(

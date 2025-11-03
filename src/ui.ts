@@ -1,6 +1,12 @@
 import { formatRemainingTime } from './game/time-controls';
 import { setupEasterEgg } from './ui/easter-egg';
-import type { UIHandlers, MatchInfo, ClockState, EngineAnalysisLine, TimeControl } from './types';
+import type {
+  UIHandlers,
+  MatchInfo,
+  ClockState,
+  EngineAnalysisLine,
+  TimeControl,
+} from './types';
 
 const timePresets: TimeControl[] = [
   { label: '3 + 0', minutes: 3, increment: 0 },
@@ -8,14 +14,14 @@ const timePresets: TimeControl[] = [
   { label: '10 + 0', minutes: 10, increment: 0 },
   { label: '15 + 10', minutes: 15, increment: 10 },
   { label: '30 + 0', minutes: 30, increment: 0 },
-  { label: '30 + 30', minutes: 30, increment: 30 }
+  { label: '30 + 30', minutes: 30, increment: 30 },
 ];
 
 const appearanceDefaults = {
   light: { hue: 0, saturation: 100, brightness: 100 },
   dark: { hue: 0, saturation: 100, brightness: 100 },
   whitePieces: { hue: 0, saturation: 100, brightness: 100, scale: 100 },
-  blackPieces: { hue: 0, saturation: 100, brightness: 100, scale: 100 }
+  blackPieces: { hue: 0, saturation: 100, brightness: 100, scale: 100 },
 };
 
 const appearanceGroupConfig = {
@@ -23,40 +29,138 @@ const appearanceGroupConfig = {
     key: 'light',
     label: 'Light Squares',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` }
-    ]
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+    ],
   },
   dark: {
     key: 'dark',
     label: 'Dark Squares',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` }
-    ]
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+    ],
   },
   whitePieces: {
     key: 'whitePieces',
     label: 'White Pieces',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` }
-    ]
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'scale',
+        label: 'Size',
+        min: 80,
+        max: 120,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+    ],
   },
   blackPieces: {
     key: 'blackPieces',
     label: 'Black Pieces',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` }
-    ]
-  }
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'scale',
+        label: 'Size',
+        min: 80,
+        max: 120,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+    ],
+  },
 };
 
 const appearanceState = JSON.parse(JSON.stringify(appearanceDefaults));
@@ -67,7 +171,9 @@ let confirmationState = { onConfirm: null };
 
 function formatClock(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const minutes = Math.floor(totalSeconds / 60)
+    .toString()
+    .padStart(2, '0');
   const seconds = (totalSeconds % 60).toString().padStart(2, '0');
   return `${minutes}:${seconds}`;
 }
@@ -88,10 +194,16 @@ function applyAppearance() {
       root.style.setProperty('--dark-square-filter', filter);
     } else if (key === 'whitePieces') {
       root.style.setProperty('--white-piece-filter', filter);
-      root.style.setProperty('--white-piece-scale', (group.scale / 100).toFixed(2));
+      root.style.setProperty(
+        '--white-piece-scale',
+        (group.scale / 100).toFixed(2)
+      );
     } else if (key === 'blackPieces') {
       root.style.setProperty('--black-piece-filter', filter);
-      root.style.setProperty('--black-piece-scale', (group.scale / 100).toFixed(2));
+      root.style.setProperty(
+        '--black-piece-scale',
+        (group.scale / 100).toFixed(2)
+      );
     }
   });
 }
@@ -122,23 +234,27 @@ function createConfirmationOverlay() {
       </div>
     `;
     document.body.appendChild(overlay);
-    overlay.querySelector('[data-role="cancel"]').addEventListener('click', () => {
-      overlay.classList.remove('active');
-      confirmationState.onConfirm = null;
-    });
+    overlay
+      .querySelector('[data-role="cancel"]')
+      .addEventListener('click', () => {
+        overlay.classList.remove('active');
+        confirmationState.onConfirm = null;
+      });
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) {
         overlay.classList.remove('active');
         confirmationState.onConfirm = null;
       }
     });
-    overlay.querySelector('[data-role="confirm"]').addEventListener('click', () => {
-      overlay.classList.remove('active');
-      if (confirmationState.onConfirm) {
-        confirmationState.onConfirm();
-      }
-      confirmationState.onConfirm = null;
-    });
+    overlay
+      .querySelector('[data-role="confirm"]')
+      .addEventListener('click', () => {
+        overlay.classList.remove('active');
+        if (confirmationState.onConfirm) {
+          confirmationState.onConfirm();
+        }
+        confirmationState.onConfirm = null;
+      });
   }
   return overlay;
 }
@@ -211,7 +327,7 @@ function buildAppearanceControls(container, keys) {
       groupInputs[slider.key] = {
         input: range,
         value: valueDisplay,
-        format: slider.format
+        format: slider.format,
       };
     });
 
@@ -225,7 +341,8 @@ function buildAppearanceControls(container, keys) {
 }
 
 function clearEnginePanel(engineLinesEl) {
-  engineLinesEl.innerHTML = '<p class="engine-placeholder">Awaiting analysis…</p>';
+  engineLinesEl.innerHTML =
+    '<p class="engine-placeholder">Awaiting analysis…</p>';
 }
 
 export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
@@ -435,7 +552,7 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
       messageTimeout = setTimeout(() => {
         messageBox.style.display = 'none';
       }, duration);
-    }
+    },
   };
 
   const fileLabels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -443,16 +560,24 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
 
   function populateCoordinateLabels() {
     if (filesTopEl) {
-      filesTopEl.innerHTML = fileLabels.map((label) => `<span>${label}</span>`).join('');
+      filesTopEl.innerHTML = fileLabels
+        .map((label) => `<span>${label}</span>`)
+        .join('');
     }
     if (filesBottomEl) {
-      filesBottomEl.innerHTML = fileLabels.map((label) => `<span>${label}</span>`).join('');
+      filesBottomEl.innerHTML = fileLabels
+        .map((label) => `<span>${label}</span>`)
+        .join('');
     }
     if (ranksLeftEl) {
-      ranksLeftEl.innerHTML = rankLabels.map((label) => `<span>${label}</span>`).join('');
+      ranksLeftEl.innerHTML = rankLabels
+        .map((label) => `<span>${label}</span>`)
+        .join('');
     }
     if (ranksRightEl) {
-      ranksRightEl.innerHTML = rankLabels.map((label) => `<span>${label}</span>`).join('');
+      ranksRightEl.innerHTML = rankLabels
+        .map((label) => `<span>${label}</span>`)
+        .join('');
     }
   }
 
@@ -480,12 +605,18 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
         'Change Time Control',
         `Switch to ${preset.minutes}+${preset.increment}?`,
         () => {
-          currentTimeControl = { minutes: preset.minutes, increment: preset.increment };
-          (rootEl.querySelector('#custom-minutes') as HTMLInputElement).value = String(preset.minutes);
-          (rootEl.querySelector('#custom-increment') as HTMLInputElement).value = String(preset.increment);
+          currentTimeControl = {
+            minutes: preset.minutes,
+            increment: preset.increment,
+          };
+          (rootEl.querySelector('#custom-minutes') as HTMLInputElement).value =
+            String(preset.minutes);
+          (
+            rootEl.querySelector('#custom-increment') as HTMLInputElement
+          ).value = String(preset.increment);
           updateMatchInfo({
             event: `Purrfect Game - ${preset.minutes}+${preset.increment}`,
-            timeControl: `${preset.minutes} + ${preset.increment}`
+            timeControl: `${preset.minutes} + ${preset.increment}`,
           });
           if (selectedPresetButton) {
             selectedPresetButton.classList.remove('preset-button-active');
@@ -514,7 +645,9 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
   const moveReviewStatus = rootEl.querySelector('#move-review-status');
   const moveReviewTime = rootEl.querySelector('#move-review-time');
   const moveReviewDepth = rootEl.querySelector('#move-review-depth');
-  const resetAppearanceButtons = rootEl.querySelectorAll('[data-role="reset-appearance"]');
+  const resetAppearanceButtons = rootEl.querySelectorAll(
+    '[data-role="reset-appearance"]'
+  );
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
   const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
   const copyFenBtn = rootEl.querySelector('#copy-fen');
@@ -603,26 +736,36 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
     event: `Purrfect Game - ${currentTimeControl.minutes}+${currentTimeControl.increment}`,
     date: new Date().toLocaleDateString(),
     timeControl: `${currentTimeControl.minutes} + ${currentTimeControl.increment}`,
-    site: 'Purrfect Universe (Online)'
+    site: 'Purrfect Universe (Online)',
   });
 
   applyCustomBtn.addEventListener('click', () => {
-    const minutes = Number.parseInt((customMinutes as HTMLInputElement).value, 10);
-    const increment = Number.parseInt((customIncrement as HTMLInputElement).value, 10);
-    showConfirmation('Change Time Control', `Apply ${minutes}+${increment}?`, () => {
-      currentTimeControl = { minutes, increment };
-      updateMatchInfo({
-        event: `Purrfect Game - ${minutes}+${increment}`,
-        timeControl: `${minutes} + ${increment}`
-      });
-      if (selectedPresetButton) {
-        selectedPresetButton.classList.remove('preset-button-active');
-        selectedPresetButton = null;
+    const minutes = Number.parseInt(
+      (customMinutes as HTMLInputElement).value,
+      10
+    );
+    const increment = Number.parseInt(
+      (customIncrement as HTMLInputElement).value,
+      10
+    );
+    showConfirmation(
+      'Change Time Control',
+      `Apply ${minutes}+${increment}?`,
+      () => {
+        currentTimeControl = { minutes, increment };
+        updateMatchInfo({
+          event: `Purrfect Game - ${minutes}+${increment}`,
+          timeControl: `${minutes} + ${increment}`,
+        });
+        if (selectedPresetButton) {
+          selectedPresetButton.classList.remove('preset-button-active');
+          selectedPresetButton = null;
+        }
+        if (handlers.onTimePreset) {
+          handlers.onTimePreset({ ...currentTimeControl });
+        }
       }
-      if (handlers.onTimePreset) {
-        handlers.onTimePreset({ ...currentTimeControl });
-      }
-    });
+    );
   });
 
   startBtn.addEventListener('click', () => {
@@ -644,7 +787,9 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
     evalBarEl.classList.toggle('eval-bar-concealed', !evalBarVisible);
     const buttonText = toggleEvalBarBtn.querySelector('span:last-child');
     if (buttonText) {
-      buttonText.textContent = evalBarVisible ? 'Hide Eval Bar' : 'Show Eval Bar';
+      buttonText.textContent = evalBarVisible
+        ? 'Hide Eval Bar'
+        : 'Show Eval Bar';
     }
     // Stop analyzing animation when hiding the eval bar
     if (!evalBarVisible && evalBarTrack) {
@@ -662,19 +807,24 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
   });
 
   function resetAppearance() {
-    showConfirmation('Reset Appearance', 'Restore all appearance settings?', () => {
-      Object.keys(appearanceDefaults).forEach((key) => {
-        appearanceState[key] = cloneDefaults(key);
-        const controls = appearanceInputs.get(key) || {};
-        Object.entries(appearanceState[key]).forEach(([ctrlKey, value]) => {
-          if (controls[ctrlKey]) {
-            controls[ctrlKey].input.value = value;
-            controls[ctrlKey].value.textContent = controls[ctrlKey].format(value);
-          }
+    showConfirmation(
+      'Reset Appearance',
+      'Restore all appearance settings?',
+      () => {
+        Object.keys(appearanceDefaults).forEach((key) => {
+          appearanceState[key] = cloneDefaults(key);
+          const controls = appearanceInputs.get(key) || {};
+          Object.entries(appearanceState[key]).forEach(([ctrlKey, value]) => {
+            if (controls[ctrlKey]) {
+              controls[ctrlKey].input.value = value;
+              controls[ctrlKey].value.textContent =
+                controls[ctrlKey].format(value);
+            }
+          });
         });
-      });
-      applyAppearance();
-    });
+        applyAppearance();
+      }
+    );
   }
 
   resetAppearanceButtons.forEach((button) => {
@@ -696,7 +846,13 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
     return { success: Boolean(result) };
   }
 
-  async function handleNotationLoad({ textarea, handler, emptyMessage, successMessage, invalidMessage }) {
+  async function handleNotationLoad({
+    textarea,
+    handler,
+    emptyMessage,
+    successMessage,
+    invalidMessage,
+  }) {
     if (!handler || !textarea) return;
     const value = textarea.value.trim();
     textarea.value = value;
@@ -705,14 +861,19 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
       return;
     }
     try {
-      const result = interpretHandlerResult(await Promise.resolve(handler(value)));
+      const result = interpretHandlerResult(
+        await Promise.resolve(handler(value))
+      );
       if (result.success) {
         messageApi.show('success', result.message || successMessage);
       } else {
         messageApi.show('error', result.message || invalidMessage);
       }
     } catch (error) {
-      const fallbackMessage = error && typeof error.message === 'string' ? error.message : invalidMessage;
+      const fallbackMessage =
+        error && typeof error.message === 'string'
+          ? error.message
+          : invalidMessage;
       messageApi.show('error', fallbackMessage || invalidMessage);
     }
   }
@@ -736,7 +897,7 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
         handler: handlers.onSetFen,
         emptyMessage: 'Enter a FEN string to load.',
         successMessage: 'FEN loaded successfully.',
-        invalidMessage: 'Invalid FEN string.'
+        invalidMessage: 'Invalid FEN string.',
       });
     });
   }
@@ -760,7 +921,7 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
         handler: handlers.onSetPgn,
         emptyMessage: 'Enter a PGN string to load.',
         successMessage: 'PGN loaded successfully.',
-        invalidMessage: 'Invalid PGN data.'
+        invalidMessage: 'Invalid PGN data.',
       });
     });
   }
@@ -771,7 +932,9 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
 
   startAnalysisBtn.addEventListener('click', () => {
     if (handlers.onStartAnalysis) {
-      handlers.onStartAnalysis({ depth: Number.parseInt((engineDepth as HTMLInputElement).value, 10) });
+      handlers.onStartAnalysis({
+        depth: Number.parseInt((engineDepth as HTMLInputElement).value, 10),
+      });
     }
   });
 
@@ -871,7 +1034,8 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
     },
     setEngineDepth(depth) {
       if (!engineDepth) return;
-      const fallback = Number.parseInt(engineDepth.getAttribute('min'), 10) || 18;
+      const fallback =
+        Number.parseInt(engineDepth.getAttribute('min'), 10) || 18;
       const value = Number.isFinite(depth) ? depth : fallback;
       (engineDepth as HTMLInputElement).value = value;
       engineDepthValue.textContent = value;
@@ -882,7 +1046,7 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
         return;
       }
       console.log('[UI] updateEngineLines called with:', lines);
-      
+
       engineLinesEl.innerHTML = lines
         .map((line, index) => {
           const label = `#${index + 1}`;
@@ -895,7 +1059,14 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
             const value = (line.score / 100).toFixed(2);
             scoreText = `${value}`;
           }
-          console.log('[UI] Rendering line:', { index, label, scoreText, san: line.san, uci: line.uci, line });
+          console.log('[UI] Rendering line:', {
+            index,
+            label,
+            scoreText,
+            san: line.san,
+            uci: line.uci,
+            line,
+          });
           return `<div class="engine-line engine-line-${index + 1}"><div class="engine-line-header"><span class="engine-line-label">${label}</span><span class="engine-line-score">${scoreText}</span></div><div class="engine-line-san">${line.san}</div><div class="engine-line-uci">${line.uci}</div></div>`;
         })
         .join('');
@@ -936,23 +1107,34 @@ export function initUI(rootEl: HTMLElement, handlers: UIHandlers = {}) {
     showEvalBarDepthInfo(show = true) {
       const evalBarDepthInfo = rootEl.querySelector('#eval-bar-depth-info');
       if (evalBarDepthInfo) {
-        (evalBarDepthInfo as HTMLElement).style.display = show ? 'block' : 'none';
+        (evalBarDepthInfo as HTMLElement).style.display = show
+          ? 'block'
+          : 'none';
       }
     },
     showMoveReviewStatus(show = true) {
       if (moveReviewStatus) {
-        (moveReviewStatus as HTMLElement).style.display = show ? 'block' : 'none';
+        (moveReviewStatus as HTMLElement).style.display = show
+          ? 'block'
+          : 'none';
       }
     },
     updateMoveReviewStatus({ remainingTime, totalTime, depth }) {
-      if (moveReviewTime && Number.isFinite(remainingTime) && Number.isFinite(totalTime)) {
+      if (
+        moveReviewTime &&
+        Number.isFinite(remainingTime) &&
+        Number.isFinite(totalTime)
+      ) {
         const remainingSeconds = remainingTime / 1000;
         const totalSeconds = totalTime / 1000;
-        moveReviewTime.textContent = formatRemainingTime(remainingSeconds, totalSeconds);
+        moveReviewTime.textContent = formatRemainingTime(
+          remainingSeconds,
+          totalSeconds
+        );
       }
       if (moveReviewDepth && Number.isFinite(depth)) {
         moveReviewDepth.textContent = depth;
       }
-    }
+    },
   };
 }
