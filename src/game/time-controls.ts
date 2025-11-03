@@ -5,13 +5,7 @@
  * based on the game's time control settings.
  */
 
-/**
- * Time control configuration
- */
-export interface TimeControl {
-  minutes: number;
-  increment?: number;
-}
+import type { TimeControl } from '../types';
 
 /**
  * Compute the engine evaluation depth based on time control
