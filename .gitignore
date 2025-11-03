@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store/
+.DS_Store
+.env
+.vite
+.vercel
+.next
+package-lock.json
