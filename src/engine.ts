@@ -1,7 +1,8 @@
 import { Chess } from 'chess.js';
-import { parseInfoLine, parseBestMove } from './engine/uci-parser.js';
+import { parseInfoLine, parseBestMove } from './engine/uci-parser';
+import type { EngineAnalysisLine } from './types';
 
-let worker = null;
+let worker: Worker | null = null;
 let readyPromise = null;
 let isReady = false;
 let analyzeResolver = null;
@@ -158,9 +159,9 @@ function finalizeAnalysis() {
   if (!currentAnalysis) return;
 
   const results = Array.from(currentAnalysis.partials.values())
-    .filter((entry) => entry.result)
-    .sort((a, b) => a.multipv - b.multipv)
-    .map((entry) => entry.result);
+    .filter((entry: any) => entry.result)
+    .sort((a: any, b: any) => a.multipv - b.multipv)
+    .map((entry: any) => entry.result);
 
   console.log('[ENGINE] Finalized analysis results:', results);
 
@@ -189,7 +190,16 @@ export function initEngine() {
   return promise;
 }
 
-export function analyze(fen, { depth = 16, multipv = 3, movetime = null, onProgress = null } = {}) {
+export function analyze(
+  fen: string, 
+  options: { 
+    depth?: number; 
+    multipv?: number; 
+    movetime?: number | null; 
+    onProgress?: ((data: { depth: number }) => void) | null;
+  } = {}
+): Promise<EngineAnalysisLine[]> {
+  const { depth = 16, multipv = 3, movetime = null, onProgress = null } = options;
   if (!worker || !isReady) {
     throw new Error('Engine not initialized');
   }
@@ -200,8 +210,8 @@ export function analyze(fen, { depth = 16, multipv = 3, movetime = null, onProgr
 
   post('stop');
 
-  const safeMultipv = Math.max(1, Number.parseInt(multipv, 10) || 1);
-  const searchDepth = Math.max(4, Number.parseInt(depth, 10) || 4);
+  const safeMultipv = Math.max(1, Number.parseInt(String(multipv), 10) || 1);
+  const searchDepth = Math.max(4, Number.parseInt(String(depth), 10) || 4);
 
   // Set progress callback
   onAnalysisProgress = onProgress;

@@ -1,3 +1,6 @@
+import type { Chess } from 'chess.js';
+import type { BoardCallbacks, BoardRenderOptions } from './types';
+
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 const pieceImages = {
@@ -300,7 +303,7 @@ function ensureArrowPreview() {
   path.classList.add("board-arrow", "board-arrow-preview");
   path.setAttribute("fill", "none");
   path.setAttribute("stroke", ARROW_PREVIEW_STROKE);
-  path.setAttribute("stroke-width", ARROW_THICKNESS);
+  path.setAttribute("stroke-width", String(ARROW_THICKNESS));
   path.setAttribute("stroke-linecap", "butt");
   path.setAttribute("stroke-linejoin", "round");
   path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
@@ -344,7 +347,7 @@ function renderArrows() {
     path.classList.add("board-arrow", "engine-arrow", `engine-arrow-${rank}`);
     path.setAttribute("d", pathData);
     path.setAttribute("fill", "none");
-    path.setAttribute("stroke-width", ARROW_THICKNESS);
+    path.setAttribute("stroke-width", String(ARROW_THICKNESS));
     path.setAttribute("stroke-linecap", "butt");
     path.setAttribute("stroke-linejoin", "round");
     path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
@@ -361,7 +364,7 @@ function renderArrows() {
     path.setAttribute("d", pathData);
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", ARROW_STROKE);
-    path.setAttribute("stroke-width", ARROW_THICKNESS);
+    path.setAttribute("stroke-width", String(ARROW_THICKNESS));
     path.setAttribute("stroke-linecap", "butt");
     path.setAttribute("stroke-linejoin", "round");
     path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
@@ -660,9 +663,10 @@ function handleDrop(event) {
 }
 
 export function createBoard(
-  rootEl,
-  { onSquareClick, onDrop, onSquareContext, onDragStart, onDragEnd } = {}
+  rootEl: HTMLElement,
+  callbacks: BoardCallbacks = {}
 ) {
+  const { onSquareClick, onDrop, onSquareContext, onDragStart, onDragEnd } = callbacks;
   boardState.root = rootEl;
   if (!rootEl.style.position) {
     rootEl.style.position = "relative";
@@ -763,7 +767,7 @@ function clearClasses(squareEl) {
   squareEl.classList.remove("white-piece", "black-piece");
 }
 
-export function renderPosition(game, options = {}) {
+export function renderPosition(game: Chess, options: BoardRenderOptions = {}) {
   if (!boardState.root) return;
   const {
     selectedSquare = null,
@@ -787,7 +791,7 @@ export function renderPosition(game, options = {}) {
           to: entry?.to,
           rank: Number.isFinite(entry?.rank)
             ? entry.rank
-            : Number.parseInt(entry?.rank, 10) || index + 1,
+            : Number.parseInt(String(entry?.rank), 10) || index + 1,
         }))
         .filter((entry) => entry.from || entry.to)
     : [];
@@ -801,7 +805,7 @@ export function renderPosition(game, options = {}) {
   const engineArrows = [];
 
   normalizedHighlights.forEach((entry, index) => {
-    const rank = Math.min(Math.max(Number.parseInt(entry.rank, 10) || index + 1, 1), 3);
+    const rank = Math.min(Math.max(Number.parseInt(String(entry.rank), 10) || index + 1, 1), 3);
     if (showEngineSquares) {
       [entry.from, entry.to].forEach((square) => {
         if (!square) return;
