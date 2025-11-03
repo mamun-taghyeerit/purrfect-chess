@@ -99,12 +99,7 @@ export function setupEasterEgg(cheatTextEl, enginePanelEl, onReveal) {
   cheatTextEl.addEventListener('keyup', () => handleSelection(cheatTextEl));
   
   // Listen for selection changes globally
-  document.addEventListener('selectionchange', () => {
-    if (checkSelectedText(cheatTextEl)) {
-      cheatPrimed = true;
-      cheatProgress = 0;
-    }
-  });
+  document.addEventListener('selectionchange', () => handleSelection(cheatTextEl));
   
   // Listen for keydown events (cheatcode sequence and Escape to reset)
   document.addEventListener('keydown', (event) => {

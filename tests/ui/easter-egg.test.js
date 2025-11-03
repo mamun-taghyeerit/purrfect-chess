@@ -1,12 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { setupEasterEgg, _testing } from '../../src/ui/easter-egg.js';
 
 describe('Easter Egg Module', () => {
   let cheatTextEl;
   let enginePanelEl;
   let onRevealCallback;
+  let originalGetSelection;
 
   beforeEach(() => {
+    // Save original getSelection
+    originalGetSelection = window.getSelection;
+    
     // Reset DOM
     document.body.innerHTML = '';
     
@@ -27,6 +31,11 @@ describe('Easter Egg Module', () => {
     // Reset module state
     _testing.setCheatPrimed(false);
     _testing.setCheatProgress(0);
+  });
+
+  afterEach(() => {
+    // Restore original getSelection
+    vi.unstubAllGlobals();
   });
 
   describe('setupEasterEgg', () => {
@@ -59,43 +68,43 @@ describe('Easter Egg Module', () => {
 
   describe('checkSelectedText', () => {
     it('should return false when no selection exists', () => {
-      window.getSelection = () => null;
+      vi.stubGlobal('getSelection', () => null);
       const result = _testing.checkSelectedText(cheatTextEl);
       expect(result).toBe(false);
     });
 
     it('should return false when selection is empty', () => {
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => '',
         containsNode: () => true
-      });
+      }));
       const result = _testing.checkSelectedText(cheatTextEl);
       expect(result).toBe(false);
     });
 
     it('should return false when selection does not match target text', () => {
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => 'wrong text',
         containsNode: () => true
-      });
+      }));
       const result = _testing.checkSelectedText(cheatTextEl);
       expect(result).toBe(false);
     });
 
     it('should return true when correct text is selected', () => {
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => '(Reserved for future use)',
         containsNode: (el) => el === cheatTextEl
-      });
+      }));
       const result = _testing.checkSelectedText(cheatTextEl);
       expect(result).toBe(true);
     });
 
     it('should handle selection.containsNode errors gracefully', () => {
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => '(Reserved for future use)',
         containsNode: () => { throw new Error('Browser error'); }
-      });
+      }));
       const result = _testing.checkSelectedText(cheatTextEl);
       expect(result).toBe(false);
     });
@@ -103,10 +112,10 @@ describe('Easter Egg Module', () => {
 
   describe('handleSelection', () => {
     it('should prime cheat when correct text is selected', () => {
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => '(Reserved for future use)',
         containsNode: (el) => el === cheatTextEl
-      });
+      }));
       
       _testing.handleSelection(cheatTextEl);
       
@@ -115,10 +124,10 @@ describe('Easter Egg Module', () => {
     });
 
     it('should not prime cheat when wrong text is selected', () => {
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => 'wrong text',
         containsNode: (el) => el === cheatTextEl
-      });
+      }));
       
       _testing.handleSelection(cheatTextEl);
       
@@ -193,10 +202,10 @@ describe('Easter Egg Module', () => {
       setupEasterEgg(cheatTextEl, enginePanelEl, onRevealCallback);
       
       // Simulate text selection
-      window.getSelection = () => ({
+      vi.stubGlobal('getSelection', () => ({
         toString: () => '(Reserved for future use)',
         containsNode: (el) => el === cheatTextEl
-      });
+      }));
       
       _testing.handleSelection(cheatTextEl);
       expect(_testing.getCheatPrimed()).toBe(true);
