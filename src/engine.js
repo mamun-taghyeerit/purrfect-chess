@@ -53,9 +53,6 @@ function handleMessage(event) {
 function handleInfo(line) {
   if (!currentAnalysis) return;
 
-  // DIAGNOSTIC: Log raw UCI info line
-  console.log('[ENGINE DIAGNOSTICS] Raw UCI info line:', line);
-
   const multipvMatch = line.match(/multipv\s+(\d+)/);
   if (!multipvMatch) return;
 
@@ -76,8 +73,6 @@ function handleInfo(line) {
     const moves = fullPv.split(/\s+/);
     entry.pv = moves[0]; // First move
     entry.pvLine = fullPv; // Full PV line
-    // DIAGNOSTIC: Log parsed PV
-    console.log('[ENGINE DIAGNOSTICS] Parsed PV for multipv', index, ':', { firstMove: moves[0], fullPv });
   }
 
   const scoreMatch = line.match(/score\s+(cp|mate)\s+(-?\d+)/);
@@ -86,16 +81,12 @@ function handleInfo(line) {
       type: scoreMatch[1],
       value: Number.parseInt(scoreMatch[2], 10)
     };
-    // DIAGNOSTIC: Log parsed score
-    console.log('[ENGINE DIAGNOSTICS] Parsed score for multipv', index, ':', entry.score);
   }
 
   if (entry.pv && entry.score) {
     const result = buildResult(entry);
     if (result) {
       entry.result = result;
-      // DIAGNOSTIC: Log built result object
-      console.log('[ENGINE DIAGNOSTICS] Built result for multipv', index, ':', result);
     }
   }
 
@@ -153,13 +144,6 @@ function finalizeAnalysis() {
     .filter((entry) => entry.result)
     .sort((a, b) => a.multipv - b.multipv)
     .map((entry) => entry.result);
-
-  // DIAGNOSTIC: Log final results being emitted to UI
-  console.log('[ENGINE DIAGNOSTICS] Emitting results to UI:', {
-    totalPartials: currentAnalysis.partials.size,
-    resultsWithData: results.length,
-    results: results
-  });
 
   if (analyzeResolver) {
     analyzeResolver(results);

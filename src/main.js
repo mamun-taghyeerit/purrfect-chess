@@ -404,13 +404,6 @@ function startAnalysis({ depth }) {
   const fen = getFen();
   analyze(fen, { depth, multipv: 3 })
     .then((lines) => {
-      // DIAGNOSTIC: Log received analysis results in main thread
-      console.log('[MAIN DIAGNOSTICS] Received analysis results from engine:', {
-        isArray: Array.isArray(lines),
-        length: lines?.length,
-        lines: lines
-      });
-
       if (!Array.isArray(lines) || lines.length === 0) {
         ui.showMessage("error", "Engine could not find a suitable move.");
         state.engineHighlights = [];

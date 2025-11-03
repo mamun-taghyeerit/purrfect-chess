@@ -914,13 +914,6 @@ export function initUI(rootEl, handlers = {}) {
       engineDepthValue.textContent = value;
     },
     updateEngineLines(lines) {
-      // DIAGNOSTIC: Log received payload before rendering
-      console.log('[UI DIAGNOSTICS] Received payload for rendering engine lines:', {
-        isArray: Array.isArray(lines),
-        length: lines?.length,
-        lines: lines
-      });
-
       if (!Array.isArray(lines) || lines.length === 0) {
         clearEnginePanel(engineLinesEl);
         return;
@@ -937,8 +930,6 @@ export function initUI(rootEl, handlers = {}) {
             const value = (line.score / 100).toFixed(2);
             scoreText = `${value}`;
           }
-          // DIAGNOSTIC: Log each line being rendered
-          console.log('[UI DIAGNOSTICS] Rendering line', index + 1, ':', { label, scoreText, san: line.san, uci: line.uci });
           return `<div class="engine-line engine-line-${index + 1}"><div class="engine-line-header"><span class="engine-line-label">${label}</span><span class="engine-line-score">${scoreText}</span></div><div class="engine-line-san">${line.san}</div><div class="engine-line-uci">${line.uci}</div></div>`;
         })
         .join('');
