@@ -678,6 +678,10 @@ export function initUI(rootEl, handlers = {}) {
     if (buttonText) {
       buttonText.textContent = evalBarVisible ? 'Hide Eval Bar' : 'Show Eval Bar';
     }
+    // Stop analyzing animation when hiding the eval bar
+    if (!evalBarVisible && evalBarTrack) {
+      evalBarTrack.classList.remove('analyzing');
+    }
     if (handlers.onEvalBarVisibilityChange) {
       handlers.onEvalBarVisibilityChange(evalBarVisible);
     }
@@ -843,6 +847,11 @@ export function initUI(rootEl, handlers = {}) {
 
   function setEvalBarAnalyzing(isAnalyzing) {
     if (!evalBarTrack) return;
+    // Only show analyzing animation if eval bar is visible
+    if (isAnalyzing && !evalBarVisible) {
+      evalBarTrack.classList.remove('analyzing');
+      return;
+    }
     evalBarTrack.classList.toggle('analyzing', isAnalyzing);
   }
 
