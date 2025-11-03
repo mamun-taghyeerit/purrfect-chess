@@ -25,6 +25,9 @@ function handleMessage(event) {
     return;
   }
 
+  // [DIAGNOSTIC] Log all engine messages
+  console.log('[ENGINE] Raw UCI:', line);
+
   if (line === 'uciok') {
     post('isready');
     return;
@@ -46,6 +49,7 @@ function handleMessage(event) {
   }
 
   if (line.startsWith('bestmove')) {
+    console.log('[ENGINE] Best move received:', line);
     finalizeAnalysis();
   }
 }
@@ -73,6 +77,7 @@ function handleInfo(line) {
     const moves = fullPv.split(/\s+/);
     entry.pv = moves[0]; // First move
     entry.pvLine = fullPv; // Full PV line
+    console.log('[ENGINE] PV extracted:', { multipv: index, pv: entry.pv, pvLine: entry.pvLine });
   }
 
   const scoreMatch = line.match(/score\s+(cp|mate)\s+(-?\d+)/);
@@ -81,12 +86,16 @@ function handleInfo(line) {
       type: scoreMatch[1],
       value: Number.parseInt(scoreMatch[2], 10)
     };
+    console.log('[ENGINE] Score extracted:', { multipv: index, score: entry.score });
   }
 
   if (entry.pv && entry.score) {
     const result = buildResult(entry);
     if (result) {
       entry.result = result;
+      console.log('[ENGINE] Result built:', { multipv: index, result });
+    } else {
+      console.warn('[ENGINE] Failed to build result for entry:', entry);
     }
   }
 
@@ -144,6 +153,8 @@ function finalizeAnalysis() {
     .filter((entry) => entry.result)
     .sort((a, b) => a.multipv - b.multipv)
     .map((entry) => entry.result);
+
+  console.log('[ENGINE] Finalized analysis results:', results);
 
   if (analyzeResolver) {
     analyzeResolver(results);
