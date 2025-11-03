@@ -616,6 +616,11 @@ function initialize() {
       if (ui && typeof ui.updateEvalBar === "function") {
         ui.updateEvalBar(0);
       }
+      // Clear any existing move review badge
+      if (currentBadge) {
+        currentBadge.remove();
+        currentBadge = null;
+      }
       startNewGame(control);
       queueAutoEvaluation();
     },
@@ -626,6 +631,11 @@ function initialize() {
       if (ui && typeof ui.updateEvalBar === "function") {
         ui.updateEvalBar(0);
       }
+      // Clear any existing move review badge
+      if (currentBadge) {
+        currentBadge.remove();
+        currentBadge = null;
+      }
       startNewGame(control);
       queueAutoEvaluation();
     },
@@ -635,6 +645,11 @@ function initialize() {
       updateDepthFromControl(control);
       if (ui && typeof ui.updateEvalBar === "function") {
         ui.updateEvalBar(0);
+      }
+      // Clear any existing move review badge
+      if (currentBadge) {
+        currentBadge.remove();
+        currentBadge = null;
       }
       startNewGame(control);
       queueAutoEvaluation();
