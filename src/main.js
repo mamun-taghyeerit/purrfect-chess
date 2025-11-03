@@ -204,6 +204,14 @@ function handleSquareClick(square) {
     state.selectedSquare = square;
     computeMoves(square);
   } else {
+    if (piece && piece.color !== game.turn()) {
+      state.customHighlights.clear();
+      state.engineHighlights = [];
+      ui.updateEngineLines([]);
+      if (boardController && typeof boardController.clearArrows === "function") {
+        boardController.clearArrows();
+      }
+    }
     clearSelection();
   }
   renderBoard();
