@@ -22,7 +22,7 @@ const state = {
   customHighlights: new Set(),
   lastMove: null,
   engineHighlights: [],
-  engineDisplayMode: "both",
+  engineDisplayMode: "arrows",
   engineBusy: false,
   boardLocked: false,
 };
@@ -34,6 +34,8 @@ let clockInterval = null;
 let autoEvalToken = 0;
 let autoEvalActive = false;
 let autoEvalDepth = 22;
+let evalBarVisible = false;
+let enginePanelVisible = false;
 
 function formatMatchDate(date) {
   const year = date.getFullYear();
@@ -97,10 +99,17 @@ function cancelAutoEvaluation({ stopEngine: shouldStop = true } = {}) {
 function queueAutoEvaluation() {
   if (!ui || typeof ui.updateEvalBar !== "function") return;
   if (!engineReady || state.engineBusy) return;
+  
+  // Only run auto-evaluation if eval bar or engine panel is visible
+  if (!evalBarVisible && !enginePanelVisible) return;
 
   const token = cancelAutoEvaluation();
   autoEvalActive = true;
   const fen = getFen();
+
+  if (typeof ui.setEvalBarAnalyzing === "function") {
+    ui.setEvalBarAnalyzing(true);
+  }
 
   analyze(fen, { depth: autoEvalDepth, multipv: 1 })
     .then((lines) => {
@@ -130,6 +139,9 @@ function queueAutoEvaluation() {
     .finally(() => {
       if (token !== autoEvalToken) return;
       autoEvalActive = false;
+      if (typeof ui.setEvalBarAnalyzing === "function") {
+        ui.setEvalBarAnalyzing(false);
+      }
     });
 }
 
@@ -447,11 +459,32 @@ function initialize() {
       state.engineDisplayMode = mode;
       renderBoard();
     },
+    onEvalBarVisibilityChange: (visible) => {
+      evalBarVisible = visible;
+      if (visible) {
+        queueAutoEvaluation();
+      } else {
+        cancelAutoEvaluation({ stopEngine: true });
+      }
+    },
+    onEnginePanelVisibilityChange: (visible) => {
+      enginePanelVisible = visible;
+      if (visible) {
+        queueAutoEvaluation();
+      } else if (!evalBarVisible) {
+        // Only cancel if eval bar is also hidden
+        cancelAutoEvaluation({ stopEngine: true });
+      }
+    },
   });
 
   if (typeof ui.setEngineOverlayMode === "function") {
     ui.setEngineOverlayMode(state.engineDisplayMode);
   }
+
+  // Initialize visibility states
+  evalBarVisible = typeof ui.isEvalBarVisible === "function" ? ui.isEvalBarVisible() : false;
+  enginePanelVisible = false; // Engine panel starts hidden
 
   const boardElement = ui.getBoardElement();
   const controller = createBoard(boardElement, {
