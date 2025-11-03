@@ -41,13 +41,18 @@ Purrfect Chess is a cat-themed chess board web application with local Stockfish 
 
 ### Setup
 ```bash
-yarn                        # Install dependencies
+nvm use                     # Use the correct Node.js version from .nvmrc
+yarn                        # Install dependencies (using Yarn Classic v1.x)
 yarn dev                    # Start development server (Vite)
 yarn build                  # Production build
 yarn preview                # Preview production build
 ```
 
 ### Important Notes
+- **Always run `nvm use` first**: Ensure you're using the correct Node.js version specified in `.nvmrc`
+- **Use Yarn Classic**: This project uses Yarn 1.x (Classic), not Yarn 2+ (Berry)
+- **Merge from develop**: Always pull/merge the latest `develop` branch before starting work
+- **yarn.lock commits**: Only commit `yarn.lock` changes if `package.json` or `.nvmrc` were also modified
 - **Always use a development server**: The app cannot run from `file://` due to Worker and WASM requirements
 - **Stockfish is vendored**: Engine binaries are in `/public/libs/` for stable URLs across dev/production
 - **Hidden feature**: Type "gmmamun" while selecting the "(Reserved for future use)" text to reveal engine controls
