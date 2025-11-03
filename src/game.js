@@ -165,6 +165,9 @@ export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   const minutesVal = Number.isFinite(minutes) ? minutes : DEFAULT_TIME.minutes;
   const incrementVal = Number.isFinite(increment) ? increment : DEFAULT_TIME.increment;
 
+  stopTimer();
+  state.timerId = null;
+
   state.timeControl = { minutes: minutesVal, increment: incrementVal };
   state.whiteTime = minutesVal * 60 * 1000;
   state.blackTime = minutesVal * 60 * 1000;
@@ -173,7 +176,7 @@ export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   state.lastMove = null;
   state.game.reset();
   state.gameOver = false;
-  startTimer();
+  state.lastTick = null;
 
   notifyMove(null, { type: 'reset' });
 }
@@ -213,7 +216,11 @@ function attemptMove(from, to, { promotion } = {}) {
   const status = evaluateGameEnd(move);
 
   if (!state.gameOver) {
-    startTimer();
+    if (!state.timerId) {
+      startTimer();
+    } else {
+      state.lastTick = Date.now();
+    }
   }
 
   notifyMove(move, { type: status || 'move' });
