@@ -34,7 +34,7 @@ describe('Easter Egg Module', () => {
   });
 
   afterEach(() => {
-    // Restore original getSelection
+    // Clean up all global stubs
     vi.unstubAllGlobals();
   });
 

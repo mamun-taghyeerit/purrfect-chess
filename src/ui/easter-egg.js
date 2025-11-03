@@ -58,11 +58,20 @@ function handleSelection(cheatTextEl) {
  * @param {Function} onReveal - Callback function to execute when cheatcode is complete
  */
 function handleKeydown(event, enginePanelEl, onReveal) {
+  const key = event.key;
+  
+  // Escape key resets cheatcode state
+  if (key === 'Escape') {
+    cheatPrimed = false;
+    cheatProgress = 0;
+    return;
+  }
+  
   if (!cheatPrimed) return;
   
-  const key = event.key.toLowerCase();
+  const lowerKey = key.toLowerCase();
   
-  if (key === CHEAT_SEQUENCE[cheatProgress]) {
+  if (lowerKey === CHEAT_SEQUENCE[cheatProgress]) {
     cheatProgress += 1;
     
     if (cheatProgress === CHEAT_SEQUENCE.length) {
@@ -75,12 +84,13 @@ function handleKeydown(event, enginePanelEl, onReveal) {
         onReveal();
       }
     }
-  } else if (key.trim()) {
-    // Non-whitespace key pressed that doesn't match - reset
+  } else if (lowerKey.trim()) {
+    // Non-empty key pressed that doesn't match sequence - reset
+    // This resets on any non-whitespace character including modifier keys
     cheatPrimed = false;
     cheatProgress = 0;
   }
-  // Ignore whitespace keys (shift, ctrl, alt, meta, etc.)
+  // Whitespace-only keys (space, tab, etc.) are ignored
 }
 
 /**
@@ -103,12 +113,7 @@ export function setupEasterEgg(cheatTextEl, enginePanelEl, onReveal) {
   
   // Listen for keydown events (cheatcode sequence and Escape to reset)
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      cheatPrimed = false;
-      cheatProgress = 0;
-    } else {
-      handleKeydown(event, enginePanelEl, onReveal);
-    }
+    handleKeydown(event, enginePanelEl, onReveal);
   });
 }
 
