@@ -374,6 +374,32 @@ export function initUI(rootEl, handlers = {}) {
             <button id="start-analysis" type="button" class="button button-accent">Start Analysis</button>
             <button id="stop-analysis" type="button" class="button button-danger">Stop</button>
           </div>
+          <div class="engine-overlay-controls" id="engine-overlay-controls">
+            <span class="engine-overlay-label">Overlay:</span>
+            <div class="engine-overlay-buttons" role="group" aria-label="Engine overlays">
+              <button
+                type="button"
+                class="button button-outline button-small engine-overlay-button"
+                data-engine-overlay-mode="squares"
+              >
+                Squares
+              </button>
+              <button
+                type="button"
+                class="button button-outline button-small engine-overlay-button"
+                data-engine-overlay-mode="arrows"
+              >
+                Arrows
+              </button>
+              <button
+                type="button"
+                class="button button-outline button-small engine-overlay-button"
+                data-engine-overlay-mode="both"
+              >
+                Both
+              </button>
+            </div>
+          </div>
           <div class="engine-lines" id="engine-lines"></div>
         </div>
       </section>
@@ -432,6 +458,7 @@ export function initUI(rootEl, handlers = {}) {
   }
 
   let currentTimeControl = { minutes: 5, increment: 0 };
+  let engineOverlayMode = 'both';
   let selectedPresetButton = null;
 
   timePresets.forEach((preset) => {
@@ -481,6 +508,9 @@ export function initUI(rootEl, handlers = {}) {
   const enginePanel = rootEl.querySelector('#engine-panel');
   const engineDepth = rootEl.querySelector('#engine-depth');
   const engineDepthValue = rootEl.querySelector('#engine-depth-value');
+  const engineOverlayButtons = Array.from(
+    rootEl.querySelectorAll('[data-engine-overlay-mode]')
+  );
   const startAnalysisBtn = rootEl.querySelector('#start-analysis');
   const stopAnalysisBtn = rootEl.querySelector('#stop-analysis');
   const engineLinesEl = rootEl.querySelector('#engine-lines');
@@ -491,6 +521,38 @@ export function initUI(rootEl, handlers = {}) {
   applyAppearance();
   clearEnginePanel(engineLinesEl);
   stopAnalysisBtn.disabled = true;
+
+  function updateEngineOverlayButtons(mode) {
+    if (!mode) return;
+    engineOverlayMode = mode;
+    engineOverlayButtons.forEach((button) => {
+      const value = button.dataset.engineOverlayMode;
+      const isActive = value === mode;
+      button.classList.toggle('active', isActive);
+      if (isActive) {
+        button.classList.add('button-accent');
+        button.classList.remove('button-outline');
+      } else {
+        button.classList.add('button-outline');
+        button.classList.remove('button-accent');
+      }
+    });
+  }
+
+  updateEngineOverlayButtons(engineOverlayMode);
+
+  engineOverlayButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.engineOverlayMode;
+      if (!mode || mode === engineOverlayMode) {
+        return;
+      }
+      updateEngineOverlayButtons(mode);
+      if (typeof handlers.onEngineOverlayModeChange === 'function') {
+        handlers.onEngineOverlayModeChange(mode);
+      }
+    });
+  });
 
   const matchTitleEl = rootEl.querySelector('#match-title');
   const matchEventEl = rootEl.querySelector('#match-event');
@@ -687,6 +749,9 @@ export function initUI(rootEl, handlers = {}) {
     },
     hideEnginePanel() {
       enginePanel.classList.add('hidden');
+    },
+    setEngineOverlayMode(mode) {
+      updateEngineOverlayButtons(mode);
     },
     getCurrentTimeControl() {
       return { ...currentTimeControl };

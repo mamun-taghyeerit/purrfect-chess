@@ -44,6 +44,7 @@ const boardState = {
   arrowLayer: null,
   arrowPreview: null,
   arrows: new Map(),
+  engineArrows: [],
   arrowDrag: null,
   listenersBound: false,
 };
@@ -308,6 +309,15 @@ function ensureArrowPreview() {
   return path;
 }
 
+function setEngineArrows(arrows) {
+  if (!Array.isArray(arrows)) {
+    boardState.engineArrows = [];
+  } else {
+    boardState.engineArrows = arrows;
+  }
+  renderArrows();
+}
+
 function removeArrow(key) {
   if (!boardState.arrows.has(key)) return;
   boardState.arrows.delete(key);
@@ -318,6 +328,28 @@ function renderArrows() {
   const layer = ensureArrowLayer();
   if (!layer) return;
   layer.querySelectorAll("[data-arrow-line]").forEach((node) => node.remove());
+  const preview = boardState.arrowPreview;
+  if (preview && preview.parentElement) {
+    preview.parentElement.removeChild(preview);
+  }
+
+  boardState.engineArrows.forEach((arrow, index) => {
+    const pathData = buildArrowPath(arrow.from, arrow.to);
+    if (!pathData) return;
+    const rank = Math.min(Math.max(Number.parseInt(arrow.rank, 10) || index + 1, 1), 3);
+    const path = document.createElementNS(SVG_NS, "path");
+    path.dataset.arrowLine = `engine-${index}`;
+    path.classList.add("board-arrow", "engine-arrow", `engine-arrow-${rank}`);
+    path.setAttribute("d", pathData);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke-width", ARROW_THICKNESS);
+    path.setAttribute("stroke-linecap", "butt");
+    path.setAttribute("stroke-linejoin", "round");
+    path.setAttribute("marker-end", `url(#${ARROW_HEAD_ID})`);
+    path.setAttribute("pointer-events", "none");
+    layer.appendChild(path);
+  });
+
   boardState.arrows.forEach((arrow, key) => {
     const pathData = buildArrowPath(arrow.from, arrow.to);
     if (!pathData) return;
@@ -646,16 +678,54 @@ export function renderPosition(game, options = {}) {
     lastMove = null,
     customHighlights = [],
     engineHighlights = [],
+    engineDisplayMode = "both",
   } = options;
 
   const legalSet = new Set(legalMoves);
   const captureSet = new Set(captureMoves);
   const customSet = new Set(customHighlights);
 
-  const engineMap = new Map();
-  engineHighlights.forEach((square, index) => {
-    engineMap.set(square, index + 1);
+  const normalizedHighlights = Array.isArray(engineHighlights)
+    ? engineHighlights
+        .map((entry, index) => ({
+          from: entry?.from,
+          to: entry?.to,
+          rank: Number.isFinite(entry?.rank)
+            ? entry.rank
+            : Number.parseInt(entry?.rank, 10) || index + 1,
+        }))
+        .filter((entry) => entry.from || entry.to)
+    : [];
+
+  const showEngineSquares =
+    engineDisplayMode === "both" || engineDisplayMode === "squares";
+  const showEngineArrows =
+    engineDisplayMode === "both" || engineDisplayMode === "arrows";
+
+  const engineSquareMap = new Map();
+  const engineArrows = [];
+
+  normalizedHighlights.forEach((entry, index) => {
+    const rank = Math.min(Math.max(Number.parseInt(entry.rank, 10) || index + 1, 1), 3);
+    if (showEngineSquares) {
+      [entry.from, entry.to].forEach((square) => {
+        if (!square) return;
+        const existing = engineSquareMap.get(square);
+        if (!existing || rank < existing) {
+          engineSquareMap.set(square, rank);
+        }
+      });
+    }
+    if (showEngineArrows && entry.from && entry.to) {
+      engineArrows.push({ from: entry.from, to: entry.to, rank });
+    }
   });
+
+  if (showEngineArrows) {
+    setEngineArrows(engineArrows);
+  } else {
+    setEngineArrows([]);
+  }
 
   const boardMatrix = game.board();
   for (let rank = 0; rank < 8; rank += 1) {
@@ -703,8 +773,10 @@ export function renderPosition(game, options = {}) {
       if (customSet.has(squareName)) {
         squareEl.classList.add("user-highlight");
       }
-      if (engineMap.has(squareName)) {
-        squareEl.classList.add(`engine-move-${engineMap.get(squareName)}`);
+      if (engineSquareMap.has(squareName)) {
+        squareEl.classList.add(
+          `engine-move-${engineSquareMap.get(squareName)}`
+        );
       }
     }
   }

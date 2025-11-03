@@ -537,6 +537,22 @@ h1,
   opacity: 0.75;
 }
 
+.board-arrow.engine-arrow {
+  opacity: 0.95;
+}
+
+.board-arrow.engine-arrow-1 {
+  stroke: rgba(59, 130, 246, 0.95);
+}
+
+.board-arrow.engine-arrow-2 {
+  stroke: rgba(16, 185, 129, 0.95);
+}
+
+.board-arrow.engine-arrow-3 {
+  stroke: rgba(244, 114, 182, 0.95);
+}
+
 .square.selected::after,
 .square.last-move::after,
 .square.legal-move-hint::after,
@@ -615,6 +631,28 @@ h1,
   flex-direction: column;
   gap: 16px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.engine-overlay-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.engine-overlay-label {
+  font-size: 0.85rem;
+  color: #dcdcdc;
+}
+
+.engine-overlay-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.engine-overlay-button {
+  min-width: 96px;
 }
 
 .engine-depth-control {
