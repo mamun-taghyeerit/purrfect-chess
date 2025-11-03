@@ -349,23 +349,21 @@ export function initUI(rootEl, handlers = {}) {
             <span class="button-icon">↻</span>
             <span>Reset Game</span>
           </button>
-          <div class="eval-bar-controls">
-            <button id="toggle-eval-bar" type="button" class="button button-outline icon-button button-small">
-              <span class="button-icon">📊</span>
-              <span>Show Eval Bar</span>
-            </button>
-            <div class="eval-bar-depth-info" id="eval-bar-depth-info">
-              (current depth: <span id="eval-bar-current-depth">0</span> | max depth: <span id="eval-bar-max-depth">22</span>)
-            </div>
+          <button id="toggle-eval-bar" type="button" class="button button-outline icon-button button-small">
+            <span class="button-icon">📊</span>
+            <span>Show Eval Bar</span>
+          </button>
+          <button id="move-review" type="button" class="button button-outline icon-button button-small">
+            <span class="button-icon">⭐</span>
+            <span>Move Review</span>
+          </button>
+        </div>
+        <div class="board-status-info">
+          <div class="eval-bar-depth-info" id="eval-bar-depth-info" style="display: none;">
+            (current depth: <span id="eval-bar-current-depth">0</span> | max depth: <span id="eval-bar-max-depth">22</span>)
           </div>
-          <div class="move-review-controls">
-            <button id="move-review" type="button" class="button button-outline icon-button button-small">
-              <span class="button-icon">⭐</span>
-              <span>Move Review</span>
-            </button>
-            <div class="move-review-status" id="move-review-status" style="display: none;">
-              (<span id="move-review-time">0.00s/5.00</span> | depth: <span id="move-review-depth">0</span>)
-            </div>
+          <div class="move-review-status" id="move-review-status" style="display: none;">
+            (<span id="move-review-time">0.00s/5.00</span> | depth: <span id="move-review-depth">0</span>)
           </div>
         </div>
         <div class="match-card" id="match-card">
@@ -434,7 +432,9 @@ export function initUI(rootEl, handlers = {}) {
         </div>
       </section>
       <section class="layout-panel game-panel" id="black-panel">
-        <h2>Black Controls</h2>
+        <div class="panel-header">
+          <h2>Black Controls</h2>
+        </div>
         <div class="clock-display" id="black-clock">05:00</div>
         <div class="controls-container">
           <div class="control-group">
@@ -983,6 +983,12 @@ export function initUI(rootEl, handlers = {}) {
       }
       if (evalBarMaxDepth && Number.isFinite(maxDepth)) {
         evalBarMaxDepth.textContent = maxDepth;
+      }
+    },
+    showEvalBarDepthInfo(show = true) {
+      const evalBarDepthInfo = rootEl.querySelector('#eval-bar-depth-info');
+      if (evalBarDepthInfo) {
+        evalBarDepthInfo.style.display = show ? 'block' : 'none';
       }
     },
     showMoveReviewStatus(show = true) {

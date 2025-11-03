@@ -88,6 +88,7 @@ h1,
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   width: 100%;
 }
 
@@ -95,12 +96,15 @@ h1,
   flex: 0 0 auto;
 }
 
-.eval-bar-controls,
-.move-review-controls {
+.board-status-info {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  width: 100%;
+  min-height: 20px;
+  margin-top: 4px;
 }
 
 .eval-bar-depth-info,

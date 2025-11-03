@@ -846,8 +846,16 @@ function initialize() {
     onEvalBarVisibilityChange: (visible) => {
       evalBarVisible = visible;
       if (visible) {
+        // Show eval bar depth info when eval bar is shown
+        if (typeof ui.showEvalBarDepthInfo === 'function') {
+          ui.showEvalBarDepthInfo(true);
+        }
         queueAutoEvaluation();
       } else {
+        // Hide eval bar depth info when eval bar is hidden
+        if (typeof ui.showEvalBarDepthInfo === 'function') {
+          ui.showEvalBarDepthInfo(false);
+        }
         cancelAutoEvaluation({ stopEngine: true });
       }
     },
