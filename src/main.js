@@ -475,7 +475,7 @@ function classifyMove(moveInfo, preEval, postEval) {
   }
 
   // 5. brilliant
-  if (playedUci !== engineMove && delta >= 120 && /[x=+]/.test(moveInfo.san)) {
+  if (playedUci !== engineMove && delta >= 120 && TACTICAL_MOVE_PATTERN.test(moveInfo.san)) {
     return { type: 'brilliant', asset: getAssetPath('brilliant'), delta };
   }
 
@@ -485,9 +485,13 @@ function classifyMove(moveInfo, preEval, postEval) {
     return { type: 'miss', asset: getAssetPath('miss'), delta };
   }
   // Case B: missed equalizer
-  if (wasMuchWorseBefore && playedUci !== engineMove && !nowEqual) {
-    const engineWouldEqual = preEval?.scoreType === 'cp' && Math.abs(preEval.score) <= 30;
-    if (engineWouldEqual) {
+  // Check if we were worse, and the engine's best move would have led to equality
+  if (wasMuchWorseBefore && playedUci !== engineMove) {
+    // The engine evaluation shows what the position would be after the engine's move
+    // Since preEval is from the mover's POV, a score near 0 means equality
+    const engineLeadsToEquality = preEval?.scoreType === 'cp' && Math.abs(preEval.score) <= 30;
+    // And our move didn't achieve equality
+    if (engineLeadsToEquality && !nowEqual) {
       return { type: 'miss', asset: getAssetPath('miss'), delta };
     }
   }
@@ -517,11 +521,15 @@ function classifyMove(moveInfo, preEval, postEval) {
 }
 
 function getAssetPath(type) {
-  const assetPath = `/assets/${type}.png`;
+  // Use relative path that works in all deployment scenarios
+  const assetPath = `assets/${type}.png`;
   return assetPath;
 }
 
 let currentBadge = null;
+
+// Pattern to identify tactical moves (captures, promotions, checks)
+const TACTICAL_MOVE_PATTERN = /[x=+]/;
 
 function displayMoveBadge(classification, targetSquare) {
   // Remove existing badge
@@ -541,8 +549,8 @@ function displayMoveBadge(classification, targetSquare) {
 
   // Handle image load error - fall back to good.png
   badge.onerror = () => {
-    if (badge.src !== '/assets/good.png') {
-      badge.src = '/assets/good.png';
+    if (badge.src !== 'assets/good.png' && !badge.src.endsWith('/good.png')) {
+      badge.src = 'assets/good.png';
     }
   };
 

@@ -84,7 +84,10 @@ function handleInfo(line) {
   }
 
   if (entry.pv && entry.score) {
-    entry.result = buildResult(entry);
+    const result = buildResult(entry);
+    if (result) {
+      entry.result = result;
+    }
   }
 
   currentAnalysis.partials.set(index, entry);
@@ -92,6 +95,11 @@ function handleInfo(line) {
 
 function buildResult(entry) {
   const { pv, pvLine, score, multipv } = entry;
+  if (!pv) {
+    // If pv is missing, we can't build a result
+    return null;
+  }
+  
   const moves = pv.split(/\s+/);
   const uci = moves[0];
   const from = uci.slice(0, 2);
