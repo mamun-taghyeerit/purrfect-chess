@@ -1,4 +1,4 @@
-import './styles.css';
+import "./styles.css";
 import {
   initGame,
   startNewGame,
@@ -7,11 +7,11 @@ import {
   getFen,
   getPgn,
   getClocks,
-  getTimeControl
-} from './game.js';
-import { createBoard, renderPosition } from './board.js';
-import { initEngine, analyze, stop as stopEngine } from './engine.js';
-import { initUI } from './ui.js';
+  getTimeControl,
+} from "./game.js";
+import { createBoard, renderPosition } from "./board.js";
+import { initEngine, analyze, stop as stopEngine } from "./engine.js";
+import { initUI } from "./ui.js";
 
 const state = {
   selectedSquare: null,
@@ -21,7 +21,7 @@ const state = {
   lastMove: null,
   engineHighlights: [],
   engineBusy: false,
-  boardLocked: false
+  boardLocked: false,
 };
 
 let ui;
@@ -31,8 +31,8 @@ let clockInterval = null;
 
 function formatMatchDate(date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}.${month}.${day}`;
 }
 
@@ -44,11 +44,11 @@ function refreshMatchDetails() {
   const control = getTimeControl();
   const now = new Date();
   ui.updateMatchInfo({
-    title: 'Purrfect Chess Arena',
+    title: "Purrfect Chess Arena",
     event: `Purrfect Game - ${control.minutes}+${control.increment}`,
     date: formatMatchDate(now),
     timeControl: formatTimeControl(control),
-    site: 'Purrfect Universe (Online)'
+    site: "Purrfect Universe (Online)",
   });
 }
 
@@ -59,7 +59,7 @@ function renderBoard() {
     captureMoves: Array.from(state.captureMoves),
     lastMove: state.lastMove,
     customHighlights: Array.from(state.customHighlights),
-    engineHighlights: state.engineHighlights
+    engineHighlights: state.engineHighlights,
   });
 }
 
@@ -74,7 +74,7 @@ function computeMoves(square) {
   state.legalMoves.clear();
   state.captureMoves.clear();
   moves.forEach((move) => {
-    if (move.flags.includes('c') || move.flags.includes('e')) {
+    if (move.flags.includes("c") || move.flags.includes("e")) {
       state.captureMoves.add(move.to);
     } else {
       state.legalMoves.add(move.to);
@@ -85,7 +85,7 @@ function computeMoves(square) {
 function attemptPlayerMove(from, to) {
   const result = attemptMove(from, to, {});
   if (!result.success) {
-    ui.showMessage('error', 'Illegal move.');
+    ui.showMessage("error", "Illegal move.");
     return false;
   }
   return true;
@@ -97,8 +97,8 @@ function updateMoveList() {
   for (let i = 0; i < history.length; i += 2) {
     pairs.push({
       index: i / 2 + 1,
-      white: history[i] ? history[i].san : '',
-      black: history[i + 1] ? history[i + 1].san : ''
+      white: history[i] ? history[i].san : "",
+      black: history[i + 1] ? history[i + 1].san : "",
     });
   }
   ui.updateMoveList(pairs);
@@ -127,9 +127,12 @@ function handleMove(event) {
   updateNotation();
   ui.updateClocks(getClocks());
 
-  if (status?.type === 'reset') {
+  if (status?.type === "reset") {
+    if (boardController && typeof boardController.clearArrows === "function") {
+      boardController.clearArrows();
+    }
     refreshMatchDetails();
-    ui.showMessage('info', 'New game started.');
+    ui.showMessage("info", "New game started.");
     boardController.setInteractive(true);
     state.boardLocked = false;
   }
@@ -140,27 +143,27 @@ function handleGameOver(payload) {
   boardController.setInteractive(false);
 
   switch (payload.reason) {
-    case 'checkmate': {
-      const winner = payload.winner === 'w' ? 'White' : 'Black';
-      ui.showMessage('success', `${winner} wins by checkmate.`);
+    case "checkmate": {
+      const winner = payload.winner === "w" ? "White" : "Black";
+      ui.showMessage("success", `${winner} wins by checkmate.`);
       break;
     }
-    case 'timeout': {
-      const winner = payload.winner === 'w' ? 'White' : 'Black';
-      ui.showMessage('error', `${winner} wins on time.`);
+    case "timeout": {
+      const winner = payload.winner === "w" ? "White" : "Black";
+      ui.showMessage("error", `${winner} wins on time.`);
       break;
     }
-    case 'stalemate':
-      ui.showMessage('info', 'Stalemate. The game is drawn.');
+    case "stalemate":
+      ui.showMessage("info", "Stalemate. The game is drawn.");
       break;
-    case 'threefold':
-      ui.showMessage('info', 'Draw by threefold repetition.');
+    case "threefold":
+      ui.showMessage("info", "Draw by threefold repetition.");
       break;
-    case 'insufficient':
-      ui.showMessage('info', 'Draw by insufficient material.');
+    case "insufficient":
+      ui.showMessage("info", "Draw by insufficient material.");
       break;
-    case 'draw':
-      ui.showMessage('info', 'Draw by the fifty-move rule.');
+    case "draw":
+      ui.showMessage("info", "Draw by the fifty-move rule.");
       break;
     default:
       break;
@@ -181,7 +184,8 @@ function handleSquareClick(square) {
   const game = getGame();
   const piece = game.get(square);
 
-  const isTarget = state.legalMoves.has(square) || state.captureMoves.has(square);
+  const isTarget =
+    state.legalMoves.has(square) || state.captureMoves.has(square);
   if (state.selectedSquare && isTarget) {
     if (attemptPlayerMove(state.selectedSquare, square)) {
       clearSelection();
@@ -219,7 +223,7 @@ function stopAnalysis({ quiet = false } = {}) {
   state.engineHighlights = [];
   ui.updateEngineLines([]);
   if (!quiet) {
-    ui.showMessage('info', 'Engine analysis stopped.');
+    ui.showMessage("info", "Engine analysis stopped.");
   }
   renderBoard();
   if (!engineReady) return;
@@ -232,7 +236,7 @@ function stopAnalysis({ quiet = false } = {}) {
 
 function startAnalysis({ depth }) {
   if (!engineReady) {
-    ui.showMessage('error', 'Engine is not ready yet.');
+    ui.showMessage("error", "Engine is not ready yet.");
     return;
   }
   if (state.engineBusy) {
@@ -241,13 +245,13 @@ function startAnalysis({ depth }) {
 
   state.engineBusy = true;
   ui.setEngineBusy(true);
-  ui.showMessage('info', 'Engine analysis started.');
+  ui.showMessage("info", "Engine analysis started.");
 
   const fen = getFen();
   analyze(fen, { depth, multipv: 3 })
     .then((lines) => {
       if (!Array.isArray(lines) || lines.length === 0) {
-        ui.showMessage('error', 'Engine could not find a suitable move.');
+        ui.showMessage("error", "Engine could not find a suitable move.");
         state.engineHighlights = [];
         ui.updateEngineLines([]);
       } else {
@@ -257,8 +261,8 @@ function startAnalysis({ depth }) {
       }
     })
     .catch((error) => {
-      if (error && error.message !== 'Analysis stopped') {
-        ui.showMessage('error', 'Engine analysis failed.');
+      if (error && error.message !== "Analysis stopped") {
+        ui.showMessage("error", "Engine analysis failed.");
       }
     })
     .finally(() => {
@@ -278,7 +282,7 @@ function setupClockUpdater() {
 
 function initialize() {
   initGame({ onMove: handleMove, onGameOver: handleGameOver });
-  ui = initUI(document.getElementById('app'), {
+  ui = initUI(document.getElementById("app"), {
     onTimePreset: ({ minutes, increment }) => {
       stopAnalysis({ quiet: true });
       startNewGame({ minutes, increment });
@@ -297,15 +301,15 @@ function initialize() {
     onStartAnalysis: ({ depth }) => startAnalysis({ depth }),
     onStopAnalysis: () => stopAnalysis({ quiet: true }),
     onRevealEnginePanel: () => {
-      ui.showMessage('success', 'Engine panel unlocked!');
-    }
+      ui.showMessage("success", "Engine panel unlocked!");
+    },
   });
 
   const boardElement = ui.getBoardElement();
   const controller = createBoard(boardElement, {
     onSquareClick: handleSquareClick,
     onDrop: handleDrop,
-    onSquareContext: highlightSquare
+    onSquareContext: highlightSquare,
   });
   boardController = controller;
 
@@ -324,7 +328,7 @@ function initialize() {
       engineReady = true;
     })
     .catch(() => {
-      ui.showMessage('error', 'Unable to initialize Stockfish.');
+      ui.showMessage("error", "Unable to initialize Stockfish.");
     });
 }
 

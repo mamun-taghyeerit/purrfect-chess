@@ -474,6 +474,7 @@ h1,
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  position: relative;
 }
 
 .square {
@@ -515,6 +516,25 @@ h1,
 .square.black-piece img {
   filter: var(--black-piece-filter);
   transform: translate(-50%, -50%) scale(var(--black-piece-scale));
+}
+
+.board-arrow-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+
+.board-arrow-layer .board-arrow {
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.board-arrow-layer .board-arrow-preview {
+  opacity: 0.75;
 }
 
 .square.selected::after,
