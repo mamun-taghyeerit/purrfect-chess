@@ -1096,7 +1096,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) rotate(360deg) scale(0.6);
+    transform: translate(-50%, -50%) rotate(360deg) scale(0.4);
     opacity: 1;
   }
 }
@@ -1116,7 +1116,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) translateX(0) scale(0.6);
+    transform: translate(-50%, -50%) translateX(0) scale(0.4);
     opacity: 1;
   }
 }
@@ -1135,7 +1135,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 1;
   }
 }
@@ -1156,7 +1156,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 1;
     filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
   }
@@ -1176,7 +1176,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 1;
   }
 }
@@ -1191,7 +1191,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 1;
   }
 }
@@ -1212,7 +1212,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 1;
     filter: drop-shadow(0 0 5px rgba(100, 200, 255, 0.3));
   }
@@ -1228,7 +1228,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, -50%) scale(0.4);
     opacity: 1;
   }
 }
@@ -1243,7 +1243,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) translateY(0) scale(0.6);
+    transform: translate(-50%, -50%) translateY(0) scale(0.4);
     opacity: 1;
   }
 }
@@ -1256,5 +1256,55 @@ h1,
   100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
+  }
+}
+
+textarea,
+input,
+button {
+  font-family: inherit;
+}
+
+@media (min-width: 1100px) {
+  .main-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .layout-panel {
+    width: auto;
+    max-width: none;
+  }
+
+  .controls-panel {
+    order: 1;
+    flex: 1 1 280px;
+    max-width: 320px;
+  }
+
+  .board-panel {
+    order: 2;
+    flex: 0 0 auto;
+  }
+
+  .game-panel {
+    order: 3;
+    flex: 1 1 280px;
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .button-row {
+    flex-direction: column;
+  }
+
+  .button-row .button {
+    width: 100%;
+  }
+
+  .custom-time-grid {
+    grid-template-columns: 1fr;
   }
 }

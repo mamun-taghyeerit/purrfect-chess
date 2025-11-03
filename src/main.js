@@ -407,11 +407,11 @@ async function reviewLastMove() {
     ui.showMessage('info', 'Analyzing move...');
 
     // Analyze position before the move
-    const preAnalysis = await analyze(lastMoveInfo.preFen, { movetime: 300, multipv: 1 });
+    const preAnalysis = await analyze(lastMoveInfo.preFen, { movetime: 5000, multipv: 1 });
     const preEval = preAnalysis && preAnalysis.length > 0 ? preAnalysis[0] : null;
 
     // Analyze position after the move
-    const postAnalysis = await analyze(lastMoveInfo.postFen, { movetime: 300, multipv: 1 });
+    const postAnalysis = await analyze(lastMoveInfo.postFen, { movetime: 5000, multipv: 1 });
     const postEval = postAnalysis && postAnalysis.length > 0 ? postAnalysis[0] : null;
 
     // Classify the move
@@ -576,10 +576,11 @@ function displayMoveBadge(classification, targetSquare) {
       const containerRect = boardContainer.getBoundingClientRect();
       const squareRect = targetSquareElement.getBoundingClientRect();
       
-      // Position at top-right corner of the square (offset by badge size)
-      const badgeSize = 40; // Final badge size
-      const offsetX = squareRect.left - containerRect.left + squareRect.width - badgeSize / 2;
-      const offsetY = squareRect.top - containerRect.top + badgeSize / 2;
+      // Position at top-right corner, more towards the outer edge
+      const badgeSize = 24; // Final badge size (smaller)
+      const edgeOffset = 4; // Pixels from the edge
+      const offsetX = squareRect.left - containerRect.left + squareRect.width - edgeOffset;
+      const offsetY = squareRect.top - containerRect.top + edgeOffset;
       
       // Set CSS custom properties for the target position
       badge.style.setProperty('--target-x', `${offsetX}px`);
