@@ -1,4 +1,5 @@
 import { formatRemainingTime } from './game/time-controls.js';
+import { setupEasterEgg } from './ui/easter-egg.js';
 
 const timePresets = [
   { label: '3 + 0', minutes: 3, increment: 0 },
@@ -62,9 +63,6 @@ const appearanceInputs = new Map();
 
 let messageTimeout = null;
 let confirmationState = { onConfirm: null };
-let cheatPrimed = false;
-let cheatProgress = 0;
-const cheatSequence = 'gmmamun';
 
 function formatClock(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
@@ -222,60 +220,6 @@ function buildAppearanceControls(container, keys) {
     wrapper.appendChild(slidersWrapper);
 
     container.appendChild(wrapper);
-  });
-}
-
-function handleSelection(cheatTextEl) {
-  const selection = window.getSelection();
-  if (!selection) return;
-  const selected = selection.toString().trim();
-  if (!selected) return;
-  try {
-    if (typeof selection.containsNode === 'function' && selection.containsNode(cheatTextEl, true)) {
-      cheatPrimed = true;
-      cheatProgress = 0;
-    }
-  } catch (error) {
-    // ignore selection errors
-  }
-}
-
-function setupCheatcode(cheatTextEl, enginePanelEl, onReveal) {
-  cheatTextEl.addEventListener('mouseup', () => handleSelection(cheatTextEl));
-  cheatTextEl.addEventListener('keyup', () => handleSelection(cheatTextEl));
-  document.addEventListener('selectionchange', () => {
-    const selection = window.getSelection();
-    if (!selection) return;
-    if (!selection.toString()) {
-      return;
-    }
-    try {
-      if (typeof selection.containsNode === 'function' && selection.containsNode(cheatTextEl, true)) {
-        cheatPrimed = true;
-        cheatProgress = 0;
-      }
-    } catch (error) {
-      // ignore selection errors
-    }
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (!cheatPrimed) return;
-    const key = event.key.toLowerCase();
-    if (key === cheatSequence[cheatProgress]) {
-      cheatProgress += 1;
-      if (cheatProgress === cheatSequence.length) {
-        cheatPrimed = false;
-        cheatProgress = 0;
-        enginePanelEl.classList.remove('hidden');
-        if (typeof onReveal === 'function') {
-          onReveal();
-        }
-      }
-    } else if (key.trim()) {
-      cheatPrimed = false;
-      cheatProgress = 0;
-    }
   });
 }
 
@@ -845,7 +789,7 @@ export function initUI(rootEl, handlers = {}) {
     }
   });
 
-  setupCheatcode(cheatText, enginePanel, handlers.onRevealEnginePanel);
+  setupEasterEgg(cheatText, enginePanel, handlers.onRevealEnginePanel);
 
   function updateEvalBar(score) {
     if (!evalBarTrack || !evalBarFill || !evalBarScore) return;
