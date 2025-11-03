@@ -15,6 +15,7 @@ import {
 import { createBoard, renderPosition } from "./board.js";
 import { initEngine, analyze, stop as stopEngine } from "./engine.js";
 import { initUI } from "./ui.js";
+import { computeEvalDepth } from "./game/time-controls.js";
 
 const state = {
   selectedSquare: null,
@@ -54,12 +55,8 @@ function formatTimeControl({ minutes, increment }) {
   return `${minutes} + ${increment}`;
 }
 
-function selectEngineDepth({ minutes }) {
-  return minutes <= 10 ? 18 : 22;
-}
-
 function updateDepthFromControl(control) {
-  autoEvalDepth = selectEngineDepth(control);
+  autoEvalDepth = computeEvalDepth(control);
   if (ui && typeof ui.setEngineDepth === "function") {
     ui.setEngineDepth(autoEvalDepth);
   }
