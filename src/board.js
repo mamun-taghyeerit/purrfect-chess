@@ -533,8 +533,17 @@ function handleContext(event) {
  */
 
 function handleDragStart(event) {
+  console.log("[DRAG] handleDragStart called", {
+    interactive: boardState.interactive,
+    target: event.currentTarget.tagName,
+    src: event.currentTarget.src,
+    display: event.currentTarget.style.display,
+    draggable: event.currentTarget.draggable
+  });
+  
   // Only allow dragging when board is interactive
   if (!boardState.interactive) {
+    console.log("[DRAG] Prevented: board not interactive");
     event.preventDefault();
     return;
   }
@@ -543,8 +552,11 @@ function handleDragStart(event) {
   const img = event.currentTarget;
   const square = img.parentElement.dataset.square;
   
+  console.log("[DRAG] Square:", square);
+  
   // Verify there's actually a piece to drag
   if (!img.src || img.style.display === "none") {
+    console.log("[DRAG] Prevented: no piece to drag", { src: img.src, display: img.style.display });
     event.preventDefault();
     return;
   }
@@ -553,6 +565,8 @@ function handleDragStart(event) {
   boardState.dragFrom = square;
   event.dataTransfer.effectAllowed = "move";
   event.dataTransfer.setData("text/plain", square);
+  
+  console.log("[DRAG] Drag started from", square);
   
   // Add visual feedback
   img.style.opacity = "0.4";
@@ -605,6 +619,11 @@ function handleDragLeave(event) {
 }
 
 function handleDrop(event) {
+  console.log("[DRAG] handleDrop called", {
+    interactive: boardState.interactive,
+    target: event.currentTarget.dataset.square
+  });
+  
   if (!boardState.interactive) return;
   
   event.preventDefault();
@@ -616,6 +635,8 @@ function handleDrop(event) {
   // Get source square from state or data transfer
   const fromSquare = boardState.dragFrom || event.dataTransfer.getData("text/plain");
   
+  console.log("[DRAG] Drop:", { from: fromSquare, to: targetSquare });
+  
   // Remove visual feedback
   const targetEl = boardState.squares.get(targetSquare);
   if (targetEl) {
@@ -624,7 +645,14 @@ function handleDrop(event) {
   
   // Execute move if we have valid source and target
   if (fromSquare && targetSquare && boardState.callbacks.onDrop) {
+    console.log("[DRAG] Executing move via onDrop callback");
     boardState.callbacks.onDrop(fromSquare, targetSquare);
+  } else {
+    console.log("[DRAG] Move not executed", {
+      hasFrom: !!fromSquare,
+      hasTo: !!targetSquare,
+      hasCallback: !!boardState.callbacks.onDrop
+    });
   }
   
   // Clear drag state
@@ -664,6 +692,7 @@ export function createBoard(
       const img = document.createElement("img");
       img.alt = "";
       img.style.display = "none"; // Hidden by default, shown when piece is rendered
+      img.draggable = false; // Explicitly set to false initially, will be set to true when piece is rendered
       
       // Attach drag event listeners to the image element
       // These listeners remain attached and work regardless of draggable attribute
