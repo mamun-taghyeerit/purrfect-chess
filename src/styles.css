@@ -95,6 +95,27 @@ h1,
   flex: 0 0 auto;
 }
 
+.eval-bar-controls,
+.move-review-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.eval-bar-depth-info,
+.move-review-status {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.eval-bar-depth-info span,
+.move-review-status span {
+  font-family: 'Orbitron', 'Fira Code', 'Menlo', monospace;
+  font-weight: 600;
+}
+
 .panel-header {
   display: flex;
   align-items: center;

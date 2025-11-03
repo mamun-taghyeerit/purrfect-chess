@@ -114,7 +114,21 @@ function queueAutoEvaluation() {
     ui.setEvalBarAnalyzing(true);
   }
 
-  analyze(fen, { depth: autoEvalDepth, multipv: 1 })
+  // Update max depth info
+  if (typeof ui.updateEvalBarDepthInfo === "function") {
+    ui.updateEvalBarDepthInfo({ currentDepth: 0, maxDepth: autoEvalDepth });
+  }
+
+  analyze(fen, { 
+    depth: autoEvalDepth, 
+    multipv: 1,
+    onProgress: ({ depth }) => {
+      if (token !== autoEvalToken) return;
+      if (typeof ui.updateEvalBarDepthInfo === "function") {
+        ui.updateEvalBarDepthInfo({ currentDepth: depth, maxDepth: autoEvalDepth });
+      }
+    }
+  })
     .then((lines) => {
       if (token !== autoEvalToken) return;
 
@@ -453,16 +467,94 @@ async function reviewLastMove() {
     return;
   }
 
+  const TOTAL_ANALYSIS_TIME = 5000; // 5 seconds per position
+  let reviewUpdateInterval = null;
+
   try {
     ui.showMessage('info', 'Analyzing move...');
+    
+    // Show move review status
+    if (typeof ui.showMoveReviewStatus === 'function') {
+      ui.showMoveReviewStatus(true);
+    }
 
     // Analyze position before the move
-    const preAnalysis = await analyze(lastMoveInfo.preFen, { movetime: 5000, multipv: 1 });
+    let startTime = Date.now();
+    reviewUpdateInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
+      if (typeof ui.updateMoveReviewStatus === 'function') {
+        ui.updateMoveReviewStatus({ 
+          remainingTime: remaining, 
+          totalTime: TOTAL_ANALYSIS_TIME,
+          depth: 0
+        });
+      }
+    }, 100);
+
+    const preAnalysis = await analyze(lastMoveInfo.preFen, { 
+      movetime: TOTAL_ANALYSIS_TIME, 
+      multipv: 1,
+      onProgress: ({ depth }) => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
+        if (typeof ui.updateMoveReviewStatus === 'function') {
+          ui.updateMoveReviewStatus({ 
+            remainingTime: remaining, 
+            totalTime: TOTAL_ANALYSIS_TIME,
+            depth
+          });
+        }
+      }
+    });
     const preEval = preAnalysis && preAnalysis.length > 0 ? preAnalysis[0] : null;
 
+    // Clear interval and restart for second analysis
+    if (reviewUpdateInterval) {
+      clearInterval(reviewUpdateInterval);
+    }
+
     // Analyze position after the move
-    const postAnalysis = await analyze(lastMoveInfo.postFen, { movetime: 5000, multipv: 1 });
+    startTime = Date.now();
+    reviewUpdateInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
+      if (typeof ui.updateMoveReviewStatus === 'function') {
+        ui.updateMoveReviewStatus({ 
+          remainingTime: remaining, 
+          totalTime: TOTAL_ANALYSIS_TIME,
+          depth: 0
+        });
+      }
+    }, 100);
+
+    const postAnalysis = await analyze(lastMoveInfo.postFen, { 
+      movetime: TOTAL_ANALYSIS_TIME, 
+      multipv: 1,
+      onProgress: ({ depth }) => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, TOTAL_ANALYSIS_TIME - elapsed);
+        if (typeof ui.updateMoveReviewStatus === 'function') {
+          ui.updateMoveReviewStatus({ 
+            remainingTime: remaining, 
+            totalTime: TOTAL_ANALYSIS_TIME,
+            depth
+          });
+        }
+      }
+    });
     const postEval = postAnalysis && postAnalysis.length > 0 ? postAnalysis[0] : null;
+
+    // Clear the update interval
+    if (reviewUpdateInterval) {
+      clearInterval(reviewUpdateInterval);
+      reviewUpdateInterval = null;
+    }
+
+    // Hide move review status
+    if (typeof ui.showMoveReviewStatus === 'function') {
+      ui.showMoveReviewStatus(false);
+    }
 
     // Classify the move
     const classification = classifyMove(lastMoveInfo, preEval, postEval);
@@ -472,6 +564,17 @@ async function reviewLastMove() {
 
     ui.showMessage('success', `Move classified as: ${classification.type}`);
   } catch (error) {
+    // Clear the update interval on error
+    if (reviewUpdateInterval) {
+      clearInterval(reviewUpdateInterval);
+      reviewUpdateInterval = null;
+    }
+    
+    // Hide move review status
+    if (typeof ui.showMoveReviewStatus === 'function') {
+      ui.showMoveReviewStatus(false);
+    }
+    
     if (error && error.message !== 'Analysis stopped' && error.message !== 'Analysis superseded') {
       ui.showMessage('error', 'Failed to analyze move.');
     }

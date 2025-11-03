@@ -349,14 +349,24 @@ export function initUI(rootEl, handlers = {}) {
             <span class="button-icon">↻</span>
             <span>Reset Game</span>
           </button>
-          <button id="toggle-eval-bar" type="button" class="button button-outline icon-button button-small">
-            <span class="button-icon">📊</span>
-            <span>Show Eval Bar</span>
-          </button>
-          <button id="move-review" type="button" class="button button-outline icon-button button-small">
-            <span class="button-icon">⭐</span>
-            <span>Move Review</span>
-          </button>
+          <div class="eval-bar-controls">
+            <button id="toggle-eval-bar" type="button" class="button button-outline icon-button button-small">
+              <span class="button-icon">📊</span>
+              <span>Show Eval Bar</span>
+            </button>
+            <div class="eval-bar-depth-info" id="eval-bar-depth-info">
+              (current depth: <span id="eval-bar-current-depth">0</span> | max depth: <span id="eval-bar-max-depth">22</span>)
+            </div>
+          </div>
+          <div class="move-review-controls">
+            <button id="move-review" type="button" class="button button-outline icon-button button-small">
+              <span class="button-icon">⭐</span>
+              <span>Move Review</span>
+            </button>
+            <div class="move-review-status" id="move-review-status" style="display: none;">
+              (<span id="move-review-time">0.00s/5.00</span> | depth: <span id="move-review-depth">0</span>)
+            </div>
+          </div>
         </div>
         <div class="match-card" id="match-card">
           <div class="match-title" id="match-title">Purrfect Game</div>
@@ -552,6 +562,11 @@ export function initUI(rootEl, handlers = {}) {
   const toggleEvalBarBtn = rootEl.querySelector('#toggle-eval-bar');
   const moveReviewBtn = rootEl.querySelector('#move-review');
   const evalBarEl = rootEl.querySelector('#eval-bar');
+  const evalBarCurrentDepth = rootEl.querySelector('#eval-bar-current-depth');
+  const evalBarMaxDepth = rootEl.querySelector('#eval-bar-max-depth');
+  const moveReviewStatus = rootEl.querySelector('#move-review-status');
+  const moveReviewTime = rootEl.querySelector('#move-review-time');
+  const moveReviewDepth = rootEl.querySelector('#move-review-depth');
   const resetAppearanceButtons = rootEl.querySelectorAll('[data-role="reset-appearance"]');
   const appearanceGridLeft = rootEl.querySelector('#appearance-grid-left');
   const appearanceGridRight = rootEl.querySelector('#appearance-grid-right');
@@ -961,6 +976,29 @@ export function initUI(rootEl, handlers = {}) {
     updateEvalBar,
     setEvalBarAnalyzing,
     updateMatchInfo,
-    messageApi
+    messageApi,
+    updateEvalBarDepthInfo({ currentDepth, maxDepth }) {
+      if (evalBarCurrentDepth && Number.isFinite(currentDepth)) {
+        evalBarCurrentDepth.textContent = currentDepth;
+      }
+      if (evalBarMaxDepth && Number.isFinite(maxDepth)) {
+        evalBarMaxDepth.textContent = maxDepth;
+      }
+    },
+    showMoveReviewStatus(show = true) {
+      if (moveReviewStatus) {
+        moveReviewStatus.style.display = show ? 'block' : 'none';
+      }
+    },
+    updateMoveReviewStatus({ remainingTime, totalTime, depth }) {
+      if (moveReviewTime && Number.isFinite(remainingTime) && Number.isFinite(totalTime)) {
+        const remainingSeconds = (remainingTime / 1000).toFixed(2);
+        const totalSeconds = (totalTime / 1000).toFixed(2);
+        moveReviewTime.textContent = `${remainingSeconds}s/${totalSeconds}`;
+      }
+      if (moveReviewDepth && Number.isFinite(depth)) {
+        moveReviewDepth.textContent = depth;
+      }
+    }
   };
 }

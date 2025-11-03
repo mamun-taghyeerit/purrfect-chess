@@ -6,6 +6,7 @@ let isReady = false;
 let analyzeResolver = null;
 let analyzeRejecter = null;
 let currentAnalysis = null;
+let onAnalysisProgress = null;
 
 function ensureWorker() {
   if (worker) return;
@@ -57,6 +58,19 @@ function handleMessage(event) {
 function handleInfo(line) {
   if (!currentAnalysis) return;
 
+  // Extract depth if present
+  const depthMatch = line.match(/depth\s+(\d+)/);
+  if (depthMatch) {
+    const depth = Number.parseInt(depthMatch[1], 10);
+    if (Number.isFinite(depth)) {
+      currentAnalysis.currentDepth = depth;
+      // Report progress if callback is set
+      if (onAnalysisProgress && typeof onAnalysisProgress === 'function') {
+        onAnalysisProgress({ depth });
+      }
+    }
+  }
+
   const multipvMatch = line.match(/multipv\s+(\d+)/);
   if (!multipvMatch) return;
 
@@ -73,11 +87,17 @@ function handleInfo(line) {
 
   const pvMatch = line.match(/pv\s+(.+)$/);
   if (pvMatch) {
-    const fullPv = pvMatch[1].trim();
-    const moves = fullPv.split(/\s+/);
-    entry.pv = moves[0]; // First move
-    entry.pvLine = fullPv; // Full PV line
-    console.log('[ENGINE] PV extracted:', { multipv: index, pv: entry.pv, pvLine: entry.pvLine });
+    const rawPv = pvMatch[1].trim();
+    // Filter out UCI metadata tokens (bmc, wdl, etc.) - only keep valid UCI moves
+    // Valid UCI moves are 4-5 characters: e2e4, e7e8q, etc.
+    const tokens = rawPv.split(/\s+/);
+    const moves = tokens.filter(token => /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(token));
+    
+    if (moves.length > 0) {
+      entry.pv = moves[0]; // First move
+      entry.pvLine = moves.join(' '); // Full PV line (moves only)
+      console.log('[ENGINE] PV extracted:', { multipv: index, pv: entry.pv, pvLine: entry.pvLine });
+    }
   }
 
   const scoreMatch = line.match(/score\s+(cp|mate)\s+(-?\d+)/);
@@ -181,7 +201,7 @@ export function initEngine() {
   return promise;
 }
 
-export function analyze(fen, { depth = 16, multipv = 3, movetime = null } = {}) {
+export function analyze(fen, { depth = 16, multipv = 3, movetime = null, onProgress = null } = {}) {
   if (!worker || !isReady) {
     throw new Error('Engine not initialized');
   }
@@ -195,11 +215,16 @@ export function analyze(fen, { depth = 16, multipv = 3, movetime = null } = {}) 
   const safeMultipv = Math.max(1, Number.parseInt(multipv, 10) || 1);
   const searchDepth = Math.max(4, Number.parseInt(depth, 10) || 4);
 
+  // Set progress callback
+  onAnalysisProgress = onProgress;
+
   currentAnalysis = {
     fen,
     turn: new Chess(fen).turn(),
     multipv: safeMultipv,
-    partials: new Map()
+    partials: new Map(),
+    currentDepth: 0,
+    maxDepth: movetime !== null ? null : searchDepth
   };
 
   post('ucinewgame');
@@ -230,4 +255,5 @@ export function stop() {
   analyzeResolver = null;
   analyzeRejecter = null;
   currentAnalysis = null;
+  onAnalysisProgress = null;
 }
