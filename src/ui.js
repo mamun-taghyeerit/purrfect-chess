@@ -918,6 +918,8 @@ export function initUI(rootEl, handlers = {}) {
         clearEnginePanel(engineLinesEl);
         return;
       }
+      console.log('[UI] updateEngineLines called with:', lines);
+      
       engineLinesEl.innerHTML = lines
         .map((line, index) => {
           const label = `#${index + 1}`;
@@ -930,6 +932,7 @@ export function initUI(rootEl, handlers = {}) {
             const value = (line.score / 100).toFixed(2);
             scoreText = `${value}`;
           }
+          console.log('[UI] Rendering line:', { index, label, scoreText, san: line.san, uci: line.uci, line });
           return `<div class="engine-line engine-line-${index + 1}"><div class="engine-line-header"><span class="engine-line-label">${label}</span><span class="engine-line-score">${scoreText}</span></div><div class="engine-line-san">${line.san}</div><div class="engine-line-uci">${line.uci}</div></div>`;
         })
         .join('');

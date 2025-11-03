@@ -402,13 +402,18 @@ function startAnalysis({ depth }) {
   ui.showMessage("info", "Engine analysis started.");
 
   const fen = getFen();
+  console.log('[ANALYSIS] Starting analysis for FEN:', fen);
+  
   analyze(fen, { depth, multipv: 3 })
     .then((lines) => {
+      console.log('[ANALYSIS] Analysis completed, received lines:', lines);
+      
       if (!Array.isArray(lines) || lines.length === 0) {
         ui.showMessage("error", "Engine could not find a suitable move.");
         state.engineHighlights = [];
         ui.updateEngineLines([]);
       } else {
+        console.log('[ANALYSIS] Updating UI with lines:', lines);
         ui.updateEngineLines(lines);
         state.engineHighlights = lines.map((line, index) => ({
           from: line.from,
@@ -419,6 +424,7 @@ function startAnalysis({ depth }) {
       }
     })
     .catch((error) => {
+      console.error('[ANALYSIS] Analysis failed:', error);
       if (error && error.message !== "Analysis stopped") {
         ui.showMessage("error", "Engine analysis failed.");
       }
