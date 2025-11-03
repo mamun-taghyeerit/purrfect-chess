@@ -1081,7 +1081,7 @@ h1,
   animation: center-fade 0.5s ease-out forwards;
 }
 
-/* Keyframe animations - all end at target position */
+/* Keyframe animations - all end at target position with smaller size */
 @keyframes blunder-spiral {
   0% {
     top: 50%;
@@ -1096,7 +1096,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) rotate(360deg) scale(0.8);
+    transform: translate(-50%, -50%) rotate(360deg) scale(0.6);
     opacity: 1;
   }
 }
@@ -1116,7 +1116,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) translateX(0) scale(0.8);
+    transform: translate(-50%, -50%) translateX(0) scale(0.6);
     opacity: 1;
   }
 }
@@ -1135,7 +1135,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) scale(0.6);
     opacity: 1;
   }
 }
@@ -1156,9 +1156,9 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) scale(0.6);
     opacity: 1;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
   }
 }
 
@@ -1176,7 +1176,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) scale(0.6);
     opacity: 1;
   }
 }
@@ -1191,7 +1191,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) scale(0.6);
     opacity: 1;
   }
 }
@@ -1212,7 +1212,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) scale(0.6);
     opacity: 1;
     filter: drop-shadow(0 0 5px rgba(100, 200, 255, 0.3));
   }
@@ -1228,7 +1228,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) scale(0.6);
     opacity: 1;
   }
 }
@@ -1243,7 +1243,7 @@ h1,
   100% {
     top: var(--target-y);
     left: var(--target-x);
-    transform: translate(-50%, -50%) translateY(0) scale(0.8);
+    transform: translate(-50%, -50%) translateY(0) scale(0.6);
     opacity: 1;
   }
 }

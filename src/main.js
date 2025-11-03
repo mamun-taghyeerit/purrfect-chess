@@ -576,8 +576,10 @@ function displayMoveBadge(classification, targetSquare) {
       const containerRect = boardContainer.getBoundingClientRect();
       const squareRect = targetSquareElement.getBoundingClientRect();
       
-      const offsetX = squareRect.left - containerRect.left + squareRect.width / 2;
-      const offsetY = squareRect.top - containerRect.top + squareRect.height / 2;
+      // Position at top-right corner of the square (offset by badge size)
+      const badgeSize = 40; // Final badge size
+      const offsetX = squareRect.left - containerRect.left + squareRect.width - badgeSize / 2;
+      const offsetY = squareRect.top - containerRect.top + badgeSize / 2;
       
       // Set CSS custom properties for the target position
       badge.style.setProperty('--target-x', `${offsetX}px`);
