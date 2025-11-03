@@ -1,4 +1,5 @@
 import { Chess } from 'chess.js';
+import { parseInfoLine, parseBestMove } from './engine/uci-parser.js';
 
 let worker = null;
 let readyPromise = null;
@@ -58,25 +59,22 @@ function handleMessage(event) {
 function handleInfo(line) {
   if (!currentAnalysis) return;
 
-  // Extract depth if present
-  const depthMatch = line.match(/depth\s+(\d+)/);
-  if (depthMatch) {
-    const depth = Number.parseInt(depthMatch[1], 10);
-    if (Number.isFinite(depth)) {
-      currentAnalysis.currentDepth = depth;
-      // Report progress if callback is set
-      if (onAnalysisProgress && typeof onAnalysisProgress === 'function') {
-        onAnalysisProgress({ depth });
-      }
+  // Parse the info line using the UCI parser
+  const parsed = parseInfoLine(line);
+  if (!parsed) return;
+
+  // Report progress if depth is available and callback is set
+  if (parsed.depth !== null) {
+    currentAnalysis.currentDepth = parsed.depth;
+    if (onAnalysisProgress && typeof onAnalysisProgress === 'function') {
+      onAnalysisProgress({ depth: parsed.depth });
     }
   }
 
-  const multipvMatch = line.match(/multipv\s+(\d+)/);
-  if (!multipvMatch) return;
+  // Only process lines with multipv
+  if (parsed.multipv === null) return;
 
-  const index = Number.parseInt(multipvMatch[1], 10);
-  if (!Number.isFinite(index)) return;
-
+  const index = parsed.multipv;
   const entry = currentAnalysis.partials.get(index) || {
     multipv: index,
     pv: null,
@@ -85,30 +83,20 @@ function handleInfo(line) {
     result: null
   };
 
-  const pvMatch = line.match(/pv\s+(.+)$/);
-  if (pvMatch) {
-    const rawPv = pvMatch[1].trim();
-    // Filter out UCI metadata tokens (bmc, wdl, etc.) - only keep valid UCI moves
-    // Valid UCI moves are 4-5 characters: e2e4, e7e8q, etc.
-    const tokens = rawPv.split(/\s+/);
-    const moves = tokens.filter(token => /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(token));
-    
-    if (moves.length > 0) {
-      entry.pv = moves[0]; // First move
-      entry.pvLine = moves.join(' '); // Full PV line (moves only)
-      console.log('[ENGINE] PV extracted:', { multipv: index, pv: entry.pv, pvLine: entry.pvLine });
-    }
+  // Update PV if available
+  if (parsed.pv) {
+    entry.pv = parsed.pv;
+    entry.pvLine = parsed.pvLine;
+    console.log('[ENGINE] PV extracted:', { multipv: index, pv: entry.pv, pvLine: entry.pvLine });
   }
 
-  const scoreMatch = line.match(/score\s+(cp|mate)\s+(-?\d+)/);
-  if (scoreMatch) {
-    entry.score = {
-      type: scoreMatch[1],
-      value: Number.parseInt(scoreMatch[2], 10)
-    };
+  // Update score if available
+  if (parsed.score) {
+    entry.score = parsed.score;
     console.log('[ENGINE] Score extracted:', { multipv: index, score: entry.score });
   }
 
+  // Build result if we have both pv and score
   if (entry.pv && entry.score) {
     const result = buildResult(entry);
     if (result) {
