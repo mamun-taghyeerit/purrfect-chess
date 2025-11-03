@@ -38,6 +38,8 @@ const boardState = {
     onSquareClick: null,
     onDrop: null,
     onSquareContext: null,
+    onDragStart: null,  // Callback when drag starts
+    onDragEnd: null,    // Callback when drag ends
   },
   dragFrom: null,
   interactive: true,
@@ -525,20 +527,67 @@ function handleContext(event) {
   event.preventDefault();
 }
 
+/**
+ * Clean drag-and-drop implementation for piece movement
+ * Handles HTML5 drag events reliably across game resets and moves
+ */
+
 function handleDragStart(event) {
+  // Only allow dragging when board is interactive
   if (!boardState.interactive) {
     event.preventDefault();
     return;
   }
-  const square = event.currentTarget.parentElement.dataset.square;
+  
+  // Get the square being dragged from
+  const img = event.currentTarget;
+  const square = img.parentElement.dataset.square;
+  
+  // Verify there's actually a piece to drag
+  if (!img.src || img.style.display === "none") {
+    event.preventDefault();
+    return;
+  }
+  
+  // Store drag source and set up data transfer
   boardState.dragFrom = square;
-  event.dataTransfer.setData("text/plain", square);
   event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", square);
+  
+  // Add visual feedback
+  img.style.opacity = "0.4";
+  
+  // Notify game layer to show legal moves (in lighter shade)
+  if (boardState.callbacks.onDragStart) {
+    boardState.callbacks.onDragStart(square);
+  }
+}
+
+function handleDragEnd(event) {
+  // Reset visual feedback
+  const img = event.currentTarget;
+  img.style.opacity = "1";
+  
+  // Clear all drag-over highlights
+  boardState.squares.forEach((el) => el.classList.remove("drag-over"));
+  
+  // Notify game layer to clear highlights
+  if (boardState.callbacks.onDragEnd) {
+    boardState.callbacks.onDragEnd();
+  }
+  
+  // Clear drag source
+  boardState.dragFrom = null;
 }
 
 function handleDragOver(event) {
   if (!boardState.interactive) return;
+  
+  // Prevent default to allow drop
   event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+  
+  // Add visual feedback for valid drop target
   const square = event.currentTarget.dataset.square;
   const squareEl = boardState.squares.get(square);
   if (squareEl) {
@@ -547,6 +596,7 @@ function handleDragOver(event) {
 }
 
 function handleDragLeave(event) {
+  // Remove visual feedback when leaving square
   const square = event.currentTarget.dataset.square;
   const squareEl = boardState.squares.get(square);
   if (squareEl) {
@@ -556,28 +606,34 @@ function handleDragLeave(event) {
 
 function handleDrop(event) {
   if (!boardState.interactive) return;
+  
   event.preventDefault();
+  event.stopPropagation();
+  
+  // Get target square
   const targetSquare = event.currentTarget.dataset.square;
-  const fromSquare =
-    boardState.dragFrom || event.dataTransfer.getData("text/plain");
+  
+  // Get source square from state or data transfer
+  const fromSquare = boardState.dragFrom || event.dataTransfer.getData("text/plain");
+  
+  // Remove visual feedback
   const targetEl = boardState.squares.get(targetSquare);
   if (targetEl) {
     targetEl.classList.remove("drag-over");
   }
+  
+  // Execute move if we have valid source and target
   if (fromSquare && targetSquare && boardState.callbacks.onDrop) {
     boardState.callbacks.onDrop(fromSquare, targetSquare);
   }
-  boardState.dragFrom = null;
-}
-
-function handleDragEnd() {
-  boardState.squares.forEach((el) => el.classList.remove("drag-over"));
+  
+  // Clear drag state
   boardState.dragFrom = null;
 }
 
 export function createBoard(
   rootEl,
-  { onSquareClick, onDrop, onSquareContext } = {}
+  { onSquareClick, onDrop, onSquareContext, onDragStart, onDragEnd } = {}
 ) {
   boardState.root = rootEl;
   if (!rootEl.style.position) {
@@ -586,6 +642,8 @@ export function createBoard(
   boardState.callbacks.onSquareClick = onSquareClick;
   boardState.callbacks.onDrop = onDrop;
   boardState.callbacks.onSquareContext = onSquareContext;
+  boardState.callbacks.onDragStart = onDragStart;
+  boardState.callbacks.onDragEnd = onDragEnd;
 
   boardState.squares.clear();
   rootEl.innerHTML = "";
@@ -602,16 +660,19 @@ export function createBoard(
       squareEl.className = `square ${(rank + file) % 2 === 0 ? "light" : "dark"}`;
       squareEl.dataset.square = squareName;
 
+      // Create piece image element
       const img = document.createElement("img");
-      // Note: draggable attribute is managed by renderPosition() based on piece presence
-      // Setting draggable=false here would prevent drag events from firing
       img.alt = "";
-
+      img.style.display = "none"; // Hidden by default, shown when piece is rendered
+      
+      // Attach drag event listeners to the image element
+      // These listeners remain attached and work regardless of draggable attribute
       img.addEventListener("dragstart", handleDragStart);
       img.addEventListener("dragend", handleDragEnd);
 
       squareEl.appendChild(img);
 
+      // Square-level event listeners for drop targets and clicks
       squareEl.addEventListener("click", handleClick);
       squareEl.addEventListener("contextmenu", handleContext);
       squareEl.addEventListener("mousedown", handleMouseDown);
@@ -659,9 +720,12 @@ export function createBoard(
 function clearClasses(squareEl) {
   squareEl.classList.remove(
     "selected",
+    "drag-selected",  // For lighter drag highlight
     "last-move",
     "legal-move-hint",
     "legal-capture-hint",
+    "drag-move-hint",  // For lighter drag move hints
+    "drag-capture-hint",  // For lighter drag capture hints
     "user-highlight",
     "engine-move-1",
     "engine-move-2",
@@ -680,6 +744,7 @@ export function renderPosition(game, options = {}) {
     customHighlights = [],
     engineHighlights = [],
     engineDisplayMode = "both",
+    isDragging = false,  // Flag to render lighter highlights during drag
   } = options;
 
   const legalSet = new Set(legalMoves);
@@ -738,26 +803,33 @@ export function renderPosition(game, options = {}) {
 
       clearClasses(squareEl);
 
+      // Get the img element for this square
+      const img = squareEl.querySelector("img");
+      
       if (piece) {
-        const img = squareEl.querySelector("img");
+        // Render piece image
         const src = pieceImages[piece.color][piece.type];
         if (src) {
           img.src = src;
           img.style.display = "block";
+          img.style.opacity = "1"; // Reset any drag opacity
+          // Enable dragging for pieces
           img.draggable = true;
         }
         squareEl.classList.add(
           piece.color === "w" ? "white-piece" : "black-piece"
         );
       } else {
-        const img = squareEl.querySelector("img");
+        // Empty square - hide image and disable dragging
         img.src = "";
         img.style.display = "none";
+        img.style.opacity = "1";
         img.draggable = false;
       }
 
+      // Apply highlights - use drag-specific classes during drag operations
       if (squareName === selectedSquare) {
-        squareEl.classList.add("selected");
+        squareEl.classList.add(isDragging ? "drag-selected" : "selected");
       }
       if (
         lastMove &&
@@ -766,10 +838,10 @@ export function renderPosition(game, options = {}) {
         squareEl.classList.add("last-move");
       }
       if (legalSet.has(squareName)) {
-        squareEl.classList.add("legal-move-hint");
+        squareEl.classList.add(isDragging ? "drag-move-hint" : "legal-move-hint");
       }
       if (captureSet.has(squareName)) {
-        squareEl.classList.add("legal-capture-hint");
+        squareEl.classList.add(isDragging ? "drag-capture-hint" : "legal-capture-hint");
       }
       if (customSet.has(squareName)) {
         squareEl.classList.add("user-highlight");

@@ -23,6 +23,7 @@ const state = {
   customHighlights: new Set(),
   lastMove: null,
   engineHighlights: [],
+  isDragging: false,  // Guard against multiple simultaneous drags
   engineDisplayMode: "arrows",
   engineBusy: false,
   boardLocked: false,
@@ -81,6 +82,7 @@ function renderBoard() {
     customHighlights: Array.from(state.customHighlights),
     engineHighlights: state.engineHighlights,
     engineDisplayMode: state.engineDisplayMode,
+    isDragging: state.isDragging,  // Pass drag state to render lighter highlights
   });
 }
 
@@ -277,7 +279,9 @@ function highlightSquare(square) {
 }
 
 function handleSquareClick(square) {
-  if (state.boardLocked) return;
+  // Prevent selection during drag operations
+  if (state.boardLocked || state.isDragging) return;
+  
   const game = getGame();
   const piece = game.get(square);
 
@@ -314,9 +318,49 @@ function handleSquareClick(square) {
   renderBoard();
 }
 
+function handleDragStart(square) {
+  // Guard against multiple simultaneous drags or selections
+  if (state.isDragging || state.boardLocked) return;
+  
+  const game = getGame();
+  const piece = game.get(square);
+  
+  // Only allow dragging player's own pieces
+  if (!piece || piece.color !== game.turn()) {
+    return;
+  }
+  
+  // Set drag flag to prevent multiple simultaneous operations
+  state.isDragging = true;
+  
+  // Set selected square and compute legal moves (for highlighting)
+  state.selectedSquare = square;
+  computeMoves(square);
+  
+  // Render board to show highlights in lighter shade during drag
+  renderBoard();
+}
+
+function handleDragEnd() {
+  // Clear drag flag
+  state.isDragging = false;
+  
+  // Clear selection and highlights
+  clearSelection();
+  renderBoard();
+}
+
 function handleDrop(from, to) {
   if (state.boardLocked) return;
+  
+  // Clear drag flag when drop occurs
+  state.isDragging = false;
+  
   if (attemptPlayerMove(from, to)) {
+    clearSelection();
+    renderBoard();
+  } else {
+    // If move failed, still clear selection
     clearSelection();
     renderBoard();
   }
@@ -721,6 +765,8 @@ function initialize() {
     onSquareClick: handleSquareClick,
     onDrop: handleDrop,
     onSquareContext: highlightSquare,
+    onDragStart: handleDragStart,
+    onDragEnd: handleDragEnd,
   });
   boardController = controller;
 
