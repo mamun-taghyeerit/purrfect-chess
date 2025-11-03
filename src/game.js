@@ -191,7 +191,7 @@ export function startNewGame({ minutes, increment } = DEFAULT_TIME) {
   notifyMove(null, { type: 'reset' });
 }
 
-function resetAfterExternalLoad() {
+function resetAfterExternalLoad({ lastMove } = {}) {
   stopTimer();
   state.timerId = null;
   state.lastTick = null;
@@ -199,7 +199,7 @@ function resetAfterExternalLoad() {
   state.whiteTime = minutes * 60 * 1000;
   state.blackTime = minutes * 60 * 1000;
   state.incrementMs = increment * 1000;
-  state.lastMove = null;
+  state.lastMove = lastMove || null;
   state.activeColor = state.game.turn();
   state.gameOver = state.game.isGameOver();
 }
@@ -211,15 +211,11 @@ export function loadFen(fen) {
 
   const trimmedFen = fen.trim();
   const newGame = new Chess();
-  let loaded = false;
   try {
-    loaded = newGame.load(trimmedFen);
+    newGame.load(trimmedFen);
   } catch (error) {
-    loaded = false;
-  }
-
-  if (!loaded) {
-    return { success: false, message: 'Unable to load FEN.' };
+    const message = error instanceof Error ? error.message : 'Unable to load FEN.';
+    return { success: false, message };
   }
 
   state.game = newGame;
@@ -235,20 +231,21 @@ export function loadPgn(pgn) {
 
   const trimmedPgn = pgn.trim();
   const newGame = new Chess();
-  let loaded = false;
+  let lastMove = null;
   try {
-    loaded = newGame.loadPgn(trimmedPgn, { sloppy: true });
+    newGame.loadPgn(trimmedPgn);
+    const history = newGame.history({ verbose: true });
+    if (history.length > 0) {
+      lastMove = history[history.length - 1];
+    }
   } catch (error) {
-    loaded = false;
-  }
-
-  if (!loaded) {
-    return { success: false, message: 'Unable to load PGN.' };
+    const message = error instanceof Error ? error.message : 'Unable to load PGN.';
+    return { success: false, message };
   }
 
   state.game = newGame;
-  resetAfterExternalLoad();
-  notifyMove(null, { type: 'load', source: 'pgn' });
+  resetAfterExternalLoad({ lastMove });
+  notifyMove(lastMove, { type: 'load', source: 'pgn' });
   return { success: true };
 }
 
