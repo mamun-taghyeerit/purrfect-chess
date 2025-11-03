@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseInfoLine, parseBestMove } from '../../src/engine/uci-parser.js';
+import { parseInfoLine, parseBestMove } from '../../src/engine/uci-parser.ts';
 
 describe('parseInfoLine', () => {
   describe('basic parsing', () => {

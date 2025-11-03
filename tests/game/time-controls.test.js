@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeEvalDepth, formatRemainingTime } from '../../src/game/time-controls.js';
+import { computeEvalDepth, formatRemainingTime } from '../../src/game/time-controls.ts';
 
 describe('computeEvalDepth', () => {
   describe('boundary cases for 10 minute threshold', () => {

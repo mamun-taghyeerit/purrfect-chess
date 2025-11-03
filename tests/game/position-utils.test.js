@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseFEN, generateFEN, boardFromFEN } from '../../src/game/position-utils.js';
+import { parseFEN, generateFEN, boardFromFEN } from '../../src/game/position-utils.ts';
 
 // Standard starting position FEN
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
