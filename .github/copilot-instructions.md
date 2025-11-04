@@ -18,7 +18,7 @@ Purrfect Chess is a cat-themed chess board web application with local Stockfish 
 
 ### Philosophy: Automate, Don't Manually Maintain
 
-This project follows modern automation principles:
+This project follows modern automation principles with a focus on **purrfection** - collaborative excellence between human and AI, not perfection:
 
 1. **Auto-vendoring**: Stockfish binaries are automatically copied from the `stockfish` devDependency via `scripts/vendor-stockfish.js`
    - Run manually: `yarn vendor:stockfish`
@@ -34,6 +34,11 @@ This project follows modern automation principles:
 3. **Version management**: Stockfish version is managed in package.json devDependencies
    - To upgrade: `yarn upgrade stockfish`
    - To change variants: Edit `scripts/vendor-stockfish.js` configuration
+
+4. **Purrfect collaboration**: We aim for humane excellence through smart automation
+   - Humans design the automation, AI executes it consistently
+   - Feline-inspired approach: let the machines do the repetitive work while humans focus on creative solutions
+   - Intelligent algorithms handle tedious tasks, humans handle strategic decisions
 
 ### Key Automation Scripts
 
@@ -109,10 +114,12 @@ yarn preview                # Preview production build
 ### General Guidelines
 
 1. **Keep it minimal**: This is a toy project—prefer simplicity over complexity
-2. **Maintain vanilla JS**: Do not introduce frameworks like React, Vue, or Angular
-3. **ES modules**: Use modern ES6+ module syntax (`import`/`export`)
-4. **No TypeScript**: Project uses plain JavaScript
-5. **Tailwind-first**: Use Tailwind utility classes for styling, avoid custom CSS unless necessary
+2. **Strive for purrfection**: Aim for collaborative excellence through smart automation, not manual perfection
+3. **Maintain vanilla JS** (legacy) / **Use React + Next.js** (current): Follow the project's current architecture
+4. **ES modules**: Use modern ES6+ module syntax (`import`/`export`)
+5. **TypeScript for Next.js**: Use TypeScript in the Next.js app, plain JavaScript in legacy code
+6. **Tailwind-first**: Use Tailwind utility classes for styling, avoid custom CSS unless necessary
+7. **Feline wisdom**: Like a cat, be lazy where it counts - automate repetitive tasks, focus energy on what matters
 
 ### Code Style
 
@@ -202,6 +209,8 @@ yarn preview                # Preview production build
 ## Goals and Constraints
 
 - **Goal**: Provide a fun, cat-themed chess experience with engine analysis
+- **Goal**: Achieve purrfection through human-AI collaboration - smart automation, not manual perfection
 - **Constraint**: Keep the project simple and maintainable as a toy project
 - **Constraint**: Maintain offline-first capability (no external API dependencies)
 - **Constraint**: Preserve the hidden "gmmamun" Easter egg feature
+- **Philosophy**: Like a cat, be efficient - automate the tedious, focus on the creative

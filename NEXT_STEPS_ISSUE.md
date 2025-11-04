@@ -53,30 +53,78 @@ These tasks port the essential chess functionality from vanilla TypeScript to Re
 
 ### 2.2 Stockfish Engine Integration
 
-**Priority: HIGH**
+**Priority: HIGH** - ✅ **COMPLETE**
 
 Complete the engine worker and hook from stubs to fully functional UCI implementation:
 
-- [ ] **Complete `workers/stockfish.worker.ts`**
-  - Load Stockfish binary from `/public/libs/stockfish.js`
-  - Implement UCI protocol communication (uci, isready, position, go, stop commands)
-  - Parse info lines using logic from `src/engine/uci-parser.ts`
-  - Handle bestmove responses
-  - Related files: `src/engine.ts`, `src/engine/uci-parser.ts`
+- [x] **Auto-vendor Stockfish from npm package**
+  - Added `stockfish@17.1.0` as devDependency (chess.com maintained)
+  - Created `scripts/vendor-stockfish.js` (ESM format)
+  - Integrated into build process (postinstall + next:build hooks)
+  - Files auto-generated in `public/libs/` (gitignored)
+  - Manual trigger: `yarn vendor:stockfish`
 
-- [ ] **Complete `hooks/useEngine.ts`**
+- [x] **Complete `workers/stockfish.worker.ts`**
+  - Load Stockfish from `/libs/stockfish-lite-single.js`
+  - Implement UCI protocol communication (uci, isready, position, go, stop commands)
+  - Parse info lines using `lib/uci-parser.ts` (ported from `src/engine/uci-parser.ts`)
+  - Handle bestmove responses
+  - Support multi-PV analysis (top 3 lines)
+
+- [x] **Complete `hooks/useEngine.ts`**
   - Initialize Stockfish worker on mount
-  - Implement `startAnalysis(fen, depth)` with real UCI commands
+  - Implement `startAnalysis(fen, depth, multipv)` with real UCI commands
   - Implement `stopAnalysis()` to halt engine
   - Parse multi-PV analysis (show top 3 moves)
+  - Convert UCI moves to SAN notation
   - Calculate and format evaluation scores (centipawns, mate scores)
-  - Related file: `src/engine.ts` (functions: `ensureWorker`, `analyze`, `handleInfo`)
+  - Normalize scores based on side to move
 
-- [ ] **Add engine analysis display**
-  - Create `components/EnginePanel.tsx` for analysis results
+- [x] **Add engine analysis display**
+  - Created `components/EnginePanel.tsx` for analysis results
   - Show depth, score, best move, PV line for each multi-PV option
-  - Update in real-time as engine analyzes
-  - Related file: `src/ui.ts` (engine panel DOM updates)
+  - Real-time updates as engine analyzes
+  - Manual start/stop controls
+  - Integrated into main page
+
+**Stockfish Variant Details:**
+
+**Selected Variant**: Lite Single-threaded WASM
+- **Version**: 17.1.0 (commit hash: 03e3232)
+- **Format**: WebAssembly (WASM)
+- **Threading**: Single-threaded (no SharedArrayBuffer/CORS required)
+- **Size**: ~7MB WASM + ~21KB JS wrapper
+- **NNUE**: Lite neural network evaluation
+- **Strength**: Weaker than full version, but sufficient for browser analysis
+- **Compatibility**: Works in all deployment scenarios (no CORS headers needed)
+- **Performance**: Native WASM speed (faster than asm.js)
+
+**Why This Variant?**
+1. **No CORS requirements**: Works on any hosting platform without special headers
+2. **Reasonable size**: ~7MB vs ~75MB for full version (better for web delivery)
+3. **Single-threaded**: Simpler threading model, no SharedArrayBuffer complexity
+4. **WASM performance**: Much faster than asm.js fallback
+5. **Sufficient strength**: Good enough for casual browser-based analysis
+
+**Other Variants Available** (change in `scripts/vendor-stockfish.js`):
+- **lite** (multi-threaded): ~7MB, requires CORS, faster on multi-core
+- **single** (full): ~75MB, no CORS, strongest single-threaded
+- **full** (multi-threaded): ~75MB, requires CORS, strongest overall
+- **asm** (asm.js): ~10MB, no WASM, universal compatibility (slowest)
+
+**Automation Approach**:
+- Stockfish package is a **devDependency** (not committed to repo)
+- Binaries are **auto-vendored** during build from `node_modules/stockfish/src/`
+- Vendor script is **ESM format** (consistent with `"type": "module"` in package.json)
+- Vendored files are **gitignored** (regenerated from package on each build)
+- Upgrade path: `yarn upgrade stockfish` + update hash in vendor script
+
+This approach provides:
+- ✅ Reproducible builds (same version across environments)
+- ✅ Easy upgrades (just update package version)
+- ✅ No manual file management
+- ✅ Version control of configuration, not binaries
+- ✅ CI/CD friendly (auto-vendors during deployment)
 
 ### 2.3 Time Controls & Game Management
 

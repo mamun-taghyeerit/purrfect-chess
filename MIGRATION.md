@@ -306,14 +306,52 @@ The migration follows an incremental strategy to minimize risk:
 
 **Immediate priorities for completing Phase 2:**
 
-1. **Engine Integration** (HIGH PRIORITY): Complete the Stockfish worker and hook
-   - Load and communicate with Stockfish binary from `/public/libs/`
-   - Implement UCI protocol (uci, isready, position, go, stop commands)
-   - Parse UCI info lines using logic from `src/engine/uci-parser.ts`
-   - Update `hooks/useEngine.ts` to provide real analysis
-   - Create `components/EnginePanel.tsx` to display analysis results
+1. **Engine Integration** (HIGH PRIORITY): ✅ **COMPLETE**
+   - ✅ Auto-vendor Stockfish from `stockfish@17.1.0` npm package (devDependency)
+   - ✅ Implement UCI protocol (uci, isready, position, go, stop commands)
+   - ✅ Parse UCI info lines using `lib/uci-parser.ts` (ported from `src/engine/uci-parser.ts`)
+   - ✅ Complete `hooks/useEngine.ts` with real Stockfish integration
+   - ✅ Create `components/EnginePanel.tsx` to display multi-PV analysis
+   - ✅ Integrate into main page with real-time updates
 
-2. **Appearance Customization** (MEDIUM PRIORITY): Add theme controls
+   **Stockfish Implementation Details:**
+   - **Version**: 17.1.0 (hash: 03e3232)
+   - **Variant**: Lite Single-threaded WASM
+   - **Package**: `stockfish@17.1.0` (devDependency, chess.com maintained)
+   - **Source**: https://github.com/nmrugg/stockfish.js
+   - **License**: GPL v3
+   
+   **Files (auto-generated, gitignored):**
+   - `public/libs/stockfish-lite-single.js` (~21KB wrapper)
+   - `public/libs/stockfish-lite-single.wasm` (~7MB WASM binary)
+   
+   **Automation:**
+   - Vendor script: `scripts/vendor-stockfish.js` (ESM format)
+   - Auto-runs on: `yarn install` (postinstall) and `yarn next:build`
+   - Manual run: `yarn vendor:stockfish`
+   
+   **Characteristics:**
+   - Single-threaded (no SharedArrayBuffer required)
+   - No CORS headers required (works in all deployment scenarios)
+   - Full WASM support (faster than asm.js)
+   - Smaller NNUE neural network (~7MB vs ~75MB for full version)
+   - Sufficient strength for browser-based analysis
+   
+   **Why this variant?**
+   - Maximum compatibility (no CORS requirements)
+   - Reasonable file size for web delivery
+   - Reliable single-threaded operation
+   - Modern WASM performance
+   
+   **Alternative variants available:**
+   - `lite`: Multi-threaded WASM (~7MB, requires CORS headers)
+   - `single`: Single-threaded full WASM (~75MB, no CORS)
+   - `full`: Multi-threaded full WASM (~75MB, requires CORS)
+   - `asm`: ASM.js fallback (~10MB, universal compatibility)
+   
+   To change variants: Edit `VARIANT` in `scripts/vendor-stockfish.js`
+
+2. **Appearance Customization** (MEDIUM PRIORITY): Port theme controls
    - Port appearance sliders from `src/ui.ts`
    - Create `components/AppearanceControls.tsx`
    - Add piece opacity, hue, saturation, brightness controls
