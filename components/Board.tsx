@@ -214,7 +214,6 @@ export default function Board() {
                       draggable
                       onDragStart={(e) => handleDragStart(e, square)}
                       onDragEnd={handleDragEnd}
-                      style={{ display: 'block' }}
                     />
                   )}
                 </div>
