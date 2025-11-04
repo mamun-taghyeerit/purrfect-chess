@@ -1,4 +1,60 @@
-# Next Steps: Complete Next.js Migration (Phase 2 & 3)
+# Phase X: Complete Next.js Migration Parity
+
+> **⚠️ UPDATED:** This document has been superseded by Phase X documentation.  
+> See [`docs/phase-x-parity.md`](./docs/phase-x-parity.md) for current status and tasks.
+
+## Current Status Summary
+
+**Phases 1-3: COMPLETE ✅**
+
+The Next.js migration skeleton and core features are fully implemented:
+
+- ✅ Next.js 14 + React 18 + TypeScript
+- ✅ Board rendering with piece images
+- ✅ Click-to-select and drag-and-drop
+- ✅ Time controls and game clocks
+- ✅ Stockfish engine integration
+- ✅ Engine analysis panel (multi-PV)
+- ✅ Appearance customization
+- ✅ Hidden "gmmamun" Easter egg
+- ✅ FEN/PGN import/export
+- ✅ Move history display
+
+**Phase X: CURRENT (Parity Validation) 🔄**
+
+> **Purpose:** Ensure 1:1 parity between legacy and Next.js apps before Phase 4 cleanup.  
+> **Issue:** [#40 - Functional + Visual Parity Development](https://github.com/purrfectsoft/purrfect-chess/issues/40)  
+> **Documentation:** [`docs/phase-x-parity.md`](./docs/phase-x-parity.md)
+
+**Remaining Tasks:**
+
+1. ⏳ Implement arrow drawing system (legacy feature, not in Next.js yet)
+2. ⏳ Wire EvaluationBar component (stub exists)
+3. 🔍 Validate all 14 workstreams (see Phase X docs)
+4. 🔍 Test with fixture corpuses (25 FENs, 10 PGNs)
+5. 🔍 Side-by-side manual validation
+6. 🔍 Visual parity (≤2px tolerance)
+7. 🔍 Functional parity (exact behavior)
+8. 🔍 Performance parity (Next.js ≥ legacy)
+
+## Quick Links
+
+- **Phase X Master Doc:** [`docs/phase-x-parity.md`](./docs/phase-x-parity.md)
+- **Contributor Guide:** [`docs/contributing-phase-x.md`](./docs/contributing-phase-x.md)
+- **Validation Runbook:** [`docs/runbooks/side-by-side.md`](./docs/runbooks/side-by-side.md)
+- **ADR:** [`docs/adr/0001-phase-x-parity-approach.md`](./docs/adr/0001-phase-x-parity-approach.md)
+- **FEN Fixtures:** [`docs/fixtures/fen/`](./docs/fixtures/fen/)
+- **PGN Fixtures:** [`docs/fixtures/pgn/`](./docs/fixtures/pgn/)
+
+---
+
+## ORIGINAL CONTENT (ARCHIVE)
+
+Below is the original next steps document, preserved for historical reference.
+
+---
+
+# Next Steps: Complete Next.js Migration (Phase 2 & 3) - ARCHIVE
 
 ## Overview
 

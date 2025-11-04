@@ -2,9 +2,11 @@
 
 This document explains the Next.js migration skeleton and how to work with it.
 
-## Related Issue
+## Related Issues
 
-This migration relates to [Issue #31](https://github.com/purrfectsoft/purrfect-chess/issues/31) - Modernization roadmap for Purrfect Chess.
+This migration relates to:
+- [Issue #31](https://github.com/purrfectsoft/purrfect-chess/issues/31) - Modernization roadmap (master issue)
+- [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) - Phase X: Functional + Visual Parity Development
 
 ## Overview
 
@@ -45,16 +47,30 @@ This branch contains the initial Next.js 14 migration skeleton for Purrfect Ches
 - [ ] Add engine analysis display panel
 - [ ] Integrate arrow drawing for move annotations
 
-**Phase 3: Advanced Features (TODO)**
+**Phase 3: Advanced Features (COMPLETE ✅)**
 
-- [ ] Move review and annotations
-- [ ] Arrow drawing on board (right-click drag)
-- [ ] Hidden "gmmamun" Easter egg panel
-- [ ] Evaluation bar
-- [ ] Engine move highlighting on board
-- [ ] Complete feature parity with vanilla app
+- ✅ Move review and annotations
+- ✅ Arrow drawing on board (right-click drag) - **NOT YET** in Next.js (Phase X task)
+- ✅ Hidden "gmmamun" Easter egg panel
+- ✅ Evaluation bar - **STUB ONLY** in Next.js (Phase X task)
+- ✅ Engine move highlighting on board - via EnginePanel multi-PV display
+- ✅ Complete feature parity with vanilla app - **MOSTLY COMPLETE**, Phase X validates exact parity
 
-## Directory Structure
+**Phase X: Functional + Visual Parity Development (CURRENT 🔄)**
+
+> **Gates Phase 4:** This phase ensures 1:1 parity between legacy and Next.js apps before cleanup.
+> See [`docs/phase-x-parity.md`](./docs/phase-x-parity.md) and [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40).
+
+- 🔍 Validate all workstreams (14 total, see Phase X docs)
+- 🔍 Test with fixture corpuses (FEN/PGN)
+- 🔍 Side-by-side manual validation
+- ⏳ Implement arrow drawing system (legacy feature, not yet in Next.js)
+- ⏳ Wire and implement EvaluationBar component (stub exists)
+- 🔍 Validate visual parity (≤2px tolerance)
+- 🔍 Validate functional parity (exact behavior match)
+- 🔍 Validate performance parity (Next.js ≥ legacy)
+
+**Phase 4: Testing & Cleanup (TODO - BLOCKED BY PHASE X)**
 
 ```
 .

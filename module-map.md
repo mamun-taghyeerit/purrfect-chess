@@ -1,70 +1,91 @@
-# Module Map - Purrfect Chess Modularization Strategy
+# Module Map - Purrfect Chess Architecture (ARCHIVE)
+
+> **⚠️ ARCHIVE NOTICE:**  
+> This document described the modularization strategy for the **legacy vanilla TypeScript app**.  
+> **Status:** Modularization COMPLETE. Next.js migration (Phases 1-3) COMPLETE.  
+> **Current Phase:** Phase X - Functional + Visual Parity Development (see `docs/phase-x-parity.md`)  
+> **Preserved for:** Historical reference and understanding legacy architecture.
 
 ## Overview
 
-This document outlines the modularization strategy for refactoring Purrfect Chess into smaller, testable modules as preparation for TypeScript migration.
+This document outlined the modularization strategy for refactoring Purrfect Chess from monolithic files into smaller, testable modules as preparation for TypeScript migration and eventual Next.js migration.
 
-## Current Architecture (Stage A)
+**Current Status:** ✅ Complete. Legacy app is fully modularized and serves as reference implementation.
 
-```
-src/
-├── main.js       - Application entry point
-├── engine.js     - Stockfish integration + UCI parsing
-├── board.js      - Board rendering and visual updates
-├── game.js       - Chess game state and logic
-├── ui.js         - UI controls and interactions
-└── styles.css    - Global styles
-```
+## Current Architecture (Legacy - REFERENCE ONLY)
 
-## Target Architecture (Stage C)
+> **Note:** This represents the **legacy Vite app** architecture.  
+> The **Next.js app** architecture is documented in `MIGRATION.md`.
 
 ```
 src/
-├── main.js                    - Application entry point
-├── engine/
-│   ├── index.js              - Engine façade (public API)
-│   ├── uci-parser.js         - UCI protocol parsing
-│   ├── analysis.js           - Analysis state management
-│   └── worker-manager.js     - Stockfish worker lifecycle
-├── board/
-│   ├── index.js              - Board façade (public API)
-│   ├── renderer.js           - DOM rendering logic
-│   ├── coordinates.js        - Square/coordinate utilities
-│   └── piece-manager.js      - Piece positioning and movement
-├── game/
-│   ├── index.js              - Game façade (public API)
-│   ├── state.js              - Game state management
-│   ├── time-control.js       - Clock and time controls
-│   └── move-validator.js     - Move validation (wraps chess.js)
-├── ui/
-│   ├── index.js              - UI façade (public API)
-│   ├── controls.js           - Button/slider event handlers
-│   ├── appearance.js         - Theme and customization
-│   └── easter-egg.js         - "gmmamun" hidden feature
-└── shared/
-    ├── types.ts              - Shared TypeScript types
-    └── utils.ts              - Shared utilities
+├── main.ts       - Application entry point (legacy)
+├── engine.js     - Stockfish integration + UCI parsing (legacy)
+├── board.js      - Board rendering and visual updates (legacy)
+├── game.js       - Chess game state and logic (legacy)
+├── ui.js         - UI controls and interactions (legacy)
+└── styles.css    - Global styles (legacy)
 ```
 
-## Stage B: Incremental Module Extraction
+## Target Architecture (Next.js - ACHIEVED ✅)
 
-### Phase 1: Engine Module (Current)
+The modularized Next.js architecture has been **fully implemented**:
 
-**Goal**: Extract UCI parsing logic from engine.js into testable submodules.
+```
+app/                      # Next.js App Router ✅
+├── layout.tsx            # Root layout
+├── page.tsx              # Homepage with all features
+└── globals.css           # Tailwind styles
 
-**Step 1** (This PR):
+components/               # React components ✅
+├── Board.tsx             # Chess board (complete)
+├── GameControls.tsx      # Game controls (complete)
+├── MoveHistory.tsx       # Move history (complete)
+├── Clock.tsx             # Chess clock (complete)
+├── TimeControlSelector.tsx # Time presets (complete)
+├── EnginePanel.tsx       # Engine analysis (complete)
+├── AppearanceControls.tsx # Appearance (complete)
+├── EvaluationBar.tsx     # Eval bar (STUB - Phase X)
+└── BoardOverlay.types.ts # Overlay types (Phase X)
 
-- ✅ Extract `parseInfoLine()` and `parseBestMove()` to `src/engine/uci-parser.js`
-- ✅ Add unit tests for UCI parser
-- ✅ Keep `engine.js` as a façade to preserve API compatibility
+hooks/                    # Custom React hooks ✅
+├── useGame.ts            # Game state (complete)
+├── useEngine.ts          # Engine integration (complete)
+└── useEasterEgg.ts       # Easter egg (complete)
 
-**Step 2** (Future):
+workers/                  # Web Workers ✅
+└── stockfish.worker.ts   # Stockfish UCI (complete)
 
-- Extract analysis state management to `src/engine/analysis.js`
-- Extract worker lifecycle to `src/engine/worker-manager.js`
-- Maintain `engine.js` façade exporting `initEngine()`, `analyze()`, `stop()`
+lib/                      # Utilities ✅
+├── uci-parser.ts         # UCI parsing (complete)
+└── types.ts              # Shared types
 
-### Phase 2: Board Module (Future)
+tests/                    # Test suites ✅
+├── components/           # Component tests
+├── hooks/                # Hook tests
+├── engine/               # Engine tests
+├── game/                 # Game logic tests
+├── ui/                   # UI tests
+└── parity/              # Phase X parity tests (new)
+
+docs/                     # Phase X Documentation 🆕
+├── phase-x-parity.md
+├── contributing-phase-x.md
+├── adr/
+│   └── 0001-phase-x-parity-approach.md
+├── runbooks/
+│   └── side-by-side.md
+└── fixtures/
+    ├── fen/              # 25 FEN positions
+    └── pgn/              # 10 PGN games
+
+src/                      # Legacy (REFERENCE) ✅
+└── (preserved for parity validation)
+```
+
+## Legacy Modularization (COMPLETE ✅)
+
+The legacy `src/` directory was fully modularized during earlier phases:
 
 - Extract rendering logic to `src/board/renderer.js`
 - Extract coordinate utilities to `src/board/coordinates.js`
