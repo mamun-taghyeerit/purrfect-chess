@@ -11,9 +11,13 @@
  * - User arrows (blue) and engine arrows (rank-based colors)
  * - Arrow preview during right-click drag
  * - Positioned absolutely over board
+ * 
+ * Performance Optimizations:
+ * - Memoized to prevent unnecessary re-renders
+ * - Shallow comparison of arrow arrays for prop equality
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 
 // Arrow constants (matching legacy)
 const ARROW_THICKNESS = 0.16;
@@ -184,7 +188,11 @@ function buildPreviewPath(
   return buildPath(points);
 }
 
-export default function ArrowOverlay({
+/**
+ * ArrowOverlay component with memoization for performance
+ * Only re-renders when arrows actually change
+ */
+const ArrowOverlay = memo(function ArrowOverlay({
   userArrows = [],
   engineArrows = [],
   previewArrow = null,
@@ -306,7 +314,64 @@ export default function ArrowOverlay({
         })()}
     </svg>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent re-renders when arrows haven't changed
+  
+  // Compare user arrows
+  if (prevProps.userArrows.length !== nextProps.userArrows.length) {
+    return false;
+  }
+  for (let i = 0; i < prevProps.userArrows.length; i++) {
+    if (
+      prevProps.userArrows[i].from !== nextProps.userArrows[i].from ||
+      prevProps.userArrows[i].to !== nextProps.userArrows[i].to
+    ) {
+      return false;
+    }
+  }
+  
+  // Compare engine arrows
+  if (prevProps.engineArrows.length !== nextProps.engineArrows.length) {
+    return false;
+  }
+  for (let i = 0; i < prevProps.engineArrows.length; i++) {
+    if (
+      prevProps.engineArrows[i].from !== nextProps.engineArrows[i].from ||
+      prevProps.engineArrows[i].to !== nextProps.engineArrows[i].to ||
+      prevProps.engineArrows[i].rank !== nextProps.engineArrows[i].rank
+    ) {
+      return false;
+    }
+  }
+  
+  // Compare preview arrow
+  if (prevProps.previewArrow !== nextProps.previewArrow) {
+    if (!prevProps.previewArrow || !nextProps.previewArrow) {
+      return false;
+    }
+    if (
+      prevProps.previewArrow.from !== nextProps.previewArrow.from ||
+      prevProps.previewArrow.to !== nextProps.previewArrow.to
+    ) {
+      return false;
+    }
+    if (prevProps.previewArrow.toPoint || nextProps.previewArrow.toPoint) {
+      if (
+        !prevProps.previewArrow.toPoint ||
+        !nextProps.previewArrow.toPoint ||
+        prevProps.previewArrow.toPoint.x !== nextProps.previewArrow.toPoint.x ||
+        prevProps.previewArrow.toPoint.y !== nextProps.previewArrow.toPoint.y
+      ) {
+        return false;
+      }
+    }
+  }
+  
+  // Props are equal
+  return true;
+});
+
+export default ArrowOverlay;
 
 // Export utility functions for use in Board component
 export { parseSquare, squareCenter, buildArrowPoints };

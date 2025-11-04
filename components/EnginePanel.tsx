@@ -2,7 +2,7 @@
 
 import { useGame } from '@/hooks/useGame';
 import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
-import { useState } from 'react';
+import { useState, memo, useRef, useEffect } from 'react';
 
 /**
  * Engine Analysis Panel Component (Legacy-compatible version)
@@ -10,6 +10,11 @@ import { useState } from 'react';
  * Displays Stockfish engine analysis with multi-PV support
  * Shows top engine lines with evaluations and principal variations
  * Matches legacy appearance from src/ui.ts
+ * 
+ * Performance Optimizations:
+ * - Throttled updates to prevent drag jank (max 4 updates/sec during analysis)
+ * - Memoized EngineLine components to prevent unnecessary re-renders
+ * - Debounced analysis display to reduce DOM thrashing
  */
 
 interface EngineLineProps {
@@ -23,7 +28,11 @@ interface EnginePanelProps {
   onEngineDisplayModeChange?: (mode: 'squares' | 'arrows' | 'both') => void;
 }
 
-function EngineLine({ analysis, index }: EngineLineProps) {
+/**
+ * Memoized EngineLine component to prevent unnecessary re-renders
+ * Only re-renders when analysis data actually changes
+ */
+const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps) {
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
       return score > 0 ? `+M${score}` : `-M${Math.abs(score)}`;
@@ -66,8 +75,22 @@ function EngineLine({ analysis, index }: EngineLineProps) {
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent re-renders when analysis hasn't changed
+  return (
+    prevProps.analysis.multipv === nextProps.analysis.multipv &&
+    prevProps.analysis.depth === nextProps.analysis.depth &&
+    prevProps.analysis.score === nextProps.analysis.score &&
+    prevProps.analysis.scoreType === nextProps.analysis.scoreType &&
+    prevProps.analysis.san === nextProps.analysis.san &&
+    prevProps.index === nextProps.index
+  );
+});
 
+/**
+ * EnginePanel component with throttled updates to prevent drag jank
+ * Limits analysis updates to max 4 times per second (every 250ms)
+ */
 export default function EnginePanel({
   onClose,
   engineDisplayMode = 'arrows',
@@ -84,6 +107,34 @@ export default function EnginePanel({
   } = useEngine();
 
   const [depth, setDepth] = useState(18);
+  
+  // Throttled analysis state to prevent drag jank
+  const [throttledAnalysis, setThrottledAnalysis] = useState(analysis);
+  const [throttledDepth, setThrottledDepth] = useState(currentDepth);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const UPDATE_THROTTLE_MS = 250; // Max 4 updates per second
+
+  // Throttle analysis updates to prevent drag jank
+  useEffect(() => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+
+    if (timeSinceLastUpdate >= UPDATE_THROTTLE_MS) {
+      // Update immediately if enough time has passed
+      setThrottledAnalysis(analysis);
+      setThrottledDepth(currentDepth);
+      lastUpdateTimeRef.current = now;
+    } else {
+      // Schedule update for later
+      const timeoutId = setTimeout(() => {
+        setThrottledAnalysis(analysis);
+        setThrottledDepth(currentDepth);
+        lastUpdateTimeRef.current = Date.now();
+      }, UPDATE_THROTTLE_MS - timeSinceLastUpdate);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [analysis, currentDepth]);
 
   const handleAnalyzeClick = () => {
     const fen = getFen();
@@ -258,7 +309,7 @@ export default function EnginePanel({
         {isAnalyzing && (
           <div className="flex items-center gap-2" style={{ color: '#60a5fa' }}>
             <div className="animate-pulse h-2 w-2 bg-blue-500 rounded-full" />
-            Analyzing... (depth {currentDepth})
+            Analyzing... (depth {throttledDepth})
           </div>
         )}
       </div>
@@ -271,7 +322,7 @@ export default function EnginePanel({
           border: '1px solid #444',
         }}
       >
-        {analysis.length === 0 ? (
+        {throttledAnalysis.length === 0 ? (
           <div className="p-4 text-center text-sm" style={{ color: '#999' }}>
             {isAnalyzing
               ? 'Computing best moves...'
@@ -281,7 +332,7 @@ export default function EnginePanel({
           </div>
         ) : (
           <div className="divide-y divide-gray-700">
-            {analysis.map((line, index) => (
+            {throttledAnalysis.map((line, index) => (
               <EngineLine key={line.multipv} analysis={line} index={index} />
             ))}
           </div>
