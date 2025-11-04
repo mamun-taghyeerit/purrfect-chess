@@ -536,7 +536,7 @@ export default function Home() {
 
             {/* Engine Panel (conditionally rendered below board) */}
             {isEnginePanelVisible && (
-              <div className="w-full max-w-md">
+              <div className="w-full" style={{ maxWidth: '600px' }}>
                 <EnginePanel
                   onClose={() => setIsEnginePanelVisible(false)}
                   engineDisplayMode={engineDisplayMode}
