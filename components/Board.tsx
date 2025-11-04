@@ -390,8 +390,7 @@ export default function Board({
     };
   }, [isDragging]);
 
-  // Clear board UI state when game resets (history becomes empty)
-  // This matches legacy behavior where reset calls clearSelection()
+  // Clear board UI state when game resets or moves are made
   const previousHistoryLength = useRef<number>();
   useEffect(() => {
     // Initialize on first render
@@ -400,20 +399,19 @@ export default function Board({
       return;
     }
     
-    // Detect reset: history length goes from > 0 to 0
-    if (previousHistoryLength.current > 0 && history.length === 0) {
-      // Clear all board UI state (matching legacy clearSelection + state reset)
+    const wasReset = previousHistoryLength.current > 0 && history.length === 0;
+    const wasMove = history.length > previousHistoryLength.current;
+    
+    if (wasReset) {
+      // Clear all board UI state on reset (matching legacy clearSelection + state reset)
       clearDragState();
-      clearArrows(); // Also clear arrows on reset
-    }
-    previousHistoryLength.current = history.length;
-  }, [history.length, clearArrows]);
-
-  // Clear arrows when a new move is made (matching legacy behavior)
-  useEffect(() => {
-    if (history.length > 0) {
+      clearArrows();
+    } else if (wasMove) {
+      // Clear arrows when a new move is made (matching legacy behavior)
       clearArrows();
     }
+    
+    previousHistoryLength.current = history.length;
   }, [history.length, clearArrows]);
 
   const handleSquareClick = useCallback((square: string, event: React.MouseEvent) => {
