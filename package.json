@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
+    "setup": "bash scripts/setup-dev-env.sh",
+    "lint": "eslint . --ext js,jsx,ts,tsx",
+    "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

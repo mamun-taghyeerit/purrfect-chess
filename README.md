@@ -26,15 +26,35 @@ Both versions can coexist during the migration phase.
 
 ## Requirements
 
-- Node.js (see `.nvmrc` for the recommended version)
-- Yarn
+- **Node.js**: Version specified in `.nvmrc` (currently Node 22)
+- **Yarn**: Classic (v1.22.22) - the project uses `yarn.lock` for deterministic installs
 
 ## Setup
 
+### Agent/CI Quickstart
+
 ```bash
-yarn
-yarn dev
+# One-liner setup (installs Node from .nvmrc, Yarn v1, deps, and vendors Stockfish)
+yarn run setup || bash scripts/setup-dev-env.sh
 ```
+
+After setup, run either app:
+
+```bash
+yarn dev        # Vite dev server
+yarn next:dev   # Next.js dev server
+```
+
+### Manual Setup
+
+If you already have the correct Node version and Yarn classic installed:
+
+```bash
+yarn install
+yarn dev        # or yarn next:dev
+```
+
+**Note**: The `postinstall` script automatically vendors Stockfish binaries from the `stockfish` npm package to `public/libs/`.
 
 The app uses TypeScript, Vite, Tailwind CSS, and chess.js. Stockfish is loaded from `/public/libs/stockfish.js` and `/public/libs/stockfish.wasm`. The engine binaries are vendored instead of pulled from a package registry so the worker URL remains stable across dev/production builds and because the original prototype shipped the engine locally. You **must** run a development server (the included Vite scripts are perfect). Opening the HTML from `file://` will not work because the Worker and WASM bundle cannot load directly from disk.
 
