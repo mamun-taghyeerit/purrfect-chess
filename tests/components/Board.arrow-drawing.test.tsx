@@ -116,7 +116,9 @@ describe('Board Arrow Drawing', () => {
 
       // Check for arrow (should have a user arrow from e2 to e4)
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBeGreaterThan(0);
       });
     });
@@ -143,7 +145,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 102, clientY: 102 });
 
       // Should not create arrow
-      const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+      const arrows = container.querySelectorAll(
+        '.board-arrow:not(.engine-arrow)'
+      );
       expect(arrows.length).toBe(0);
     });
 
@@ -166,7 +170,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 103, clientY: 103 });
 
       // Should not create arrow (below threshold and same square)
-      const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+      const arrows = container.querySelectorAll(
+        '.board-arrow:not(.engine-arrow)'
+      );
       expect(arrows.length).toBe(0);
     });
 
@@ -209,7 +215,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 150, clientY: 150 });
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBeGreaterThan(0);
       });
 
@@ -224,7 +232,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 150, clientY: 150 });
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBe(0);
       });
     });
@@ -234,7 +244,7 @@ describe('Board Arrow Drawing', () => {
       vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
       const { container } = render(<Board />);
-      
+
       // Create first arrow e2-e4
       const e2Square = container.querySelector('[data-square="e2"]');
       fireEvent.mouseDown(e2Square!, { button: 2, clientX: 100, clientY: 100 });
@@ -258,7 +268,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 250, clientY: 150 });
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBeGreaterThanOrEqual(2);
       });
     });
@@ -283,7 +295,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 150, clientY: 150 });
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBeGreaterThan(0);
       });
 
@@ -319,7 +333,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 150, clientY: 150 });
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBeGreaterThan(0);
       });
 
@@ -331,7 +347,9 @@ describe('Board Arrow Drawing', () => {
       rerender(<Board />);
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBe(0);
       });
     });
@@ -357,7 +375,9 @@ describe('Board Arrow Drawing', () => {
       fireEvent.mouseUp(document, { button: 2, clientX: 150, clientY: 150 });
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBeGreaterThan(0);
       });
 
@@ -369,7 +389,9 @@ describe('Board Arrow Drawing', () => {
       rerender(<Board />);
 
       await waitFor(() => {
-        const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+        const arrows = container.querySelectorAll(
+          '.board-arrow:not(.engine-arrow)'
+        );
         expect(arrows.length).toBe(0);
       });
     });
@@ -426,7 +448,9 @@ describe('Board Arrow Drawing', () => {
       });
 
       // Should cancel and not create arrow
-      const arrows = container.querySelectorAll('.board-arrow:not(.engine-arrow)');
+      const arrows = container.querySelectorAll(
+        '.board-arrow:not(.engine-arrow)'
+      );
       expect(arrows.length).toBe(0);
     });
   });
@@ -468,9 +492,7 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should not affect engine arrows when clearing user arrows', async () => {
-      const engineHighlights = [
-        { from: 'd2', to: 'd4', rank: 1 },
-      ];
+      const engineHighlights = [{ from: 'd2', to: 'd4', rank: 1 }];
 
       const mockState = createMockGameState({
         history: [],

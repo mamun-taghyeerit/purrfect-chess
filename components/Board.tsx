@@ -1,8 +1,20 @@
 'use client';
 
 import { useGame } from '@/hooks/useGame';
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import ArrowOverlay, { type Arrow, type PreviewArrow, parseSquare, squareCenter, buildArrowPoints } from './ArrowOverlay';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
+import ArrowOverlay, {
+  type Arrow,
+  type PreviewArrow,
+  parseSquare,
+  squareCenter,
+  buildArrowPoints,
+} from './ArrowOverlay';
 
 /**
  * Board Component - Interactive chess board matching legacy implementation
@@ -40,14 +52,14 @@ export interface EngineHighlight {
 export interface BoardProps {
   /** Engine analysis highlights (multi-PV moves) */
   engineHighlights?: EngineHighlight[];
-  
+
   /** Engine overlay display mode */
   engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
 }
 
-export default function Board({ 
+export default function Board({
   engineHighlights = [],
-  engineDisplayMode = 'arrows'
+  engineDisplayMode = 'arrows',
 }: BoardProps) {
   const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -76,11 +88,14 @@ export default function Board({
   const lastMove = history.length > 0 ? history[history.length - 1] : null;
 
   // Helper to get algebraic notation for square (file, rank indices)
-  const algebraicAt = useCallback((fileIndex: number, rankIndex: number): string => {
-    const file = files[fileIndex];
-    const rank = 8 - rankIndex;
-    return `${file}${rank}`;
-  }, [files]);
+  const algebraicAt = useCallback(
+    (fileIndex: number, rankIndex: number): string => {
+      const file = files[fileIndex];
+      const rank = 8 - rankIndex;
+      return `${file}${rank}`;
+    },
+    [files]
+  );
 
   // Helper to categorize moves into non-captures and captures (single pass optimization)
   const categorizeMoves = (moves: any[]) => {
@@ -102,103 +117,124 @@ export default function Board({
     return Math.min(Math.max(value, min), max);
   }, []);
 
-  const boardCoordsFromClient = useCallback((clientX: number, clientY: number) => {
-    if (!boardRef.current) return null;
-    const rect = boardRef.current.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return null;
-    const x = (clientX - rect.left) / rect.width;
-    const y = (clientY - rect.top) / rect.height;
-    return { x, y };
-  }, []);
+  const boardCoordsFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!boardRef.current) return null;
+      const rect = boardRef.current.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return null;
+      const x = (clientX - rect.left) / rect.width;
+      const y = (clientY - rect.top) / rect.height;
+      return { x, y };
+    },
+    []
+  );
 
-  const squareFromClient = useCallback((clientX: number, clientY: number): string | null => {
-    const coords = boardCoordsFromClient(clientX, clientY);
-    if (!coords) return null;
-    if (coords.x < 0 || coords.x >= 1 || coords.y < 0 || coords.y >= 1) {
-      return null;
-    }
-    const fileIndex = clamp(Math.floor(coords.x * 8), 0, 7);
-    const rankIndex = clamp(Math.floor(coords.y * 8), 0, 7);
-    return algebraicAt(fileIndex, rankIndex);
-  }, [boardCoordsFromClient, clamp, algebraicAt]);
+  const squareFromClient = useCallback(
+    (clientX: number, clientY: number): string | null => {
+      const coords = boardCoordsFromClient(clientX, clientY);
+      if (!coords) return null;
+      if (coords.x < 0 || coords.x >= 1 || coords.y < 0 || coords.y >= 1) {
+        return null;
+      }
+      const fileIndex = clamp(Math.floor(coords.x * 8), 0, 7);
+      const rankIndex = clamp(Math.floor(coords.y * 8), 0, 7);
+      return algebraicAt(fileIndex, rankIndex);
+    },
+    [boardCoordsFromClient, clamp, algebraicAt]
+  );
 
-  const pointFromClient = useCallback((clientX: number, clientY: number) => {
-    const coords = boardCoordsFromClient(clientX, clientY);
-    if (!coords) return null;
-    const x = clamp(coords.x * 8, 0, 8);
-    const y = clamp(coords.y * 8, 0, 8);
-    return {
-      x: clamp(x, 0.5, 7.5),
-      y: clamp(y, 0.5, 7.5),
-    };
-  }, [boardCoordsFromClient, clamp]);
+  const pointFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const coords = boardCoordsFromClient(clientX, clientY);
+      if (!coords) return null;
+      const x = clamp(coords.x * 8, 0, 8);
+      const y = clamp(coords.y * 8, 0, 8);
+      return {
+        x: clamp(x, 0.5, 7.5),
+        y: clamp(y, 0.5, 7.5),
+      };
+    },
+    [boardCoordsFromClient, clamp]
+  );
 
   // Arrow hit detection (for left-click removal)
-  const distancePointToSegment = useCallback((
-    px: number,
-    py: number,
-    ax: number,
-    ay: number,
-    bx: number,
-    by: number
-  ) => {
-    const dx = bx - ax;
-    const dy = by - ay;
-    if (dx === 0 && dy === 0) {
-      return Math.hypot(px - ax, py - ay);
-    }
-    const t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
-    const clampedT = clamp(t, 0, 1);
-    const cx = ax + dx * clampedT;
-    const cy = ay + dy * clampedT;
-    return Math.hypot(px - cx, py - cy);
-  }, [clamp]);
+  const distancePointToSegment = useCallback(
+    (
+      px: number,
+      py: number,
+      ax: number,
+      ay: number,
+      bx: number,
+      by: number
+    ) => {
+      const dx = bx - ax;
+      const dy = by - ay;
+      if (dx === 0 && dy === 0) {
+        return Math.hypot(px - ax, py - ay);
+      }
+      const t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+      const clampedT = clamp(t, 0, 1);
+      const cx = ax + dx * clampedT;
+      const cy = ay + dy * clampedT;
+      return Math.hypot(px - cx, py - cy);
+    },
+    [clamp]
+  );
 
-  const findArrowHit = useCallback((point: { x: number; y: number } | null): string | null => {
-    if (!point) return null;
-    
-    for (const [key, arrow] of userArrows.entries()) {
-      const points = buildArrowPoints(arrow.from, arrow.to);
-      if (!points || points.length < 2) continue;
+  const findArrowHit = useCallback(
+    (point: { x: number; y: number } | null): string | null => {
+      if (!point) return null;
 
-      const origin = points[0];
-      // Check if there's a piece on the origin square (protection zone)
-      const piece = position[arrow.from];
-      const originHasPiece =
-        piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
+      for (const [key, arrow] of userArrows.entries()) {
+        const points = buildArrowPoints(arrow.from, arrow.to);
+        if (!points || points.length < 2) continue;
 
-      if (originHasPiece) {
-        const originDistance = Math.hypot(point.x - origin.x, point.y - origin.y);
-        if (originDistance <= ARROW_ORIGIN_PROTECT_RADIUS) {
-          continue; // Skip this arrow if clicking near origin with a piece
+        const origin = points[0];
+        // Check if there's a piece on the origin square (protection zone)
+        const piece = position[arrow.from];
+        const originHasPiece =
+          piece &&
+          typeof piece === 'object' &&
+          'type' in piece &&
+          'color' in piece;
+
+        if (originHasPiece) {
+          const originDistance = Math.hypot(
+            point.x - origin.x,
+            point.y - origin.y
+          );
+          if (originDistance <= ARROW_ORIGIN_PROTECT_RADIUS) {
+            continue; // Skip this arrow if clicking near origin with a piece
+          }
+        }
+
+        // Check all segments of the arrow path
+        for (let index = 0; index < points.length - 1; index += 1) {
+          const a = points[index];
+          const b = points[index + 1];
+          const distance = distancePointToSegment(
+            point.x,
+            point.y,
+            a.x,
+            a.y,
+            b.x,
+            b.y
+          );
+          if (distance <= ARROW_HIT_TOLERANCE) {
+            return key;
+          }
         }
       }
-
-      // Check all segments of the arrow path
-      for (let index = 0; index < points.length - 1; index += 1) {
-        const a = points[index];
-        const b = points[index + 1];
-        const distance = distancePointToSegment(
-          point.x,
-          point.y,
-          a.x,
-          a.y,
-          b.x,
-          b.y
-        );
-        if (distance <= ARROW_HIT_TOLERANCE) {
-          return key;
-        }
-      }
-    }
-    return null;
-  }, [userArrows, position, distancePointToSegment]);
+      return null;
+    },
+    [userArrows, position, distancePointToSegment]
+  );
 
   // Arrow manipulation functions
   const toggleArrow = useCallback((from: string, to: string) => {
     if (from === to) return;
     const key = `${from}-${to}`;
-    
+
     setUserArrows((prev) => {
       const newArrows = new Map(prev);
       if (newArrows.has(key)) {
@@ -233,56 +269,62 @@ export default function Board({
   };
 
   // Arrow drag handlers (matching legacy)
-  const startArrowDrag = useCallback((square: string, event: React.MouseEvent) => {
-    if (event.button !== 2) return; // Only right-click
-    
-    const fromPoint = squareCenter(square);
-    if (!fromPoint) return;
+  const startArrowDrag = useCallback(
+    (square: string, event: React.MouseEvent) => {
+      if (event.button !== 2) return; // Only right-click
 
-    event.preventDefault();
-    event.stopPropagation();
+      const fromPoint = squareCenter(square);
+      if (!fromPoint) return;
 
-    arrowDragRef.current = {
-      fromSquare: square,
-      startX: event.clientX,
-      startY: event.clientY,
-      dragDistance: 0,
-      currentSquare: square,
-    };
+      event.preventDefault();
+      event.stopPropagation();
 
-    setPreviewArrow(null); // Will be shown on first move
-  }, []);
+      arrowDragRef.current = {
+        fromSquare: square,
+        startX: event.clientX,
+        startY: event.clientY,
+        dragDistance: 0,
+        currentSquare: square,
+      };
 
-  const updateArrowPreview = useCallback((event: MouseEvent) => {
-    const drag = arrowDragRef.current;
-    if (!drag) return;
+      setPreviewArrow(null); // Will be shown on first move
+    },
+    []
+  );
 
-    const fromPoint = squareCenter(drag.fromSquare);
-    if (!fromPoint) {
-      setPreviewArrow(null);
-      return;
-    }
+  const updateArrowPreview = useCallback(
+    (event: MouseEvent) => {
+      const drag = arrowDragRef.current;
+      if (!drag) return;
 
-    const targetPoint = pointFromClient(event.clientX, event.clientY);
-    const targetSquare = squareFromClient(event.clientX, event.clientY);
-
-    if (!targetPoint) {
-      setPreviewArrow(null);
-    } else {
-      if (targetSquare) {
-        drag.currentSquare = targetSquare;
-        setPreviewArrow({ from: drag.fromSquare, to: targetSquare });
-      } else {
-        setPreviewArrow({ from: drag.fromSquare, toPoint: targetPoint });
+      const fromPoint = squareCenter(drag.fromSquare);
+      if (!fromPoint) {
+        setPreviewArrow(null);
+        return;
       }
-    }
 
-    const distance = Math.hypot(
-      event.clientX - drag.startX,
-      event.clientY - drag.startY
-    );
-    drag.dragDistance = Math.max(drag.dragDistance, distance);
-  }, [pointFromClient, squareFromClient]);
+      const targetPoint = pointFromClient(event.clientX, event.clientY);
+      const targetSquare = squareFromClient(event.clientX, event.clientY);
+
+      if (!targetPoint) {
+        setPreviewArrow(null);
+      } else {
+        if (targetSquare) {
+          drag.currentSquare = targetSquare;
+          setPreviewArrow({ from: drag.fromSquare, to: targetSquare });
+        } else {
+          setPreviewArrow({ from: drag.fromSquare, toPoint: targetPoint });
+        }
+      }
+
+      const distance = Math.hypot(
+        event.clientX - drag.startX,
+        event.clientY - drag.startY
+      );
+      drag.dragDistance = Math.max(drag.dragDistance, distance);
+    },
+    [pointFromClient, squareFromClient]
+  );
 
   const finalizeArrowDrag = useCallback(
     (event: MouseEvent, options: { canceled?: boolean } = {}) => {
@@ -298,14 +340,17 @@ export default function Board({
         drag.currentSquare ||
         squareFromClient(event.clientX, event.clientY) ||
         drag.fromSquare;
-      
+
       const dragDistance = Math.max(
         drag.dragDistance,
         Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY)
       );
 
       // Small drags don't create arrows (matches legacy behavior)
-      if (dragDistance < ARROW_DRAG_THRESHOLD || targetSquare === drag.fromSquare) {
+      if (
+        dragDistance < ARROW_DRAG_THRESHOLD ||
+        targetSquare === drag.fromSquare
+      ) {
         // Could trigger square context menu here if needed
         return;
       }
@@ -342,20 +387,20 @@ export default function Board({
   useEffect(() => {
     const handleDocumentMouseMove = (event: MouseEvent) => {
       if (!arrowDragRef.current) return;
-      
+
       // Check if right mouse button is still pressed
       if (event.buttons !== undefined && (event.buttons & 2) === 0) {
         finalizeArrowDrag(event, { canceled: true });
         return;
       }
-      
+
       updateArrowPreview(event);
     };
 
     const handleDocumentMouseUp = (event: MouseEvent) => {
       if (event.button !== 2) return; // Only right-click
       if (!arrowDragRef.current) return;
-      
+
       event.preventDefault();
       finalizeArrowDrag(event);
     };
@@ -398,10 +443,10 @@ export default function Board({
       previousHistoryLength.current = history.length;
       return;
     }
-    
+
     const wasReset = previousHistoryLength.current > 0 && history.length === 0;
     const wasMove = history.length > previousHistoryLength.current;
-    
+
     if (wasReset) {
       // Clear all board UI state on reset (matching legacy clearSelection + state reset)
       clearDragState();
@@ -410,58 +455,75 @@ export default function Board({
       // Clear arrows when a new move is made (matching legacy behavior)
       clearArrows();
     }
-    
+
     previousHistoryLength.current = history.length;
   }, [history.length, clearArrows]);
 
-  const handleSquareClick = useCallback((square: string, event: React.MouseEvent) => {
-    // Left-click arrow removal (matching legacy)
-    if (event.button === 0) {
-      const pointer = pointFromClient(event.clientX, event.clientY);
-      const hitKey = findArrowHit(pointer);
-      if (hitKey) {
-        removeArrow(hitKey);
-        return; // Don't process piece selection
+  const handleSquareClick = useCallback(
+    (square: string, event: React.MouseEvent) => {
+      // Left-click arrow removal (matching legacy)
+      if (event.button === 0) {
+        const pointer = pointFromClient(event.clientX, event.clientY);
+        const hitKey = findArrowHit(pointer);
+        if (hitKey) {
+          removeArrow(hitKey);
+          return; // Don't process piece selection
+        }
       }
-    }
 
-    const piece = position[square];
-    const isPiece =
-      piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
+      const piece = position[square];
+      const isPiece =
+        piece &&
+        typeof piece === 'object' &&
+        'type' in piece &&
+        'color' in piece;
 
-    if (selectedSquare) {
-      // Try to move piece
-      const success = movePiece(selectedSquare, square);
+      if (selectedSquare) {
+        // Try to move piece
+        const success = movePiece(selectedSquare, square);
 
-      // Clear selection state
-      setSelectedSquare(null);
-      setLegalMoves([]);
-      setCaptureMoves([]);
+        // Clear selection state
+        setSelectedSquare(null);
+        setLegalMoves([]);
+        setCaptureMoves([]);
 
-      // If move failed and clicking on a different piece, select it instead (re-selection)
-      if (!success && isPiece && square !== selectedSquare) {
+        // If move failed and clicking on a different piece, select it instead (re-selection)
+        if (!success && isPiece && square !== selectedSquare) {
+          const moves = game.moves({ square: square as any, verbose: true });
+          const { legal, captures } = categorizeMoves(moves);
+          setSelectedSquare(square);
+          setLegalMoves(legal);
+          setCaptureMoves(captures);
+        }
+      } else if (isPiece) {
+        // Select piece and show legal moves
         const moves = game.moves({ square: square as any, verbose: true });
         const { legal, captures } = categorizeMoves(moves);
         setSelectedSquare(square);
         setLegalMoves(legal);
         setCaptureMoves(captures);
       }
-    } else if (isPiece) {
-      // Select piece and show legal moves
-      const moves = game.moves({ square: square as any, verbose: true });
-      const { legal, captures } = categorizeMoves(moves);
-      setSelectedSquare(square);
-      setLegalMoves(legal);
-      setCaptureMoves(captures);
-    }
-  }, [pointFromClient, findArrowHit, removeArrow, position, selectedSquare, movePiece, game]);
+    },
+    [
+      pointFromClient,
+      findArrowHit,
+      removeArrow,
+      position,
+      selectedSquare,
+      movePiece,
+      game,
+    ]
+  );
 
-  const handleSquareMouseDown = useCallback((square: string, event: React.MouseEvent) => {
-    if (event.button === 2) {
-      // Right-click: start arrow drag
-      startArrowDrag(square, event);
-    }
-  }, [startArrowDrag]);
+  const handleSquareMouseDown = useCallback(
+    (square: string, event: React.MouseEvent) => {
+      if (event.button === 2) {
+        // Right-click: start arrow drag
+        startArrowDrag(square, event);
+      }
+    },
+    [startArrowDrag]
+  );
 
   const handleDragStart = (
     e: React.DragEvent<HTMLImageElement>,
@@ -582,15 +644,22 @@ export default function Board({
 
               // Check for engine highlights (multi-PV squares)
               // Only apply if engineDisplayMode includes squares
-              const showEngineSquares = engineDisplayMode === 'both' || engineDisplayMode === 'squares';
+              const showEngineSquares =
+                engineDisplayMode === 'both' || engineDisplayMode === 'squares';
               let engineHighlightRank: number | null = null;
-              
+
               if (showEngineSquares && engineHighlights.length > 0) {
                 // Find the highest-ranked (lowest number) engine highlight for this square
                 for (const highlight of engineHighlights) {
                   if (highlight.from === square || highlight.to === square) {
-                    if (engineHighlightRank === null || highlight.rank < engineHighlightRank) {
-                      engineHighlightRank = Math.min(Math.max(highlight.rank, 1), 3); // Clamp to 1-3
+                    if (
+                      engineHighlightRank === null ||
+                      highlight.rank < engineHighlightRank
+                    ) {
+                      engineHighlightRank = Math.min(
+                        Math.max(highlight.rank, 1),
+                        3
+                      ); // Clamp to 1-3
                     }
                   }
                 }
@@ -618,7 +687,7 @@ export default function Board({
                 squareClasses +=
                   piece.color === 'w' ? ' white-piece' : ' black-piece';
               }
-              
+
               // Add engine highlight class if applicable
               if (engineHighlightRank !== null) {
                 squareClasses += ` engine-move-${engineHighlightRank}`;

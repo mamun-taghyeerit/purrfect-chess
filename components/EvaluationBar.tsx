@@ -79,7 +79,7 @@ export default function EvaluationBar({
 
     // Clamp score to -500 to +500 range
     const clamped = Math.max(-500, Math.min(500, scoreCp));
-    
+
     // Map to 0-100 percentage (0 = black winning, 100 = white winning)
     return ((clamped + 500) / 1000) * 100;
   };
@@ -130,7 +130,7 @@ export default function EvaluationBar({
         />
       </div>
       <div className={`eval-bar-score ${advantageClass}`}>{scoreDisplay}</div>
-      
+
       {/* Depth info (optional, shown when analyzing) */}
       {isVisible && isAnalyzing && currentDepth > 0 && (
         <div className="eval-bar-depth-info">

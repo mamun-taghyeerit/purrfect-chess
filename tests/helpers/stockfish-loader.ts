@@ -1,6 +1,6 @@
 /**
  * Stockfish Engine Loader for Tests
- * 
+ *
  * Provides a way to load the actual Stockfish engine in Node.js/test environment
  * using the stockfish npm package's official loadEngine helper.
  */
@@ -11,7 +11,11 @@ import { join } from 'path';
 const loadEngineHelper = require('../../node_modules/stockfish/examples/loadEngine.js');
 
 export interface StockfishEngine {
-  send: (command: string, onDone?: (data: string) => void, onStream?: (data: string) => void) => void;
+  send: (
+    command: string,
+    onDone?: (data: string) => void,
+    onStream?: (data: string) => void
+  ) => void;
   quit: () => void;
   stream?: (line: string) => void;
   loaded?: boolean;
@@ -29,7 +33,7 @@ export function loadStockfish(): StockfishEngine {
   );
 
   const engine = loadEngineHelper(stockfishPath);
-  
+
   return engine;
 }
 
@@ -45,7 +49,7 @@ export async function analyzePosition(
   } = {}
 ): Promise<string[]> {
   const { depth = 10, multipv = 3, timeout = 10000 } = options;
-  
+
   const engine = loadStockfish();
   const lines: string[] = [];
   let isReady = false;
@@ -59,7 +63,7 @@ export async function analyzePosition(
     // Stream all output
     engine.stream = (line: string) => {
       lines.push(line);
-      
+
       // Check for readyok to know engine is initialized
       if (line === 'readyok' && !isReady) {
         isReady = true;
@@ -70,7 +74,7 @@ export async function analyzePosition(
         engine.send(`go depth ${depth}`);
         return;
       }
-      
+
       // Check for bestmove to know analysis is complete
       if (line.startsWith('bestmove')) {
         clearTimeout(timer);
@@ -84,5 +88,3 @@ export async function analyzePosition(
     engine.send('isready');
   });
 }
-
-

@@ -1,9 +1,9 @@
 /**
  * ArrowOverlay Component
- * 
+ *
  * Renders SVG arrows for both user-drawn arrows and engine analysis
  * Matching legacy implementation (src/board.ts lines 248-381)
- * 
+ *
  * Features:
  * - SVG viewBox coordinate system (0-8 for 8×8 board)
  * - Arrow head markers with context-stroke color
@@ -190,11 +190,7 @@ export default function ArrowOverlay({
   previewArrow = null,
 }: ArrowOverlayProps) {
   // Don't render if no arrows or preview
-  if (
-    userArrows.length === 0 &&
-    engineArrows.length === 0 &&
-    !previewArrow
-  ) {
+  if (userArrows.length === 0 && engineArrows.length === 0 && !previewArrow) {
     return null;
   }
 
@@ -276,37 +272,38 @@ export default function ArrowOverlay({
       })}
 
       {/* Render preview arrow (drawn on top) */}
-      {previewArrow && (() => {
-        let pathData: string | null = null;
-        
-        if (previewArrow.to) {
-          // Preview to a specific square
-          pathData = buildArrowPath(previewArrow.from, previewArrow.to);
-        } else if (previewArrow.toPoint) {
-          // Preview to an arbitrary point
-          const fromPoint = squareCenter(previewArrow.from);
-          if (fromPoint) {
-            pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
+      {previewArrow &&
+        (() => {
+          let pathData: string | null = null;
+
+          if (previewArrow.to) {
+            // Preview to a specific square
+            pathData = buildArrowPath(previewArrow.from, previewArrow.to);
+          } else if (previewArrow.toPoint) {
+            // Preview to an arbitrary point
+            const fromPoint = squareCenter(previewArrow.from);
+            if (fromPoint) {
+              pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
+            }
           }
-        }
 
-        if (!pathData) return null;
+          if (!pathData) return null;
 
-        return (
-          <path
-            key="arrow-preview"
-            className="board-arrow board-arrow-preview"
-            d={pathData}
-            fill="none"
-            stroke={ARROW_PREVIEW_STROKE}
-            strokeWidth={ARROW_THICKNESS}
-            strokeLinecap="butt"
-            strokeLinejoin="round"
-            markerEnd={`url(#${ARROW_HEAD_ID})`}
-            style={{ pointerEvents: 'none' }}
-          />
-        );
-      })()}
+          return (
+            <path
+              key="arrow-preview"
+              className="board-arrow board-arrow-preview"
+              d={pathData}
+              fill="none"
+              stroke={ARROW_PREVIEW_STROKE}
+              strokeWidth={ARROW_THICKNESS}
+              strokeLinecap="butt"
+              strokeLinejoin="round"
+              markerEnd={`url(#${ARROW_HEAD_ID})`}
+              style={{ pointerEvents: 'none' }}
+            />
+          );
+        })()}
     </svg>
   );
 }

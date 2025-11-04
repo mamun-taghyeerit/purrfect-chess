@@ -81,8 +81,7 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
           ]),
           board: vi.fn(),
           fen: vi.fn(
-            () =>
-              'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
+            () => 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
           ),
           history: vi.fn(() => [{ from: 'e2', to: 'e4', san: 'e4' }]),
           turn: vi.fn(() => 'b'),
@@ -162,8 +161,7 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
           ]),
           board: vi.fn(),
           fen: vi.fn(
-            () =>
-              'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
+            () => 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
           ),
           history: vi.fn(() => [{ from: 'e2', to: 'e4', san: 'e4' }]),
           turn: vi.fn(() => 'b'),
