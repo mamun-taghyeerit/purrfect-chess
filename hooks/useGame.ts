@@ -12,7 +12,7 @@ import type { Position, TimeControl } from '@/lib/types';
  * - Chess game state and move validation
  * - Time control management with increment
  * - Clock management for both players
- * - FEN/PGN import/export
+ * - FEN/PGN import/export with error handling
  * - Move history tracking
  * - Game over detection (checkmate, stalemate, timeout)
  */
@@ -34,7 +34,12 @@ interface GameState {
   timeControl: TimeControl;
 }
 
-export function useGame() {
+interface UseGameOptions {
+  onError?: (error: string) => void;
+}
+
+export function useGame(options: UseGameOptions = {}) {
+  const { onError } = options;
   const [game] = useState(() => new Chess());
   const [gameState, setGameState] = useState<GameState>(() => {
     const pos = getPositionFromChess(game);
@@ -171,13 +176,20 @@ export function useGame() {
 
           return true;
         }
+        // Move was rejected by chess.js
+        if (onError) {
+          onError('Illegal move.');
+        }
         return false;
       } catch (error) {
         console.error('Invalid move:', error);
+        if (onError) {
+          onError('Illegal move.');
+        }
         return false;
       }
     },
-    [game, updateGameState, isTimerRunning, startTimer]
+    [game, updateGameState, isTimerRunning, startTimer, onError]
   );
 
   const resetGame = useCallback(() => {
@@ -216,17 +228,26 @@ export function useGame() {
 
   const loadFen = useCallback(
     (fen: string) => {
+      if (!fen || !fen.trim()) {
+        if (onError) {
+          onError('Enter a FEN string to load.');
+        }
+        return false;
+      }
       try {
         stopTimer();
-        game.load(fen);
+        game.load(fen.trim());
         updateGameState();
         return true;
       } catch (error) {
         console.error('Invalid FEN:', error);
+        if (onError) {
+          onError('Invalid FEN string.');
+        }
         return false;
       }
     },
-    [game, updateGameState, stopTimer]
+    [game, updateGameState, stopTimer, onError]
   );
 
   const getFen = useCallback(() => {
@@ -239,19 +260,28 @@ export function useGame() {
 
   const loadPgn = useCallback(
     (pgn: string) => {
+      if (!pgn || !pgn.trim()) {
+        if (onError) {
+          onError('Enter a PGN string to load.');
+        }
+        return false;
+      }
       try {
         stopTimer();
-        game.loadPgn(pgn);
+        game.loadPgn(pgn.trim());
         updateGameState();
         return true;
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : 'Unable to load PGN';
         console.error('Invalid PGN:', errorMessage);
+        if (onError) {
+          onError('Invalid PGN data.');
+        }
         return false;
       }
     },
-    [game, updateGameState, stopTimer]
+    [game, updateGameState, stopTimer, onError]
   );
 
   useEffect(() => {
