@@ -2,12 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles for the Next.js app */
+/* Base styles for the Next.js app - matching legacy exactly */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-
   /* Appearance customization CSS variables (matching legacy) */
   --light-square-filter: hue-rotate(0deg) saturate(1) brightness(1);
   --dark-square-filter: hue-rotate(0deg) saturate(1) brightness(1);
@@ -17,22 +13,48 @@
   --black-piece-scale: 1;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+body {
+  /* Match legacy dark background (#333) */
+  background-color: #333;
+  color: #f0f0f0;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+/* Legacy slider styling */
+.slider-legacy:hover {
+  opacity: 1;
+}
+
+.slider-legacy::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #e66465;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+}
+
+.slider-legacy::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: #e66465;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
 }
 
 /* Board Wrapper - Responsive container matching legacy */
