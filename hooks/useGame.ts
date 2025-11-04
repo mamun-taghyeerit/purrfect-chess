@@ -241,7 +241,9 @@ export function useGame() {
         updateGameState();
         return true;
       } catch (error) {
-        console.error('Invalid PGN:', error);
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unable to load PGN';
+        console.error('Invalid PGN:', errorMessage);
         return false;
       }
     },

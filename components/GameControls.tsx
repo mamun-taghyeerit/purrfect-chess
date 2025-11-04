@@ -33,6 +33,11 @@ export default function GameControls({
   const [showPgnInput, setShowPgnInput] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
+  const PGN_PLACEHOLDER = `[Event "?"]
+[Site "?"]
+
+1. e4 e5 2. Nf3 Nc6 *`;
+
   const handleImportFen = () => {
     if (fenInput.trim()) {
       onLoadFen(fenInput.trim());
@@ -155,7 +160,7 @@ export default function GameControls({
             value={pgnInput}
             onChange={(e) => setPgnInput(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 dark:bg-gray-700 dark:border-gray-600 font-mono text-sm"
-            placeholder='[Event "?"]&#10;[Site "?"]&#10;&#10;1. e4 e5 2. Nf3 Nc6 *'
+            placeholder={PGN_PLACEHOLDER}
             rows={8}
           />
           <div className="flex gap-2">

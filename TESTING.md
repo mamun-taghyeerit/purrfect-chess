@@ -228,6 +228,7 @@ vi.stubGlobal('Worker', MockWorker);
    ```
 
 5. **Organize tests with describe blocks**
+
    ```tsx
    describe('MyComponent', () => {
      describe('when user is logged in', () => {
