@@ -14,6 +14,11 @@ import React, { useState } from 'react';
  * - Responsive sizing matching legacy breakpoints
  * - Orientation: A1 always bottom-left for white (default view)
  */
+
+// Constants
+const DRAG_OPACITY = '0.4';
+const NORMAL_OPACITY = '1';
+
 export default function Board() {
   const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -22,7 +27,7 @@ export default function Board() {
 
   // File and rank labels for coordinates (matching legacy)
   const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-  const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+  const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
 
   // Get last move for highlighting
   const lastMove = history.length > 0 ? history[history.length - 1] : null;
@@ -87,13 +92,13 @@ export default function Board() {
 
       // Add drag opacity
       const img = e.currentTarget;
-      img.style.opacity = '0.4';
+      img.style.opacity = DRAG_OPACITY;
     }
   };
 
   const handleDragEnd = (e: React.DragEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    img.style.opacity = '1';
+    img.style.opacity = NORMAL_OPACITY;
     setSelectedSquare(null);
     setLegalMoves([]);
     setCaptureMoves([]);
@@ -193,7 +198,7 @@ export default function Board() {
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={getPieceImagePath(piece)}
-                      alt=""
+                      alt={`${piece.color === 'w' ? 'White' : 'Black'} ${getPieceTypeName(piece.type)}`}
                       draggable
                       onDragStart={(e) => handleDragStart(e, square)}
                       onDragEnd={handleDragEnd}
@@ -211,11 +216,9 @@ export default function Board() {
 }
 
 /**
- * Helper function to get piece image path
- * Images are from /public/assets/ (CC BY 4.0)
+ * Helper function to get piece type name for accessibility
  */
-function getPieceImagePath(piece: { type: string; color: string }): string {
-  const colorPrefix = piece.color === 'w' ? 'w' : 'b';
+function getPieceTypeName(type: string): string {
   const pieceNames: { [key: string]: string } = {
     p: 'pawn',
     r: 'rook',
@@ -224,14 +227,16 @@ function getPieceImagePath(piece: { type: string; color: string }): string {
     q: 'queen',
     k: 'king',
   };
+  return pieceNames[type.toLowerCase()] || type;
+}
 
-  const pieceName = pieceNames[piece.type.toLowerCase()];
-
-  // Fallback to pawn if piece type is unknown
-  if (!pieceName) {
-    console.warn(`Unknown piece type: ${piece.type}, defaulting to pawn`);
-    return `/assets/${colorPrefix}_pawn.png`;
-  }
+/**
+ * Helper function to get piece image path
+ * Images are from /public/assets/ (CC BY 4.0)
+ */
+function getPieceImagePath(piece: { type: string; color: string }): string {
+  const colorPrefix = piece.color === 'w' ? 'w' : 'b';
+  const pieceName = getPieceTypeName(piece.type);
 
   return `/assets/${colorPrefix}_${pieceName}.png`;
 }
