@@ -93,6 +93,9 @@ const groupConfigs: GroupConfig[] = [
 export default function AppearanceControls() {
   const [appearance, setAppearance] = useState<AppearanceState>(appearanceDefaults);
 
+  // Helper to calculate scale value
+  const formatScale = (scale: number) => ((scale || 100) / 100).toFixed(2);
+
   // Apply appearance to CSS custom properties
   const applyAppearance = useCallback((state: AppearanceState) => {
     const root = document.documentElement;
@@ -106,10 +109,10 @@ export default function AppearanceControls() {
         root.style.setProperty('--dark-square-filter', filter);
       } else if (key === 'whitePieces') {
         root.style.setProperty('--white-piece-filter', filter);
-        root.style.setProperty('--white-piece-scale', ((group.scale || 100) / 100).toFixed(2));
+        root.style.setProperty('--white-piece-scale', formatScale(group.scale || 100));
       } else if (key === 'blackPieces') {
         root.style.setProperty('--black-piece-filter', filter);
-        root.style.setProperty('--black-piece-scale', ((group.scale || 100) / 100).toFixed(2));
+        root.style.setProperty('--black-piece-scale', formatScale(group.scale || 100));
       }
     });
   }, []);

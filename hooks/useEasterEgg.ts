@@ -108,7 +108,7 @@ export function useEasterEgg(options: UseEasterEggOptions = {}) {
       document.removeEventListener('selectionchange', handleSelection);
       document.removeEventListener('keydown', handleKeydown);
     };
-  }, [isPrimed, onReveal, targetText]);
+  }, [isPrimed, onReveal]);
 
   // Return a ref callback to attach to the target element
   const setTargetElement = (element: HTMLElement | null) => {
