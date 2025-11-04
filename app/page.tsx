@@ -6,14 +6,16 @@ import MoveHistory from '@/components/MoveHistory';
 import Clock from '@/components/Clock';
 import TimeControlSelector from '@/components/TimeControlSelector';
 import EnginePanel from '@/components/EnginePanel';
-import AppearanceControls from '@/components/AppearanceControls';
+import AppearanceControls, {
+  type AppearanceControlsHandle,
+} from '@/components/AppearanceControls';
 import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
 import { useGame } from '@/hooks/useGame';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import type { EngineHighlight } from '@/components/Board';
 
 // Helper function to format time in MM:SS format
@@ -36,6 +38,10 @@ export default function Home() {
     },
     [showMessage]
   );
+
+  // Refs for appearance controls
+  const whiteAppearanceRef = useRef<AppearanceControlsHandle>(null);
+  const blackAppearanceRef = useRef<AppearanceControlsHandle>(null);
 
   const {
     resetGame,
@@ -100,7 +106,7 @@ export default function Home() {
 
         <div className="mb-6 text-center">
           <p className="text-sm text-gray-400">
-            Next.js Migration - Phase 2: Core Structure & Initial Port
+            Next.js Migration - Phase X: Functional & Visual Parity Complete
           </p>
         </div>
 
@@ -205,8 +211,8 @@ export default function Home() {
                   </h3>
                   <button
                     onClick={() => {
-                      // Reset handled by individual group reset buttons in AppearanceControls
-                      window.location.reload();
+                      // Reset only white appearance (light squares + white pieces)
+                      whiteAppearanceRef.current?.reset();
                     }}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
                     style={{
@@ -217,13 +223,14 @@ export default function Home() {
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-                    title="Reset all appearance settings"
+                    title="Reset white appearance settings"
                   >
                     <span>↻</span>
                     <span>Reset</span>
                   </button>
                 </div>
                 <AppearanceControls
+                  ref={whiteAppearanceRef}
                   groups={['light', 'whitePieces']}
                   showGlobalReset={false}
                 />
@@ -325,7 +332,13 @@ export default function Home() {
           <div className="flex flex-col items-center gap-4 xl:flex-initial">
             {/* Board with Evaluation Bar */}
             <div className="flex gap-2 items-center">
-              {/* Evaluation Bar (left side of board) */}
+              {/* Chess Board with Engine Overlays */}
+              <Board
+                engineHighlights={engineHighlights}
+                engineDisplayMode={engineDisplayMode}
+              />
+
+              {/* Evaluation Bar (right side of board) */}
               {isEvalBarVisible && (
                 <EvaluationBar
                   scoreCp={evalScore}
@@ -336,12 +349,6 @@ export default function Home() {
                   maxDepth={22}
                 />
               )}
-
-              {/* Chess Board with Engine Overlays */}
-              <Board
-                engineHighlights={engineHighlights}
-                engineDisplayMode={engineDisplayMode}
-              />
             </div>
 
             {/* Board controls */}
@@ -559,8 +566,8 @@ export default function Home() {
                   </h3>
                   <button
                     onClick={() => {
-                      // Reset handled by individual group reset buttons in AppearanceControls
-                      window.location.reload();
+                      // Reset only black appearance (dark squares + black pieces)
+                      blackAppearanceRef.current?.reset();
                     }}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
                     style={{
@@ -571,13 +578,14 @@ export default function Home() {
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-                    title="Reset all appearance settings"
+                    title="Reset black appearance settings"
                   >
                     <span>↻</span>
                     <span>Reset</span>
                   </button>
                 </div>
                 <AppearanceControls
+                  ref={blackAppearanceRef}
                   groups={['dark', 'blackPieces']}
                   showGlobalReset={false}
                 />
@@ -723,10 +731,10 @@ export default function Home() {
           <p>
             <strong>Migration Progress:</strong> Board rendering ✓, Piece
             movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine
-            analysis ✓, Appearance ✓
+            analysis ✓, Appearance ✓, All parity fixes ✓
           </p>
           <p className="mt-2">
-            <strong>Phase 3:</strong> Complete! Try selecting the text above and
+            <strong>Phase X:</strong> Functional & Visual Parity Complete! Try selecting the text above and
             typing a secret code...
           </p>
         </div>
