@@ -26,6 +26,9 @@ interface GameState {
   check: boolean;
   checkmate: boolean;
   stalemate: boolean;
+  threefoldRepetition: boolean;
+  insufficientMaterial: boolean;
+  draw: boolean;
   whiteTime: number;
   blackTime: number;
   timeControl: TimeControl;
@@ -45,6 +48,9 @@ export function useGame() {
       check: false,
       checkmate: false,
       stalemate: false,
+      threefoldRepetition: false,
+      insufficientMaterial: false,
+      draw: false,
       whiteTime: defaultTimeControl.minutes * 60 * 1000,
       blackTime: defaultTimeControl.minutes * 60 * 1000,
       timeControl: defaultTimeControl,
@@ -57,6 +63,12 @@ export function useGame() {
 
   const updateGameState = useCallback(() => {
     const pos = getPositionFromChess(game);
+    const checkmate = game.isCheckmate();
+    const stalemate = game.isStalemate();
+    const threefoldRepetition = game.isThreefoldRepetition();
+    const insufficientMaterial = game.isInsufficientMaterial();
+    const draw = game.isDraw();
+    
     setGameState((prev) => ({
       ...prev,
       position: pos,
@@ -65,8 +77,11 @@ export function useGame() {
       isGameOver: game.isGameOver() || prev.isGameOver,
       turn: game.turn(),
       check: game.isCheck(),
-      checkmate: game.isCheckmate(),
-      stalemate: game.isStalemate(),
+      checkmate,
+      stalemate,
+      threefoldRepetition,
+      insufficientMaterial,
+      draw,
     }));
   }, [game]);
 
@@ -168,6 +183,9 @@ export function useGame() {
       check: false,
       checkmate: false,
       stalemate: false,
+      threefoldRepetition: false,
+      insufficientMaterial: false,
+      draw: false,
       whiteTime: prev.timeControl.minutes * 60 * 1000,
       blackTime: prev.timeControl.minutes * 60 * 1000,
       timeControl: prev.timeControl,
