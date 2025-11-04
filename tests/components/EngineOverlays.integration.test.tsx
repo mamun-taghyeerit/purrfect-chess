@@ -1,10 +1,10 @@
 /**
  * Engine Overlays Integration Test
- * 
+ *
  * Validates that engine analysis data flows correctly to:
  * - Board component (arrows and square highlights)
  * - EvaluationBar component
- * 
+ *
  * Ensures parity with legacy implementation
  */
 
@@ -56,9 +56,7 @@ describe('Engine Overlays Integration', () => {
     });
 
     it('should render both arrows and highlights when mode is "both"', () => {
-      const highlights: EngineHighlight[] = [
-        { from: 'e2', to: 'e4', rank: 1 },
-      ];
+      const highlights: EngineHighlight[] = [{ from: 'e2', to: 'e4', rank: 1 }];
 
       const { container } = render(
         <Board engineHighlights={highlights} engineDisplayMode="both" />
@@ -74,9 +72,7 @@ describe('Engine Overlays Integration', () => {
     });
 
     it('should not render overlays when mode is "none"', () => {
-      const highlights: EngineHighlight[] = [
-        { from: 'e2', to: 'e4', rank: 1 },
-      ];
+      const highlights: EngineHighlight[] = [{ from: 'e2', to: 'e4', rank: 1 }];
 
       const { container } = render(
         <Board engineHighlights={highlights} engineDisplayMode="none" />

@@ -33,10 +33,20 @@ Both versions can coexist during the migration phase.
 
 ### Agent/CI Quickstart
 
+For GitHub Copilot Coding Agents and CI environments:
+
 ```bash
 # One-liner setup (installs Node from .nvmrc, Yarn v1, deps, and vendors Stockfish)
 yarn run setup || bash scripts/setup-dev-env.sh
 ```
+
+This script will:
+
+- ✅ Install/configure nvm (Node Version Manager) if not present
+- ✅ Install Node.js version from `.nvmrc` (Node 22)
+- ✅ Install Yarn Classic (v1.22.22) globally
+- ✅ Install all project dependencies via `yarn install --frozen-lockfile`
+- ✅ Vendor Stockfish binaries to `public/libs/`
 
 After setup, run either app:
 
@@ -44,6 +54,13 @@ After setup, run either app:
 yarn dev        # Vite dev server
 yarn next:dev   # Next.js dev server
 ```
+
+**Available tooling:**
+
+- `yarn lint` / `yarn lint:fix` - ESLint code quality checks
+- `yarn format` / `yarn format:check` - Prettier formatting
+- `yarn test` / `yarn test:watch` - Vitest test runner
+- `yarn build` / `yarn next:build` - Production builds
 
 ### Manual Setup
 
@@ -108,6 +125,20 @@ Select the grey text inside the board column that reads `(Reserved for future us
 
 This project uses TypeScript for type safety and improved developer experience. The TypeScript configuration is optimized for gradual typing with a relaxed mode to support the migration from JavaScript.
 
+### Linting and Formatting
+
+```bash
+yarn lint              # Check code for linting issues
+yarn lint:fix          # Fix auto-fixable linting issues
+yarn format            # Format all code files
+yarn format:check      # Check if files are formatted correctly
+```
+
+The project uses:
+
+- **ESLint** with Next.js rules for code quality
+- **Prettier** for consistent code formatting
+
 ### Testing
 
 ```bash
@@ -116,9 +147,13 @@ yarn test:watch        # Run tests in watch mode
 yarn test:coverage     # Generate coverage report
 ```
 
+See [TESTING.md](./TESTING.md) for comprehensive testing guidelines.
+
 ### Building
 
 ```bash
-yarn build             # Production build
+yarn build             # Production build (Vite)
 yarn preview           # Preview production build
+yarn next:build        # Next.js production build
+yarn next:start        # Start Next.js production server
 ```

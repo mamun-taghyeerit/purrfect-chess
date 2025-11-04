@@ -16,9 +16,16 @@
 
 import { describe, it, expect } from 'vitest';
 import { parseInfoLine, parseBestMove } from '@/lib/uci-parser';
-import { parseInfoLine as legacyParseInfoLine, parseBestMove as legacyParseBestMove } from '../../src/engine/uci-parser';
+import {
+  parseInfoLine as legacyParseInfoLine,
+  parseBestMove as legacyParseBestMove,
+} from '../../src/engine/uci-parser';
 import { Chess } from 'chess.js';
-import { loadStockfish, analyzePosition, type StockfishEngine } from '../helpers/stockfish-loader';
+import {
+  loadStockfish,
+  analyzePosition,
+  type StockfishEngine,
+} from '../helpers/stockfish-loader';
 
 // Test fixtures
 const TEST_POSITIONS = {
@@ -50,18 +57,15 @@ const UCI_FIXTURES = {
   // Black to move position (for score normalization)
   blackToMove: {
     fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1',
-    lines: [
-      'info depth 10 multipv 1 score cp 25 pv e7e5',
-      'bestmove e7e5',
-    ],
+    lines: ['info depth 10 multipv 1 score cp 25 pv e7e5', 'bestmove e7e5'],
   },
 };
 
 describe('Phase X Parity: Engine Analysis', () => {
-
   describe('UCI Parser Parity', () => {
     it('should parse info lines identically in both implementations', () => {
-      const testLine = 'info depth 15 seldepth 22 multipv 1 score cp 30 nodes 45000 nps 450000 hashfull 350 tbhits 0 time 100 pv e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 e1g1 e8g8 b1c3 d7d6';
+      const testLine =
+        'info depth 15 seldepth 22 multipv 1 score cp 30 nodes 45000 nps 450000 hashfull 350 tbhits 0 time 100 pv e2e4 e7e5 g1f3 b8c6 f1c4 g8f6 d2d3 f8c5 e1g1 e8g8 b1c3 d7d6';
 
       const legacyResult = legacyParseInfoLine(testLine);
       const nextResult = parseInfoLine(testLine);
@@ -96,7 +100,8 @@ describe('Phase X Parity: Engine Analysis', () => {
     });
 
     it('should parse mate scores identically', () => {
-      const testLine = 'info depth 30 multipv 1 score mate 3 nodes 500000 time 2000 pv f7f8q g8h7 d8d7';
+      const testLine =
+        'info depth 30 multipv 1 score mate 3 nodes 500000 time 2000 pv f7f8q g8h7 d8d7';
 
       const legacyResult = legacyParseInfoLine(testLine);
       const nextResult = parseInfoLine(testLine);
@@ -162,7 +167,7 @@ describe('Phase X Parity: Engine Analysis', () => {
 
       expect(turn).toBe('b');
 
-      // Parse a score from the UCI output  
+      // Parse a score from the UCI output
       const parsed = parseInfoLine(UCI_FIXTURES.blackToMove.lines[0]);
       const rawScore = parsed?.score?.value || 0;
 
@@ -198,17 +203,23 @@ describe('Phase X Parity: Engine Analysis', () => {
 
   describe('Multi-PV Parsing Parity', () => {
     it('should parse multi-PV lines with correct ordering', () => {
-      const lines = UCI_FIXTURES.startingPosition.lines.filter(l => l.startsWith('info'));
-      const parsed = lines.map(l => parseInfoLine(l)).filter(p => p !== null && p.multipv !== null);
+      const lines = UCI_FIXTURES.startingPosition.lines.filter((l) =>
+        l.startsWith('info')
+      );
+      const parsed = lines
+        .map((l) => parseInfoLine(l))
+        .filter((p) => p !== null && p.multipv !== null);
 
       // Should have 3 unique multipv values
-      const multipvValues = parsed.map(p => p.multipv);
+      const multipvValues = parsed.map((p) => p.multipv);
       expect(multipvValues).toContain(1);
       expect(multipvValues).toContain(2);
       expect(multipvValues).toContain(3);
 
       // Should be properly ordered
-      const sortedParsed = parsed.sort((a, b) => (a.multipv || 0) - (b.multipv || 0));
+      const sortedParsed = parsed.sort(
+        (a, b) => (a.multipv || 0) - (b.multipv || 0)
+      );
       expect(sortedParsed[0].multipv).toBe(1);
       expect(sortedParsed[1].multipv).toBe(2);
       expect(sortedParsed[2].multipv).toBe(3);
@@ -389,28 +400,28 @@ describe('Phase X Parity: Engine Analysis', () => {
       });
 
       // Should have received uciok, readyok, info lines, and bestmove
-      expect(lines.some(l => l === 'uciok')).toBe(true);
-      expect(lines.some(l => l === 'readyok')).toBe(true);
-      expect(lines.some(l => l.startsWith('info'))).toBe(true);
-      expect(lines.some(l => l.startsWith('bestmove'))).toBe(true);
+      expect(lines.some((l) => l === 'uciok')).toBe(true);
+      expect(lines.some((l) => l === 'readyok')).toBe(true);
+      expect(lines.some((l) => l.startsWith('info'))).toBe(true);
+      expect(lines.some((l) => l.startsWith('bestmove'))).toBe(true);
 
       // Parse all info lines
-      const infoLines = lines.filter(l => l.startsWith('info'));
+      const infoLines = lines.filter((l) => l.startsWith('info'));
       const parsedInfo = infoLines
-        .map(l => parseInfoLine(l))
-        .filter(p => p !== null && p.multipv !== null);
+        .map((l) => parseInfoLine(l))
+        .filter((p) => p !== null && p.multipv !== null);
 
       // Should have multi-PV lines
       expect(parsedInfo.length).toBeGreaterThan(0);
 
       // Should have multipv 1, 2, 3
-      const multipvValues = parsedInfo.map(p => p.multipv);
+      const multipvValues = parsedInfo.map((p) => p.multipv);
       expect(multipvValues).toContain(1);
       expect(multipvValues).toContain(2);
       expect(multipvValues).toContain(3);
 
       // Parse bestmove
-      const bestmoveLine = lines.find(l => l.startsWith('bestmove'));
+      const bestmoveLine = lines.find((l) => l.startsWith('bestmove'));
       expect(bestmoveLine).toBeDefined();
       const bestmove = parseBestMove(bestmoveLine!);
       expect(bestmove).not.toBeNull();
@@ -452,11 +463,11 @@ describe('Phase X Parity: Engine Analysis', () => {
         timeout: 10000,
       });
 
-      const infoLines = lines.filter(l => l.startsWith('info'));
+      const infoLines = lines.filter((l) => l.startsWith('info'));
       const depths = infoLines
-        .map(l => parseInfoLine(l))
-        .filter(p => p !== null && p.depth !== null)
-        .map(p => p.depth);
+        .map((l) => parseInfoLine(l))
+        .filter((p) => p !== null && p.depth !== null)
+        .map((p) => p.depth);
 
       // Should have increasing depths
       expect(depths.length).toBeGreaterThan(0);
