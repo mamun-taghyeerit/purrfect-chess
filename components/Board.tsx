@@ -63,12 +63,20 @@ export interface BoardProps {
 
   /** Whether to flip the board (black perspective) */
   flipped?: boolean;
+
+  /** Move badge to display (from move review) */
+  moveBadge?: { type: string; square: string } | null;
+
+  /** Callback when badge animation completes */
+  onBadgeComplete?: () => void;
 }
 
 export default function Board({
   engineHighlights = [],
   engineDisplayMode = 'arrows',
   flipped = false,
+  moveBadge = null,
+  onBadgeComplete,
 }: BoardProps) {
   const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -850,6 +858,47 @@ export default function Board({
           }
           previewArrow={previewArrow}
         />
+
+        {/* Move Badge - Positioned at target square */}
+        {moveBadge && (() => {
+          // Calculate badge position at top-right of target square
+          const badgeSquare = parseSquare(moveBadge.square);
+          if (!badgeSquare) return null;
+
+          const center = squareCenter(moveBadge.square);
+          if (!center) return null;
+
+          // Position at top-right corner of square
+          // Each square is 12.5% of board width/height
+          const squareSize = 12.5; // percentage
+          const offsetX = squareSize * 0.4; // 40% to the right
+          const offsetY = -squareSize * 0.4; // 40% up
+
+          return (
+            <img
+              src={`/assets/${moveBadge.type}.png`}
+              alt={moveBadge.type}
+              className="move-badge"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.src.endsWith('/good.png')) {
+                  target.src = '/assets/good.png';
+                }
+              }}
+              style={{
+                position: 'absolute',
+                left: `calc(${center.x * 100}% + ${offsetX}%)`,
+                top: `calc(${center.y * 100}% + ${offsetY}%)`,
+                transform: 'translate(-50%, -50%)',
+                width: '24px',
+                height: '24px',
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))',
+                pointerEvents: 'none',
+                zIndex: 1000,
+              }}
+            />
+          );
+        })()}
       </div>
     </div>
   );

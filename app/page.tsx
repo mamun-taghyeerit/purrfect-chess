@@ -15,6 +15,7 @@ import { useGame } from '@/hooks/useGame';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
+import { useMoveReview } from '@/hooks/useMoveReview';
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { EngineHighlight } from '@/components/Board';
 
@@ -80,6 +81,9 @@ export default function Home() {
   const [engineDisplayMode, setEngineDisplayMode] = useState<
     'squares' | 'arrows' | 'both' | 'none'
   >('arrows');
+
+  const { isReviewing, currentBadge, reviewLastMove, clearBadge } =
+    useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
     onReveal: () => {
@@ -363,6 +367,8 @@ export default function Home() {
                 engineHighlights={engineHighlights}
                 engineDisplayMode={engineDisplayMode}
                 flipped={isBoardFlipped}
+                moveBadge={currentBadge}
+                onBadgeComplete={clearBadge}
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
@@ -427,21 +433,36 @@ export default function Home() {
               </button>
               <button
                 onClick={() => {
-                  // TODO: Implement move review functionality
-                  alert('Move review feature coming soon!');
+                  if (history.length === 0) {
+                    showMessage('info', 'No move to review.');
+                    return;
+                  }
+                  const lastMove = history[history.length - 1];
+                  showMessage('info', 'Analyzing move...');
+                  reviewLastMove(lastMove, (classification) => {
+                    showMessage('success', `Move classified as: ${classification}`);
+                  });
                 }}
+                disabled={isReviewing || history.length === 0}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
-                  background: '#555',
+                  background: isReviewing || history.length === 0 ? '#444' : '#555',
                   color: '#fff',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: isReviewing || history.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: isReviewing || history.length === 0 ? 0.6 : 1,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+                onMouseEnter={(e) => {
+                  if (!isReviewing && history.length > 0) {
+                    e.currentTarget.style.filter = 'brightness(1.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.filter = 'brightness(1)';
+                }}
               >
                 <span>⭐</span>
-                <span>Move Review</span>
+                <span>{isReviewing ? 'Reviewing...' : 'Move Review'}</span>
               </button>
             </div>
 
