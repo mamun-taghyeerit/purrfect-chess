@@ -141,17 +141,18 @@ export function useGame() {
         // Default to queen promotion if not specified (matches legacy behavior)
         const move = game.move({ from, to, promotion: promotion || 'q' });
         if (move) {
-          // Add increment to the player who just moved
+          // Add increment to the player who just moved (move.color)
+          // This happens BEFORE the turn switches in the game state
           setGameState((prev) => {
             const incrementMs = prev.timeControl.increment * 1000;
             const newState = {
               ...prev,
               whiteTime:
-                prev.turn === 'w'
+                move.color === 'w'
                   ? prev.whiteTime + incrementMs
                   : prev.whiteTime,
               blackTime:
-                prev.turn === 'b'
+                move.color === 'b'
                   ? prev.blackTime + incrementMs
                   : prev.blackTime,
             };
@@ -160,9 +161,12 @@ export function useGame() {
 
           updateGameState();
 
-          // Start timer on first move
+          // Start timer on first move, or reset lastTick on subsequent moves
           if (!isTimerRunning && game.history().length === 1) {
             startTimer();
+          } else if (isTimerRunning) {
+            // Reset lastTick to prevent time jump (matches legacy behavior)
+            lastTickRef.current = Date.now();
           }
 
           return true;
