@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 
 /**
  * Clock Component - Display chess clock for both players
@@ -10,6 +10,11 @@ import React from 'react';
  * - Display remaining time for both players
  * - Highlight active player's clock
  * - Format time as MM:SS
+ * - Fixed-width layout to prevent layout shift on time changes
+ * 
+ * Performance Optimizations:
+ * - Memoized to prevent unnecessary re-renders
+ * - Fixed-width monospace font for stable layout
  */
 
 interface ClockProps {
@@ -19,7 +24,7 @@ interface ClockProps {
   isRunning: boolean;
 }
 
-export default function Clock({
+const Clock = memo(function Clock({
   whiteTime,
   blackTime,
   activeColor,
@@ -59,4 +64,20 @@ export default function Clock({
       </div>
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent re-renders
+  // Only re-render if time changes by more than 1 second or state changes
+  const prevWhiteSec = Math.floor(prevProps.whiteTime / 1000);
+  const nextWhiteSec = Math.floor(nextProps.whiteTime / 1000);
+  const prevBlackSec = Math.floor(prevProps.blackTime / 1000);
+  const nextBlackSec = Math.floor(nextProps.blackTime / 1000);
+  
+  return (
+    prevWhiteSec === nextWhiteSec &&
+    prevBlackSec === nextBlackSec &&
+    prevProps.activeColor === nextProps.activeColor &&
+    prevProps.isRunning === nextProps.isRunning
+  );
+});
+
+export default Clock;

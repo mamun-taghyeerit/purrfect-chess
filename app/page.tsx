@@ -104,29 +104,39 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Game Status */}
-        {(isGameOver || check) && (
-          <div className="mb-4 text-center">
-            {checkmate && (
-              <div className="text-2xl font-bold text-red-600">
-                Checkmate! 👑
-              </div>
-            )}
-            {stalemate && (
-              <div className="text-2xl font-bold text-yellow-600">
-                Stalemate! 🤝
-              </div>
-            )}
-            {isGameOver && !checkmate && !stalemate && (
-              <div className="text-2xl font-bold text-orange-600">
-                Time Out! ⏰
-              </div>
-            )}
-            {check && !checkmate && (
-              <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
-            )}
-          </div>
-        )}
+        {/* Game Status - Fixed height to prevent layout shift */}
+        <div 
+          className="mb-4 text-center"
+          style={{
+            minHeight: '3rem', // Reserve space for status messages
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          {(isGameOver || check) && (
+            <>
+              {checkmate && (
+                <div className="text-2xl font-bold text-red-600">
+                  Checkmate! 👑
+                </div>
+              )}
+              {stalemate && (
+                <div className="text-2xl font-bold text-yellow-600">
+                  Stalemate! 🤝
+                </div>
+              )}
+              {isGameOver && !checkmate && !stalemate && (
+                <div className="text-2xl font-bold text-orange-600">
+                  Time Out! ⏰
+                </div>
+              )}
+              {check && !checkmate && (
+                <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
+              )}
+            </>
+          )}
+        </div>
 
         <div className="flex flex-col xl:flex-row gap-5 items-start justify-center">
           {/* Left Panel: White Controls */}
@@ -166,7 +176,13 @@ export default function Home() {
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
                   transform: turn === 'w' && isTimerRunning ? 'translateY(-2px)' : 'none',
-                  color: '#f0f0f0'
+                  color: '#f0f0f0',
+                  // Fixed width to prevent layout shift on time changes
+                  minWidth: '180px',
+                  width: '100%',
+                  // Prevent text wrapping
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden'
                 }}
               >
                 {formatClockTime(whiteTime)}
@@ -514,7 +530,13 @@ export default function Home() {
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
                   transform: turn === 'b' && isTimerRunning ? 'translateY(-2px)' : 'none',
-                  color: '#f0f0f0'
+                  color: '#f0f0f0',
+                  // Fixed width to prevent layout shift on time changes
+                  minWidth: '180px',
+                  width: '100%',
+                  // Prevent text wrapping
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden'
                 }}
               >
                 {formatClockTime(blackTime)}

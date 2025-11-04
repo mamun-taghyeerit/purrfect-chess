@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 /**
  * EvaluationBar Component
@@ -13,6 +13,10 @@ import React from 'react';
  * - Smooth transitions on score changes
  * - Analyzing animation when engine is running
  * - Concealed mode (blurred backdrop when hidden)
+ * 
+ * Performance Optimizations:
+ * - Memoized to prevent unnecessary re-renders
+ * - Only re-renders when score or state actually changes
  */
 
 export interface EvaluationBarProps {
@@ -54,7 +58,7 @@ export interface EvaluationBarProps {
   className?: string;
 }
 
-export default function EvaluationBar({
+const EvaluationBar = memo(function EvaluationBar({
   scoreCp = null,
   mateIn = null,
   isAnalyzing = false,
@@ -140,4 +144,17 @@ export default function EvaluationBar({
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent re-renders
+  return (
+    prevProps.scoreCp === nextProps.scoreCp &&
+    prevProps.mateIn === nextProps.mateIn &&
+    prevProps.isAnalyzing === nextProps.isAnalyzing &&
+    prevProps.isVisible === nextProps.isVisible &&
+    prevProps.currentDepth === nextProps.currentDepth &&
+    prevProps.maxDepth === nextProps.maxDepth &&
+    prevProps.className === nextProps.className
+  );
+});
+
+export default EvaluationBar;

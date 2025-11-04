@@ -31,6 +31,11 @@ import ArrowOverlay, {
  * - Right-click arrow drawing with preview and toggle
  * - Responsive sizing matching legacy breakpoints
  * - Orientation: A1 always bottom-left for white (default view)
+ * 
+ * Performance Optimizations:
+ * - Memoized callbacks and computations
+ * - Optimized re-render triggers via useCallback/useMemo
+ * - Note: Not using React.memo due to complex internal state from useGame hook
  */
 
 // Constants
