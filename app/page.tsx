@@ -1,34 +1,73 @@
 'use client';
 
 import Board from '@/components/Board';
+import GameControls from '@/components/GameControls';
+import MoveHistory from '@/components/MoveHistory';
+import { useGame } from '@/hooks/useGame';
 
 export default function Home() {
+  const { resetGame, loadFen, getFen, getPgn, history, isGameOver, checkmate, stalemate, check } = useGame();
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          🐱 Purrfect Chess - Next.js Migration Skeleton
+    <main className="flex min-h-screen flex-col items-center p-8">
+      <div className="z-10 w-full max-w-6xl">
+        <h1 className="text-4xl font-bold text-center mb-4">
+          🐱 Purrfect Chess
         </h1>
 
-        <div className="mb-8 text-center">
-          <p className="text-lg mb-2">
-            This is the initial Next.js migration skeleton for Purrfect Chess.
-          </p>
+        <div className="mb-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            The board below is a placeholder component. Original vanilla JS
-            modules will be incrementally migrated to React components.
+            Next.js Migration - Phase 2: Core Structure & Initial Port
           </p>
         </div>
 
-        {/* Placeholder Board Component */}
-        <div className="flex justify-center">
-          <Board />
+        {/* Game Status */}
+        {(isGameOver || check) && (
+          <div className="mb-4 text-center">
+            {checkmate && (
+              <div className="text-2xl font-bold text-red-600">
+                Checkmate! 👑
+              </div>
+            )}
+            {stalemate && (
+              <div className="text-2xl font-bold text-yellow-600">
+                Stalemate! 🤝
+              </div>
+            )}
+            {check && !checkmate && (
+              <div className="text-xl font-bold text-orange-600">
+                Check! ⚠️
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+          {/* Left Column: Board */}
+          <div className="flex flex-col items-center">
+            <Board />
+          </div>
+
+          {/* Right Column: Controls and Move History */}
+          <div className="flex flex-col gap-6">
+            <GameControls
+              onReset={resetGame}
+              onLoadFen={loadFen}
+              onExportFen={getFen}
+              onExportPgn={getPgn}
+            />
+
+            <MoveHistory history={history} />
+          </div>
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
           <p>
-            <strong>Next Steps:</strong> Integrate chess.js logic, Stockfish
-            engine, and UI controls from the original app.
+            <strong>Migration Progress:</strong> Board rendering ✓, Piece movement ✓, 
+            Move history ✓, Game controls ✓
+          </p>
+          <p className="mt-2">
+            <strong>Next:</strong> Time controls, Engine integration, Advanced features
           </p>
         </div>
       </div>
