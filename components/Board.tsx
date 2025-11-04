@@ -39,6 +39,21 @@ export default function Board() {
     return `${file}${rank}`;
   };
 
+  // Helper to categorize moves into non-captures and captures (single pass optimization)
+  const categorizeMoves = (moves: any[]) => {
+    return moves.reduce(
+      (acc, move) => {
+        if (move.captured) {
+          acc.captures.push(move.to);
+        } else {
+          acc.legal.push(move.to);
+        }
+        return acc;
+      },
+      { legal: [] as string[], captures: [] as string[] }
+    );
+  };
+
   const handleSquareClick = (square: string) => {
     const piece = position[square];
     const isPiece =
@@ -54,8 +69,7 @@ export default function Board() {
       // If move failed and clicking on a different piece, select it instead
       if (!success && isPiece) {
         const moves = game.moves({ square: square as any, verbose: true });
-        const legal = moves.filter((m) => !m.captured).map((m) => m.to);
-        const captures = moves.filter((m) => m.captured).map((m) => m.to);
+        const { legal, captures } = categorizeMoves(moves);
         setSelectedSquare(square);
         setLegalMoves(legal);
         setCaptureMoves(captures);
@@ -63,8 +77,7 @@ export default function Board() {
     } else if (isPiece) {
       // Select piece and show legal moves
       const moves = game.moves({ square: square as any, verbose: true });
-      const legal = moves.filter((m) => !m.captured).map((m) => m.to);
-      const captures = moves.filter((m) => m.captured).map((m) => m.to);
+      const { legal, captures } = categorizeMoves(moves);
       setSelectedSquare(square);
       setLegalMoves(legal);
       setCaptureMoves(captures);
@@ -84,8 +97,7 @@ export default function Board() {
       e.dataTransfer.setData('text/plain', square);
 
       const moves = game.moves({ square: square as any, verbose: true });
-      const legal = moves.filter((m) => !m.captured).map((m) => m.to);
-      const captures = moves.filter((m) => m.captured).map((m) => m.to);
+      const { legal, captures } = categorizeMoves(moves);
       setSelectedSquare(square);
       setLegalMoves(legal);
       setCaptureMoves(captures);
@@ -227,12 +239,17 @@ function getPieceTypeName(type: string): string {
     q: 'queen',
     k: 'king',
   };
-  return pieceNames[type.toLowerCase()] || type;
+  return pieceNames[type.toLowerCase()] || 'pawn'; // Default to 'pawn' for unknown types
 }
 
 /**
  * Helper function to get piece image path
  * Images are from /public/assets/ (CC BY 4.0)
+ * 
+ * Note: Using regular <img> instead of Next.js Image component
+ * for compatibility with HTML5 drag-and-drop. The Image component
+ * interferes with drag events due to its wrapper structure.
+ * High-resolution source images (824×824) ensure crispness on retina displays.
  */
 function getPieceImagePath(piece: { type: string; color: string }): string {
   const colorPrefix = piece.color === 'w' ? 'w' : 'b';
