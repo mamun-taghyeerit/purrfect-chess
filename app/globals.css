@@ -35,13 +35,18 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Board Wrapper - Responsive container matching legacy */
+.board-wrapper {
+  position: relative;
+  width: min(90vw, 600px);
+  margin: 0 auto;
+}
+
 /* Board Container - Matching legacy layout */
 .board-container {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  max-width: 600px;
-  margin: 0 auto;
 }
 
 /* Board Grid - 8×8 layout matching legacy */
@@ -239,23 +244,4 @@ body {
 
 .square.drag-over {
   box-shadow: inset 0 0 0 3px rgba(145, 152, 229, 0.6);
-}
-
-/* Responsive sizing - matching legacy breakpoints */
-@media (max-width: 320px) {
-  .board-container {
-    max-width: 280px;
-  }
-}
-
-@media (min-width: 768px) {
-  .board-container {
-    max-width: 540px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .board-container {
-    max-width: 600px;
-  }
 }

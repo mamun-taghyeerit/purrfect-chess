@@ -121,88 +121,90 @@ export default function Board() {
   };
 
   return (
-    <div className="board-container">
-      {/* Coordinate labels - files (top) */}
-      <div className="board-files board-files-top">
-        {files.map((file) => (
-          <span key={file}>{file}</span>
-        ))}
-      </div>
+    <div className="board-wrapper">
+      <div className="board-container">
+        {/* Coordinate labels - files (top) */}
+        <div className="board-files board-files-top">
+          {files.map((file) => (
+            <span key={file}>{file}</span>
+          ))}
+        </div>
 
-      {/* Coordinate labels - files (bottom) */}
-      <div className="board-files board-files-bottom">
-        {files.map((file) => (
-          <span key={file}>{file}</span>
-        ))}
-      </div>
+        {/* Coordinate labels - files (bottom) */}
+        <div className="board-files board-files-bottom">
+          {files.map((file) => (
+            <span key={file}>{file}</span>
+          ))}
+        </div>
 
-      {/* Coordinate labels - ranks (left) */}
-      <div className="board-ranks board-ranks-left">
-        {ranks.map((rank) => (
-          <span key={rank}>{rank}</span>
-        ))}
-      </div>
+        {/* Coordinate labels - ranks (left) */}
+        <div className="board-ranks board-ranks-left">
+          {ranks.map((rank) => (
+            <span key={rank}>{rank}</span>
+          ))}
+        </div>
 
-      {/* Coordinate labels - ranks (right) */}
-      <div className="board-ranks board-ranks-right">
-        {ranks.map((rank) => (
-          <span key={rank}>{rank}</span>
-        ))}
-      </div>
+        {/* Coordinate labels - ranks (right) */}
+        <div className="board-ranks board-ranks-right">
+          {ranks.map((rank) => (
+            <span key={rank}>{rank}</span>
+          ))}
+        </div>
 
-      {/* 8×8 Board grid */}
-      <div id="board">
-        {Array.from({ length: 8 }, (_, rankIndex) =>
-          Array.from({ length: 8 }, (_, fileIndex) => {
-            const square = algebraicAt(fileIndex, rankIndex);
-            const isLight = (rankIndex + fileIndex) % 2 === 0;
-            const piece = position[square];
-            const isPiece =
-              piece &&
-              typeof piece === 'object' &&
-              'type' in piece &&
-              'color' in piece;
+        {/* 8×8 Board grid */}
+        <div id="board">
+          {Array.from({ length: 8 }, (_, rankIndex) =>
+            Array.from({ length: 8 }, (_, fileIndex) => {
+              const square = algebraicAt(fileIndex, rankIndex);
+              const isLight = (rankIndex + fileIndex) % 2 === 0;
+              const piece = position[square];
+              const isPiece =
+                piece &&
+                typeof piece === 'object' &&
+                'type' in piece &&
+                'color' in piece;
 
-            const isSelected = selectedSquare === square;
-            const isLegalMove = legalMoves.includes(square);
-            const isCaptureMove = captureMoves.includes(square);
-            const isLastMoveSquare =
-              lastMove && (lastMove.from === square || lastMove.to === square);
+              const isSelected = selectedSquare === square;
+              const isLegalMove = legalMoves.includes(square);
+              const isCaptureMove = captureMoves.includes(square);
+              const isLastMoveSquare =
+                lastMove && (lastMove.from === square || lastMove.to === square);
 
-            // Build className for square (matching legacy)
-            let squareClasses = `square ${isLight ? 'light' : 'dark'}`;
-            if (isSelected) squareClasses += ' selected';
-            if (isLastMoveSquare) squareClasses += ' last-move';
-            if (isLegalMove) squareClasses += ' legal-move-hint';
-            if (isCaptureMove) squareClasses += ' legal-capture-hint';
-            if (isPiece) {
-              squareClasses += piece.color === 'w' ? ' white-piece' : ' black-piece';
-            }
+              // Build className for square (matching legacy)
+              let squareClasses = `square ${isLight ? 'light' : 'dark'}`;
+              if (isSelected) squareClasses += ' selected';
+              if (isLastMoveSquare) squareClasses += ' last-move';
+              if (isLegalMove) squareClasses += ' legal-move-hint';
+              if (isCaptureMove) squareClasses += ' legal-capture-hint';
+              if (isPiece) {
+                squareClasses += piece.color === 'w' ? ' white-piece' : ' black-piece';
+              }
 
-            return (
-              <div
-                key={square}
-                className={squareClasses}
-                data-square={square}
-                onClick={() => handleSquareClick(square)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, square)}
-              >
-                {isPiece && (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={getPieceImagePath(piece)}
-                    alt=""
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, square)}
-                    onDragEnd={handleDragEnd}
-                    style={{ display: 'block' }}
-                  />
-                )}
-              </div>
-            );
-          })
-        )}
+              return (
+                <div
+                  key={square}
+                  className={squareClasses}
+                  data-square={square}
+                  onClick={() => handleSquareClick(square)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, square)}
+                >
+                  {isPiece && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={getPieceImagePath(piece)}
+                      alt=""
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, square)}
+                      onDragEnd={handleDragEnd}
+                      style={{ display: 'block' }}
+                    />
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
