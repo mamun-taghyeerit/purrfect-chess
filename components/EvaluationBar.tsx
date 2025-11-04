@@ -87,7 +87,7 @@ export default function EvaluationBar({
   // Format score for display
   const formatScore = (): string => {
     if (mateIn !== null) {
-      const absM ate = Math.abs(mateIn);
+      const absMate = Math.abs(mateIn);
       return mateIn > 0 ? `M${absMate}` : `-M${absMate}`;
     }
 
