@@ -10,12 +10,12 @@ import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
  * Shows top engine lines with evaluations and principal variations
  */
 
-interface EngineLinePropsa {
+interface EngineLineProps {
   analysis: EngineAnalysis;
   index: number;
 }
 
-function EngineLine({ analysis, index }: EngineLinePropsa) {
+function EngineLine({ analysis, index }: EngineLineProps) {
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
       return score > 0 ? `+M${score}` : `-M${Math.abs(score)}`;
