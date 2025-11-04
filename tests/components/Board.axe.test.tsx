@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'jest-axe';
+import { axe } from 'vitest-axe';
 import Board from '@/components/Board';
 import * as useGameModule from '@/hooks/useGame';
 
-// Extend expect with axe matchers
-expect.extend(toHaveNoViolations);
+// Note: toHaveNoViolations matcher is added in tests/setup.ts
 
 // Mock the useGame hook
 const mockMovePiece = vi.fn();
