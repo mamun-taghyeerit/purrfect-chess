@@ -292,4 +292,143 @@ describe('useEasterEgg hook', () => {
       expect(result.current.isPrimed).toBe(true);
     });
   });
+
+  describe('edge cases and false positives', () => {
+    it('should not trigger on partial text selection', () => {
+      const onReveal = vi.fn();
+      const { result } = renderHook(() => useEasterEgg({ onReveal }));
+
+      act(() => {
+        result.current.setTargetElement(targetElement);
+      });
+
+      // Select only part of the text
+      vi.stubGlobal('getSelection', () => ({
+        toString: () => 'Reserved for future', // Missing "()"
+        containsNode: (el: any) => el === targetElement,
+      }));
+
+      act(() => {
+        document.dispatchEvent(new Event('selectionchange'));
+      });
+
+      expect(result.current.isPrimed).toBe(false);
+    });
+
+    it('should handle text selection with extra whitespace', () => {
+      const onReveal = vi.fn();
+      const { result } = renderHook(() => useEasterEgg({ onReveal }));
+
+      act(() => {
+        result.current.setTargetElement(targetElement);
+      });
+
+      // Selection with extra whitespace - trim should handle this
+      vi.stubGlobal('getSelection', () => ({
+        toString: () => '  (Reserved for future use)  ',
+        containsNode: (el: any) => el === targetElement,
+      }));
+
+      act(() => {
+        document.dispatchEvent(new Event('selectionchange'));
+      });
+
+      // Should still prime because trim() is applied
+      expect(result.current.isPrimed).toBe(true);
+    });
+
+    it('should handle sequence interruption correctly', () => {
+      const onReveal = vi.fn();
+      const { result } = renderHook(() => useEasterEgg({ onReveal }));
+
+      act(() => {
+        result.current.setTargetElement(targetElement);
+      });
+
+      vi.stubGlobal('getSelection', () => ({
+        toString: () => '(Reserved for future use)',
+        containsNode: (el: any) => el === targetElement,
+      }));
+
+      act(() => {
+        document.dispatchEvent(new Event('selectionchange'));
+      });
+
+      // Type partial sequence
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'g' }));
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
+      });
+
+      // Interrupt with wrong key
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
+      });
+
+      expect(result.current.isPrimed).toBe(false);
+
+      // Continue typing - should not trigger
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'm' }));
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'u' }));
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'n' }));
+      });
+
+      expect(onReveal).not.toHaveBeenCalled();
+    });
+
+    it('should handle rapid sequence typing correctly', () => {
+      const onReveal = vi.fn();
+      const { result } = renderHook(() => useEasterEgg({ onReveal }));
+
+      act(() => {
+        result.current.setTargetElement(targetElement);
+      });
+
+      vi.stubGlobal('getSelection', () => ({
+        toString: () => '(Reserved for future use)',
+        containsNode: (el: any) => el === targetElement,
+      }));
+
+      act(() => {
+        document.dispatchEvent(new Event('selectionchange'));
+      });
+
+      // Type sequence rapidly (all in one act)
+      act(() => {
+        'gmmamun'.split('').forEach((char) => {
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: char }));
+        });
+      });
+
+      expect(onReveal).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not trigger if text is selected but from wrong element', () => {
+      const wrongElement = document.createElement('p');
+      wrongElement.textContent = '(Reserved for future use)';
+      document.body.appendChild(wrongElement);
+
+      const onReveal = vi.fn();
+      const { result } = renderHook(() => useEasterEgg({ onReveal }));
+
+      act(() => {
+        result.current.setTargetElement(targetElement);
+      });
+
+      // Select from wrong element
+      vi.stubGlobal('getSelection', () => ({
+        toString: () => '(Reserved for future use)',
+        containsNode: (el: any) => el === wrongElement, // Wrong element!
+      }));
+
+      act(() => {
+        document.dispatchEvent(new Event('selectionchange'));
+      });
+
+      expect(result.current.isPrimed).toBe(false);
+    });
+  });
 });

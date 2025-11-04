@@ -49,17 +49,44 @@ describe('EnginePanel component', () => {
   describe('rendering', () => {
     it('should render the engine panel header', () => {
       render(<EnginePanel />);
-      expect(screen.getByText('🐱 Engine Analysis')).toBeInTheDocument();
+      expect(screen.getByText('Engine Analysis')).toBeInTheDocument();
     });
 
-    it('should render analyze button', () => {
+    it('should render Start Analysis button', () => {
       render(<EnginePanel />);
-      expect(screen.getByText('Analyze')).toBeInTheDocument();
+      expect(screen.getByText('Start Analysis')).toBeInTheDocument();
+    });
+
+    it('should render Stop button', () => {
+      render(<EnginePanel />);
+      expect(screen.getByText('Stop')).toBeInTheDocument();
+    });
+
+    it('should render Close button', () => {
+      render(<EnginePanel />);
+      expect(screen.getByText('Close')).toBeInTheDocument();
     });
 
     it('should show engine ready status', () => {
       render(<EnginePanel />);
       expect(screen.getByText('✓ Engine ready')).toBeInTheDocument();
+    });
+
+    it('should render depth slider control', () => {
+      render(<EnginePanel />);
+      expect(screen.getByText('Search Depth:')).toBeInTheDocument();
+      const slider = screen.getByRole('slider');
+      expect(slider).toBeInTheDocument();
+      expect(slider).toHaveAttribute('min', '6');
+      expect(slider).toHaveAttribute('max', '30');
+    });
+
+    it('should render overlay mode controls', () => {
+      render(<EnginePanel />);
+      expect(screen.getByText('Overlay:')).toBeInTheDocument();
+      expect(screen.getByText('Squares')).toBeInTheDocument();
+      expect(screen.getByText('Arrows')).toBeInTheDocument();
+      expect(screen.getByText('Both')).toBeInTheDocument();
     });
   });
 
@@ -104,10 +131,10 @@ describe('EnginePanel component', () => {
   });
 
   describe('controls', () => {
-    it('should render analyze button that can be clicked', () => {
+    it('should render Start Analysis button that can be clicked', () => {
       render(<EnginePanel />);
 
-      const analyzeButton = screen.getByText('Analyze');
+      const analyzeButton = screen.getByText('Start Analysis');
       expect(analyzeButton).toBeInTheDocument();
 
       // Should be clickable (not disabled)
@@ -115,6 +142,41 @@ describe('EnginePanel component', () => {
 
       // Click should not throw
       fireEvent.click(analyzeButton);
+    });
+
+    it('should call onClose when Close button is clicked', () => {
+      const onClose = vi.fn();
+      render(<EnginePanel onClose={onClose} />);
+
+      const closeButton = screen.getByText('Close');
+      fireEvent.click(closeButton);
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle depth slider changes', () => {
+      render(<EnginePanel />);
+
+      const slider = screen.getByRole('slider');
+      fireEvent.change(slider, { target: { value: '22' } });
+
+      // Value should update in the display
+      expect(screen.getByText('22')).toBeInTheDocument();
+    });
+
+    it('should handle overlay mode button clicks', () => {
+      const onEngineDisplayModeChange = vi.fn();
+      render(
+        <EnginePanel
+          engineDisplayMode="arrows"
+          onEngineDisplayModeChange={onEngineDisplayModeChange}
+        />
+      );
+
+      const squaresButton = screen.getByText('Squares');
+      fireEvent.click(squaresButton);
+
+      expect(onEngineDisplayModeChange).toHaveBeenCalledWith('squares');
     });
   });
 
