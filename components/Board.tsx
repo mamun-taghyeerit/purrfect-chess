@@ -1,7 +1,7 @@
 'use client';
 
 import { useGame } from '@/hooks/useGame';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 /**
  * Board Component - Interactive chess board matching legacy implementation
@@ -11,6 +11,9 @@ import React, { useState } from 'react';
  * - Coordinate labels (files a-h, ranks 1-8)
  * - Piece images with CSS variable filters for appearance customization
  * - Square highlights using CSS classes (selected, last-move, legal-move-hint, etc.)
+ * - Drag-and-drop with proper cancellation (ESC, blur)
+ * - Re-selection semantics (clicking different piece changes selection)
+ * - Lighter visual feedback during drag operations
  * - Responsive sizing matching legacy breakpoints
  * - Orientation: A1 always bottom-left for white (default view)
  */
@@ -24,6 +27,9 @@ export default function Board() {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [captureMoves, setCaptureMoves] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragSourceRef = useRef<string | null>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
 
   // File and rank labels for coordinates (matching legacy)
   const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -54,6 +60,53 @@ export default function Board() {
     );
   };
 
+  // Clear drag state
+  const clearDragState = () => {
+    setIsDragging(false);
+    setSelectedSquare(null);
+    setLegalMoves([]);
+    setCaptureMoves([]);
+    dragSourceRef.current = null;
+  };
+
+  // Handle ESC key to cancel drag
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isDragging) {
+        clearDragState();
+      }
+    };
+
+    const handleBlur = () => {
+      if (isDragging) {
+        clearDragState();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [isDragging]);
+
+  // Prevent text selection during drag (matching legacy)
+  useEffect(() => {
+    const preventSelection = (e: Event) => {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('selectstart', preventSelection);
+
+    return () => {
+      document.removeEventListener('selectstart', preventSelection);
+    };
+  }, [isDragging]);
+
   const handleSquareClick = (square: string) => {
     const piece = position[square];
     const isPiece =
@@ -62,12 +115,14 @@ export default function Board() {
     if (selectedSquare) {
       // Try to move piece
       const success = movePiece(selectedSquare, square);
+      
+      // Clear selection state
       setSelectedSquare(null);
       setLegalMoves([]);
       setCaptureMoves([]);
 
-      // If move failed and clicking on a different piece, select it instead
-      if (!success && isPiece) {
+      // If move failed and clicking on a different piece, select it instead (re-selection)
+      if (!success && isPiece && square !== selectedSquare) {
         const moves = game.moves({ square: square as any, verbose: true });
         const { legal, captures } = categorizeMoves(moves);
         setSelectedSquare(square);
@@ -93,27 +148,35 @@ export default function Board() {
       piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
 
     if (isPiece) {
+      // Prevent text selection during drag
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', square);
 
       const moves = game.moves({ square: square as any, verbose: true });
       const { legal, captures } = categorizeMoves(moves);
+      
+      // Set drag state
+      setIsDragging(true);
       setSelectedSquare(square);
       setLegalMoves(legal);
       setCaptureMoves(captures);
+      dragSourceRef.current = square;
 
       // Add drag opacity
       const img = e.currentTarget;
       img.style.opacity = DRAG_OPACITY;
+    } else {
+      // Prevent dragging non-pieces
+      e.preventDefault();
     }
   };
 
   const handleDragEnd = (e: React.DragEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     img.style.opacity = NORMAL_OPACITY;
-    setSelectedSquare(null);
-    setLegalMoves([]);
-    setCaptureMoves([]);
+    
+    // Clear drag state
+    clearDragState();
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -126,15 +189,15 @@ export default function Board() {
     targetSquare: string
   ) => {
     e.preventDefault();
-    const fromSquare = e.dataTransfer.getData('text/plain');
+    const fromSquare = e.dataTransfer.getData('text/plain') || dragSourceRef.current;
 
     if (fromSquare) {
+      // Attempt move - invalid moves are rejected by movePiece, no state mutation
       movePiece(fromSquare, targetSquare);
     }
 
-    setSelectedSquare(null);
-    setLegalMoves([]);
-    setCaptureMoves([]);
+    // Clear drag state
+    clearDragState();
   };
 
   return (
@@ -169,7 +232,7 @@ export default function Board() {
         </div>
 
         {/* 8×8 Board grid */}
-        <div id="board">
+        <div id="board" ref={boardRef}>
           {Array.from({ length: 8 }, (_, rankIndex) =>
             Array.from({ length: 8 }, (_, fileIndex) => {
               const square = algebraicAt(fileIndex, rankIndex);
@@ -187,12 +250,20 @@ export default function Board() {
               const isLastMoveSquare =
                 lastMove && (lastMove.from === square || lastMove.to === square);
 
-              // Build className for square (matching legacy)
+              // Build className for square (matching legacy with drag-specific classes)
               let squareClasses = `square ${isLight ? 'light' : 'dark'}`;
-              if (isSelected) squareClasses += ' selected';
+              
+              // Use drag-specific classes during drag operations (lighter shades)
+              if (isSelected) {
+                squareClasses += isDragging ? ' drag-selected' : ' selected';
+              }
               if (isLastMoveSquare) squareClasses += ' last-move';
-              if (isLegalMove) squareClasses += ' legal-move-hint';
-              if (isCaptureMove) squareClasses += ' legal-capture-hint';
+              if (isLegalMove) {
+                squareClasses += isDragging ? ' drag-move-hint' : ' legal-move-hint';
+              }
+              if (isCaptureMove) {
+                squareClasses += isDragging ? ' drag-capture-hint' : ' legal-capture-hint';
+              }
               if (isPiece) {
                 squareClasses += piece.color === 'w' ? ' white-piece' : ' black-piece';
               }
