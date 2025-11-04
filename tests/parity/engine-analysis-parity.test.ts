@@ -149,6 +149,7 @@ describe('Phase X Parity: Engine Analysis', () => {
       const rawScore = parsed?.score?.value || 0;
 
       // For white to move: score stays as-is (positive means good for white)
+      // This is the normalization logic both systems should use
       const normalizedScore = turn === 'w' ? rawScore : -rawScore;
 
       expect(normalizedScore).toBe(30); // Positive for white
@@ -167,6 +168,7 @@ describe('Phase X Parity: Engine Analysis', () => {
 
       // For black to move: score should be inverted
       // If engine says +25, that's good for white, so black sees -25
+      // This is the normalization logic both systems should use
       const normalizedScore = turn === 'b' ? -rawScore : rawScore;
 
       expect(normalizedScore).toBe(-25); // Negative for black (white is better)
@@ -378,6 +380,8 @@ describe('Phase X Parity: Engine Analysis', () => {
     // They verify that our parsers correctly handle real UCI output
 
     it('should parse real Stockfish output for starting position', async () => {
+      // NOTE: This is an integration test with real Stockfish engine
+      // The 20s timeout is necessary for actual engine analysis at depth 8
       const lines = await analyzePosition(TEST_POSITIONS.startingPosition, {
         depth: 8,
         multipv: 3,
