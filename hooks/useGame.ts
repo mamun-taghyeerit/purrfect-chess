@@ -68,7 +68,7 @@ export function useGame() {
     const threefoldRepetition = game.isThreefoldRepetition();
     const insufficientMaterial = game.isInsufficientMaterial();
     const draw = game.isDraw();
-    
+
     setGameState((prev) => ({
       ...prev,
       position: pos,
@@ -147,9 +147,13 @@ export function useGame() {
             const newState = {
               ...prev,
               whiteTime:
-                prev.turn === 'w' ? prev.whiteTime + incrementMs : prev.whiteTime,
+                prev.turn === 'w'
+                  ? prev.whiteTime + incrementMs
+                  : prev.whiteTime,
               blackTime:
-                prev.turn === 'b' ? prev.blackTime + incrementMs : prev.blackTime,
+                prev.turn === 'b'
+                  ? prev.blackTime + incrementMs
+                  : prev.blackTime,
             };
             return newState;
           });
@@ -193,15 +197,18 @@ export function useGame() {
     }));
   }, [game, stopTimer]);
 
-  const setTimeControl = useCallback((timeControl: TimeControl) => {
-    stopTimer();
-    setGameState((prev) => ({
-      ...prev,
-      whiteTime: timeControl.minutes * 60 * 1000,
-      blackTime: timeControl.minutes * 60 * 1000,
-      timeControl,
-    }));
-  }, [stopTimer]);
+  const setTimeControl = useCallback(
+    (timeControl: TimeControl) => {
+      stopTimer();
+      setGameState((prev) => ({
+        ...prev,
+        whiteTime: timeControl.minutes * 60 * 1000,
+        blackTime: timeControl.minutes * 60 * 1000,
+        timeControl,
+      }));
+    },
+    [stopTimer]
+  );
 
   const loadFen = useCallback(
     (fen: string) => {

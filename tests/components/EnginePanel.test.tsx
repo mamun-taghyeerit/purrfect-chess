@@ -109,10 +109,10 @@ describe('EnginePanel component', () => {
 
       const analyzeButton = screen.getByText('Analyze');
       expect(analyzeButton).toBeInTheDocument();
-      
+
       // Should be clickable (not disabled)
       expect(analyzeButton).not.toBeDisabled();
-      
+
       // Click should not throw
       fireEvent.click(analyzeButton);
     });

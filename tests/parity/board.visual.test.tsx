@@ -2,17 +2,17 @@ import { describe, it, expect } from 'vitest';
 
 /**
  * Board Visual Snapshot Parity Tests
- * 
+ *
  * Purpose: Capture visual snapshots of the board component
  * and compare with baseline (legacy app screenshots).
- * 
+ *
  * Status: SKIPPED by default (enable after overlays/theming implementation)
- * 
+ *
  * Prerequisites:
  * - Board component fully styled
  * - Appearance controls wired
  * - Overlays implemented (if applicable)
- * 
+ *
  * To enable: Remove .skip from describe blocks
  */
 
@@ -21,7 +21,7 @@ describe.skip('Phase X Parity: Board Visual Snapshots', () => {
   // - Consider using @testing-library/react for rendering
   // - Consider using jest-image-snapshot or similar for visual regression
   // - Or manual screenshot comparison workflow
-  
+
   it.todo('renders initial position identically to legacy', () => {
     // Mount Board component with starting position
     // Take snapshot
@@ -62,7 +62,7 @@ describe.skip('Phase X Parity: Responsive Layout Snapshots', () => {
   // - 320px (mobile)
   // - 768px (tablet)
   // - 1280px (desktop)
-  
+
   it.todo('renders correctly at 320px width', () => {
     // Set viewport to 320px
     // Render Board
@@ -91,7 +91,7 @@ describe.skip('Phase X Parity: Theme Variation Snapshots', () => {
   // - High contrast
   // - Custom colors
   // - Various piece scales
-  
+
   it.todo('renders with default theme', () => {
     // Default appearance settings
     // Render and snapshot
@@ -115,13 +115,13 @@ describe.skip('Phase X Parity: Theme Variation Snapshots', () => {
 
 /**
  * Implementation Guide:
- * 
+ *
  * Manual Approach (Recommended for Phase X):
  * 1. Run legacy app and Next.js app side-by-side
  * 2. Capture screenshots manually for each scenario
  * 3. Use image diff tools to compare
  * 4. Document findings in parity report
- * 
+ *
  * Automated Approach (Future):
  * 1. Install visual regression testing library:
  *    - jest-image-snapshot
@@ -131,12 +131,12 @@ describe.skip('Phase X Parity: Theme Variation Snapshots', () => {
  * 3. Generate comparison screenshots from Next.js app
  * 4. Assert pixel difference ≤2px tolerance
  * 5. Update baselines when changes are intentional
- * 
+ *
  * How to Run (when enabled):
  * ```bash
  * yarn test tests/parity/board.visual.test.tsx
  * ```
- * 
+ *
  * Pixel Tolerance:
  * - Accept: ≤2px difference (anti-aliasing, rounding)
  * - Investigate: 3-10px difference

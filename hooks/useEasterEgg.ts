@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 
 /**
  * Easter Egg Hook - "gmmamun" cheatcode feature
- * 
+ *
  * Ported from src/ui/easter-egg.ts to React
- * 
+ *
  * Handles the hidden cheatcode that reveals a hidden feature.
  * The user must:
  * 1. Select the target text element
@@ -22,10 +22,7 @@ interface UseEasterEggOptions {
 }
 
 export function useEasterEgg(options: UseEasterEggOptions = {}) {
-  const {
-    targetText = '(Reserved for future use)',
-    onReveal,
-  } = options;
+  const { targetText = '(Reserved for future use)', onReveal } = options;
 
   const [isPrimed, setIsPrimed] = useState(false);
   const progressRef = useRef(0);

@@ -12,7 +12,9 @@ class MockWorker {
     if (message.type === 'init') {
       setTimeout(() => {
         if (this.onmessage) {
-          this.onmessage(new MessageEvent('message', { data: { type: 'ready' } }));
+          this.onmessage(
+            new MessageEvent('message', { data: { type: 'ready' } })
+          );
         }
       }, 10);
     }
@@ -78,7 +80,9 @@ describe('useEngine hook', () => {
 
       // Should not throw
       expect(() => {
-        result.current.startAnalysis('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        result.current.startAnalysis(
+          'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        );
       }).not.toThrow();
     });
 

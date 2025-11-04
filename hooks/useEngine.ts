@@ -70,122 +70,137 @@ export function useEngine(): UseEngineReturn {
         worker.terminate();
       };
     } catch (error) {
-      console.error('[useEngine] Failed to initialize Stockfish worker:', error);
+      console.error(
+        '[useEngine] Failed to initialize Stockfish worker:',
+        error
+      );
     }
   }, []);
 
-  const convertUciToSan = useCallback((fen: string, uciMove: string): string => {
-    try {
-      const game = new Chess(fen);
-      const from = uciMove.slice(0, 2);
-      const to = uciMove.slice(2, 4);
-      const promotion = uciMove.length > 4 ? uciMove.slice(4).toLowerCase() : undefined;
-      
-      const move = game.move({ from, to, promotion });
-      return move ? move.san : uciMove;
-    } catch (error) {
-      return uciMove;
-    }
-  }, []);
-
-  const convertPvToSan = useCallback((fen: string, pvMoves: string[]): string[] => {
-    const sanMoves: string[] = [];
-    const game = new Chess(fen);
-
-    for (const uciMove of pvMoves) {
-      const from = uciMove.slice(0, 2);
-      const to = uciMove.slice(2, 4);
-      const promotion = uciMove.length > 4 ? uciMove.slice(4).toLowerCase() : undefined;
-      
+  const convertUciToSan = useCallback(
+    (fen: string, uciMove: string): string => {
       try {
+        const game = new Chess(fen);
+        const from = uciMove.slice(0, 2);
+        const to = uciMove.slice(2, 4);
+        const promotion =
+          uciMove.length > 4 ? uciMove.slice(4).toLowerCase() : undefined;
+
         const move = game.move({ from, to, promotion });
-        if (move) {
-          sanMoves.push(move.san);
-        } else {
+        return move ? move.san : uciMove;
+      } catch (error) {
+        return uciMove;
+      }
+    },
+    []
+  );
+
+  const convertPvToSan = useCallback(
+    (fen: string, pvMoves: string[]): string[] => {
+      const sanMoves: string[] = [];
+      const game = new Chess(fen);
+
+      for (const uciMove of pvMoves) {
+        const from = uciMove.slice(0, 2);
+        const to = uciMove.slice(2, 4);
+        const promotion =
+          uciMove.length > 4 ? uciMove.slice(4).toLowerCase() : undefined;
+
+        try {
+          const move = game.move({ from, to, promotion });
+          if (move) {
+            sanMoves.push(move.san);
+          } else {
+            break;
+          }
+        } catch (error) {
           break;
         }
-      } catch (error) {
-        break;
       }
-    }
 
-    return sanMoves;
-  }, []);
+      return sanMoves;
+    },
+    []
+  );
 
-  const handleWorkerMessage = useCallback((message: any) => {
-    switch (message.type) {
-      case 'ready':
-        console.log('[useEngine] Engine ready');
-        setIsEngineReady(true);
-        break;
+  const handleWorkerMessage = useCallback(
+    (message: any) => {
+      switch (message.type) {
+        case 'ready':
+          console.log('[useEngine] Engine ready');
+          setIsEngineReady(true);
+          break;
 
-      case 'info': {
-        const info: UciInfoResult = message.data;
-        
-        // Update current depth
-        if (info.depth !== null) {
-          setCurrentDepth(info.depth);
-        }
+        case 'info': {
+          const info: UciInfoResult = message.data;
 
-        // Process multi-PV lines
-        if (info.multipv !== null && info.pv && info.pvLine && info.score) {
-          const pvMoves = info.pvLine.split(' ');
-          const pvSan = convertPvToSan(currentFenRef.current, pvMoves);
-          
-          // Normalize score based on side to move
-          const fen = currentFenRef.current;
-          const turn = new Chess(fen).turn();
-          let normalizedScore = info.score.value;
-          
-          if (info.score.type === 'cp' || info.score.type === 'mate') {
-            if (turn === 'b') {
-              normalizedScore = -normalizedScore;
-            }
+          // Update current depth
+          if (info.depth !== null) {
+            setCurrentDepth(info.depth);
           }
 
-          const analysis: EngineAnalysis = {
-            multipv: info.multipv,
-            depth: info.depth || 0,
-            score: normalizedScore,
-            scoreType: info.score.type,
-            bestMove: info.pv,
-            san: convertUciToSan(fen, info.pv),
-            pv: pvMoves,
-            pvSan: pvSan,
-          };
+          // Process multi-PV lines
+          if (info.multipv !== null && info.pv && info.pvLine && info.score) {
+            const pvMoves = info.pvLine.split(' ');
+            const pvSan = convertPvToSan(currentFenRef.current, pvMoves);
 
-          analysisMapRef.current.set(info.multipv, analysis);
+            // Normalize score based on side to move
+            const fen = currentFenRef.current;
+            const turn = new Chess(fen).turn();
+            let normalizedScore = info.score.value;
 
-          // Update state with sorted analysis lines
-          const sortedAnalysis = Array.from(analysisMapRef.current.values())
-            .filter((a): a is EngineAnalysis => 
-              a.bestMove !== undefined && 
-              a.san !== undefined && 
-              a.pv !== undefined &&
-              a.pvSan !== undefined
-            )
-            .sort((a, b) => a.multipv - b.multipv);
+            if (info.score.type === 'cp' || info.score.type === 'mate') {
+              if (turn === 'b') {
+                normalizedScore = -normalizedScore;
+              }
+            }
 
-          setAnalysis(sortedAnalysis);
+            const analysis: EngineAnalysis = {
+              multipv: info.multipv,
+              depth: info.depth || 0,
+              score: normalizedScore,
+              scoreType: info.score.type,
+              bestMove: info.pv,
+              san: convertUciToSan(fen, info.pv),
+              pv: pvMoves,
+              pvSan: pvSan,
+            };
+
+            analysisMapRef.current.set(info.multipv, analysis);
+
+            // Update state with sorted analysis lines
+            const sortedAnalysis = Array.from(analysisMapRef.current.values())
+              .filter(
+                (a): a is EngineAnalysis =>
+                  a.bestMove !== undefined &&
+                  a.san !== undefined &&
+                  a.pv !== undefined &&
+                  a.pvSan !== undefined
+              )
+              .sort((a, b) => a.multipv - b.multipv);
+
+            setAnalysis(sortedAnalysis);
+          }
+          break;
         }
-        break;
+
+        case 'bestmove':
+          console.log('[useEngine] Analysis complete');
+          setIsAnalyzing(false);
+          break;
+
+        case 'error':
+          console.error('[useEngine] Engine error:', message.error);
+          setIsAnalyzing(false);
+          break;
+
+        default:
+          // Ignore unknown messages
+          break;
       }
-
-      case 'bestmove':
-        console.log('[useEngine] Analysis complete');
-        setIsAnalyzing(false);
-        break;
-
-      case 'error':
-        console.error('[useEngine] Engine error:', message.error);
-        setIsAnalyzing(false);
-        break;
-
-      default:
-        // Ignore unknown messages
-        break;
-    }
-  }, [convertUciToSan, convertPvToSan]);
+    },
+    [convertUciToSan, convertPvToSan]
+  );
 
   const startAnalysis = useCallback(
     (fen: string, analysisDepth?: number, multipv: number = 3) => {

@@ -70,9 +70,7 @@ export default function Home() {
               </div>
             )}
             {check && !checkmate && (
-              <div className="text-xl font-bold text-orange-600">
-                Check! ⚠️
-              </div>
+              <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
             )}
           </div>
         )}
@@ -115,7 +113,7 @@ export default function Home() {
           {/* Right Column: Engine Analysis */}
           <div className="flex flex-col gap-6">
             {isEnginePanelVisible && <EnginePanel />}
-            
+
             {/* Easter Egg Trigger */}
             {!isEnginePanelVisible && (
               <div className="text-center mt-8">
@@ -134,10 +132,12 @@ export default function Home() {
         <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
           <p>
             <strong>Migration Progress:</strong> Board rendering ✓, Piece
-            movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine analysis ✓, Appearance ✓
+            movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine
+            analysis ✓, Appearance ✓
           </p>
           <p className="mt-2">
-            <strong>Phase 3:</strong> Complete! Try selecting the text above and typing a secret code...
+            <strong>Phase 3:</strong> Complete! Try selecting the text above and
+            typing a secret code...
           </p>
         </div>
       </div>

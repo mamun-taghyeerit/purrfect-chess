@@ -5,6 +5,7 @@ This document explains the Next.js migration skeleton and how to work with it.
 ## Related Issues
 
 This migration relates to:
+
 - [Issue #31](https://github.com/purrfectsoft/purrfect-chess/issues/31) - Modernization roadmap (master issue)
 - [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) - Phase X: Functional + Visual Parity Development
 
@@ -41,6 +42,7 @@ This branch contains the initial Next.js 14 migration skeleton for Purrfect Ches
 ✅ Create TimeControlSelector with preset options
 ✅ Implement timer logic with increment support
 ✅ Add timeout detection and game over handling
+
 - [ ] Integrate piece/square theme customization (appearance sliders)
 - [ ] Implement Stockfish UCI communication in worker
 - [ ] Complete useEngine hook with real analysis
@@ -336,35 +338,35 @@ The migration follows an incremental strategy to minimize risk:
    - **Package**: `stockfish@17.1.0` (devDependency, chess.com maintained)
    - **Source**: https://github.com/nmrugg/stockfish.js
    - **License**: GPL v3
-   
+
    **Files (auto-generated, gitignored):**
    - `public/libs/stockfish-lite-single.js` (~21KB wrapper)
    - `public/libs/stockfish-lite-single.wasm` (~7MB WASM binary)
-   
+
    **Automation:**
    - Vendor script: `scripts/vendor-stockfish.js` (ESM format)
    - Auto-runs on: `yarn install` (postinstall) and `yarn next:build`
    - Manual run: `yarn vendor:stockfish`
-   
+
    **Characteristics:**
    - Single-threaded (no SharedArrayBuffer required)
    - No CORS headers required (works in all deployment scenarios)
    - Full WASM support (faster than asm.js)
    - Smaller NNUE neural network (~7MB vs ~75MB for full version)
    - Sufficient strength for browser-based analysis
-   
+
    **Why this variant?**
    - Maximum compatibility (no CORS requirements)
    - Reasonable file size for web delivery
    - Reliable single-threaded operation
    - Modern WASM performance
-   
+
    **Alternative variants available:**
    - `lite`: Multi-threaded WASM (~7MB, requires CORS headers)
    - `single`: Single-threaded full WASM (~75MB, no CORS)
    - `full`: Multi-threaded full WASM (~75MB, requires CORS)
    - `asm`: ASM.js fallback (~10MB, universal compatibility)
-   
+
    To change variants: Edit `VARIANT` in `scripts/vendor-stockfish.js`
 
 2. **Appearance Customization** (MEDIUM PRIORITY): Port theme controls

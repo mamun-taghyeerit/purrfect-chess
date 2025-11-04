@@ -1,6 +1,7 @@
 # Phase X: Functional + Visual Parity Development
 
 **Related Issues:**
+
 - Master issue: [#31](https://github.com/purrfectsoft/purrfect-chess/issues/31) - Modernization roadmap
 - Phase X issue: [#40](https://github.com/purrfectsoft/purrfect-chess/issues/40) - Functional + Visual Parity Development
 
@@ -22,6 +23,7 @@ The legacy Vite app in `src/` remains the **source of truth** for all behavior a
 ## Acceptance Criteria
 
 ### Visual Parity
+
 - [ ] Pixel-perfect board rendering (≤2px tolerance)
 - [ ] Identical piece and square appearance
 - [ ] Consistent appearance slider effects
@@ -31,6 +33,7 @@ The legacy Vite app in `src/` remains the **source of truth** for all behavior a
 - [ ] Consistent rendering at 1x and 2x DPR
 
 ### Interaction Parity
+
 - [ ] Click-to-select and click-to-move identical
 - [ ] Drag-and-drop behavior matches exactly
 - [ ] Right-click arrow drawing works identically
@@ -39,6 +42,7 @@ The legacy Vite app in `src/` remains the **source of truth** for all behavior a
 - [ ] Focus states consistent
 
 ### Functional Parity
+
 - [ ] Move legality identical (all edge cases)
 - [ ] Game state transitions match (check, checkmate, stalemate, draw)
 - [ ] Time controls behavior identical
@@ -48,12 +52,14 @@ The legacy Vite app in `src/` remains the **source of truth** for all behavior a
 - [ ] FEN/PGN I/O produces identical output
 
 ### I/O Parity
+
 - [ ] FEN import/export format identical
 - [ ] PGN import/export format identical
 - [ ] PGN headers match legacy format
 - [ ] Move notation (SAN) identical
 
 ### Performance Parity
+
 - [ ] Board rendering time ≤ legacy
 - [ ] Interaction response time ≤ legacy
 - [ ] Engine analysis startup ≤ legacy
@@ -64,12 +70,14 @@ The legacy Vite app in `src/` remains the **source of truth** for all behavior a
 Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), Phase X consists of the following workstreams.
 
 **Status Legend:**
+
 - ✅ = Implemented in Next.js app
 - 🔍 = Needs parity validation
 - ⏳ = Not yet implemented
 - 📝 = Partially implemented
 
 ### 1. Board Rendering + Coordinates ✅
+
 - ✅ Square rendering (8x8 grid)
 - ✅ File/rank coordinate labels
 - ✅ Responsive sizing
@@ -78,6 +86,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs parity validation with legacy.
 
 ### 2. Interaction Semantics (Click + DnD) ✅
+
 - ✅ Click-to-select piece
 - ✅ Click-to-move to legal square
 - ✅ Drag-and-drop piece movement
@@ -87,6 +96,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs parity validation with legacy.
 
 ### 3. Move Legality + Game State ✅
+
 - ✅ All chess rules (castling, en passant, promotion)
 - ✅ Check detection
 - ✅ Checkmate detection
@@ -96,6 +106,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete (via chess.js). Needs edge case validation.
 
 ### 4. FEN/PGN I/O ✅
+
 - ✅ FEN import from text input
 - ✅ FEN export to clipboard
 - ✅ PGN export to clipboard
@@ -104,6 +115,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs format parity validation.
 
 ### 5. Time Controls + Clocks ✅
+
 - ✅ Preset time controls (1+0, 3+0, 3+2, etc.)
 - ✅ Clock display (MM:SS format)
 - ✅ Increment application
@@ -113,6 +125,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs timing accuracy validation.
 
 ### 6. Game Lifecycle + UI State ✅
+
 - ✅ New game initialization
 - ✅ Reset game functionality
 - ✅ Game over states
@@ -121,6 +134,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs validation.
 
 ### 7. Engine Integration Parity ✅
+
 - ✅ Stockfish worker initialization
 - ✅ UCI protocol communication
 - ✅ Engine readiness detection
@@ -129,6 +143,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs UCI output format validation.
 
 ### 8. Engine Overlays + Evaluation Bar 📝
+
 - ✅ Multi-PV display (top 3 moves)
 - ✅ Score formatting (centipawns, mate)
 - ✅ Depth display
@@ -138,6 +153,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Partially complete. EvaluationBar component needs implementation and wiring.
 
 ### 9. Arrow Drawing System ⏳
+
 - ⏳ Right-click drag to create arrows
 - ⏳ Multiple arrow support
 - ⏳ Arrow color/style
@@ -147,6 +163,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Not implemented. Legacy has this feature in `src/board.ts`.
 
 ### 10. Appearance Customization ✅
+
 - ✅ Piece hue/saturation/brightness sliders
 - ✅ Piece scale slider
 - ✅ Square hue/saturation/brightness sliders
@@ -156,6 +173,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs visual parity validation.
 
 ### 11. Hidden "gmmamun" Easter Egg ✅
+
 - ✅ Text selection detection
 - ✅ Keystroke capture
 - ✅ Engine panel reveal
@@ -164,6 +182,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Complete. Needs behavior validation.
 
 ### 12. Accessibility + Keyboard Nav ⏳
+
 - ⏳ Keyboard piece selection
 - ⏳ Keyboard move input
 - ⏳ ARIA labels
@@ -173,6 +192,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Not implemented. May not exist in legacy either.
 
 ### 13. Performance + Rendering 🔍
+
 - ✅ Optimized re-renders
 - ✅ Lazy loading
 - ✅ Code splitting
@@ -181,6 +201,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 **Status:** Mostly complete. Needs performance benchmarking vs legacy.
 
 ### 14. Error Handling + Edge Cases 🔍
+
 - ✅ Invalid FEN handling
 - ✅ Invalid PGN handling
 - ✅ Engine errors
@@ -192,6 +213,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 ## Validation Checklist
 
 ### Manual Testing
+
 - [ ] Run legacy app (`yarn dev`) on port 5173
 - [ ] Run Next.js app (`yarn next:dev`) on port 3000
 - [ ] Open both apps side-by-side
@@ -202,6 +224,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 - [ ] Document any deltas in parity validation report
 
 ### Automated Testing
+
 - [ ] Run FEN/PGN round-trip tests
 - [ ] Run board visual snapshot tests
 - [ ] Run UCI parser parity tests
@@ -209,6 +232,7 @@ Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40), 
 - [ ] Run appearance parity tests
 
 ### Fixture Coverage
+
 - [ ] Test all 25 FEN positions
 - [ ] Test all 10 PGN games
 - [ ] Verify identical output for both apps
@@ -220,6 +244,7 @@ Phase X includes comprehensive test fixtures to validate parity:
 ### FEN Corpus (`docs/fixtures/fen/`)
 
 25 curated positions covering:
+
 - **Basic positions**: Starting position, empty board
 - **Castling**: All 4 castling rights scenarios
 - **En passant**: En passant available, after en passant capture
@@ -234,6 +259,7 @@ See individual `.fen` files in `docs/fixtures/fen/` for details.
 ### PGN Corpus (`docs/fixtures/pgn/`)
 
 10 curated games covering:
+
 - **Short games**: Scholar's mate, fool's mate
 - **Standard games**: Complete games with headers
 - **Complex games**: Long games with variations (if supported)
@@ -244,11 +270,13 @@ See individual `.pgn` files in `docs/fixtures/pgn/` for details.
 ### Using Fixtures
 
 Fixtures are used in:
+
 1. **Manual testing**: Load each fixture in both apps, compare output
 2. **Automated testing**: Round-trip tests (`tests/parity/fenpgn.roundtrip.test.ts`)
 3. **Visual regression**: Snapshot tests (`tests/parity/board.visual.test.tsx`)
 
 To expand fixtures:
+
 1. Add new `.fen` or `.pgn` files to respective directories
 2. Document the scenario being tested
 3. Update parity tests to include new fixtures
@@ -258,6 +286,7 @@ To expand fixtures:
 See [`docs/runbooks/side-by-side.md`](./runbooks/side-by-side.md) for detailed instructions on running both apps simultaneously and performing manual validation.
 
 Quick reference:
+
 ```bash
 # Terminal 1: Legacy app
 yarn dev
@@ -282,16 +311,19 @@ Stockfish binaries are **auto-vendored** from the `stockfish` npm package (devDe
 - **Manual trigger**: `yarn vendor:stockfish`
 
 **Vendored files** (gitignored, auto-regenerated):
+
 - `public/libs/stockfish-lite-single.js`
 - `public/libs/stockfish-lite-single.wasm`
 
 **Why this variant?**
+
 - No CORS headers required
 - Reasonable size (~7MB vs ~75MB for full)
 - Single-threaded (simpler, no SharedArrayBuffer)
 - WASM performance (faster than asm.js)
 
 **How to upgrade:**
+
 ```bash
 yarn upgrade stockfish
 # Update VARIANT_HASH in scripts/vendor-stockfish.js if needed
@@ -299,6 +331,7 @@ yarn vendor:stockfish
 ```
 
 **Other available variants** (change in `scripts/vendor-stockfish.js`):
+
 - `lite`: Multi-threaded (~7MB, requires CORS)
 - `single`: Full single-threaded (~75MB, no CORS)
 - `full`: Full multi-threaded (~75MB, requires CORS)
@@ -308,6 +341,7 @@ yarn vendor:stockfish
 See [`docs/contributing-phase-x.md`](./contributing-phase-x.md) for detailed contributor guidance.
 
 Key principles:
+
 1. **Legacy is source of truth**: Always match legacy behavior exactly
 2. **Test with fixtures**: Use provided FEN/PGN corpuses
 3. **Side-by-side validation**: Run both apps, compare manually
@@ -321,6 +355,7 @@ See [`docs/adr/0001-phase-x-parity-approach.md`](./adr/0001-phase-x-parity-appro
 ## Success Criteria
 
 Phase X is complete when:
+
 - ✅ All workstreams validated
 - ✅ All acceptance criteria met
 - ✅ All fixtures pass in both apps
@@ -332,6 +367,7 @@ Phase X is complete when:
 ## Next Steps After Phase X
 
 Once Phase X is complete and parity is confirmed:
+
 1. Phase 4: Testing & Cleanup can proceed safely
 2. Legacy `src/` directory can be archived (not deleted immediately)
 3. Next.js app becomes the primary codebase
