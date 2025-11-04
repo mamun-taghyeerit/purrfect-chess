@@ -1,44 +1,33 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Chess } from 'chess.js';
+import type { UciInfoResult } from '@/lib/uci-parser';
 
 /**
  * Custom hook for managing Stockfish chess engine
  *
- * This hook will eventually replace the engine integration from src/engine.ts
- *
- * Integration points from vanilla app:
- * - src/engine.ts: Stockfish worker integration
- * - src/engine/uci-parser.ts: UCI protocol parsing
- * - src/types.ts: EngineAnalysisLine, EngineHighlight
- *
- * TODO for future PRs:
- * 1. Initialize the Stockfish web worker
- * 2. Implement UCI communication protocol
- * 3. Parse engine analysis results (multi-PV support)
- * 4. Calculate and format evaluation scores
- * 5. Extract principal variation (PV) lines
- * 6. Support depth configuration
- * 7. Implement analysis start/stop controls
- * 8. Add error handling and recovery
- *
- * Current status: STUB - Returns placeholder data
+ * Integrates with the stockfish npm package via Web Worker
+ * Provides real-time analysis with multi-PV support
  */
 
-interface EngineAnalysis {
+export interface EngineAnalysis {
   multipv: number;
   depth: number;
   score: number;
   scoreType: 'cp' | 'mate';
   bestMove: string;
+  san: string;
   pv: string[];
+  pvSan: string[];
 }
 
 interface UseEngineReturn {
   isEngineReady: boolean;
   isAnalyzing: boolean;
   analysis: EngineAnalysis[];
-  startAnalysis: (fen: string, depth?: number) => void;
+  currentDepth: number;
+  startAnalysis: (fen: string, depth?: number, multipv?: number) => void;
   stopAnalysis: () => void;
   setDepth: (depth: number) => void;
 }
@@ -47,63 +36,144 @@ export function useEngine(): UseEngineReturn {
   const [isEngineReady, setIsEngineReady] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
+  const [currentDepth, setCurrentDepth] = useState(0);
   const [depth, setDepth] = useState(15);
   const workerRef = useRef<Worker | null>(null);
+  const currentFenRef = useRef<string>('');
+  const analysisMapRef = useRef<Map<number, Partial<EngineAnalysis>>>(
+    new Map()
+  );
 
   useEffect(() => {
-    // TODO: Initialize the Stockfish worker when this hook is used
-    // For now, this is a stub implementation
+    try {
+      console.log('[useEngine] Initializing Stockfish worker...');
 
-    // Example of how to initialize the worker (to be implemented):
-    // try {
-    //   const worker = new Worker(
-    //     new URL('@/workers/stockfish.worker.ts', import.meta.url)
-    //   );
-    //
-    //   worker.onmessage = (event) => {
-    //     handleWorkerMessage(event.data);
-    //   };
-    //
-    //   worker.postMessage({ type: 'init' });
-    //   workerRef.current = worker;
-    //
-    //   return () => {
-    //     worker.terminate();
-    //   };
-    // } catch (error) {
-    //   console.error('Failed to initialize Stockfish worker:', error);
-    // }
+      const worker = new Worker(
+        new URL('../workers/stockfish.worker.ts', import.meta.url)
+      );
 
-    console.log('[useEngine] Hook initialized (STUB)');
+      worker.onmessage = (event) => {
+        handleWorkerMessage(event.data);
+      };
 
-    // Simulate engine being ready after a short delay
-    const timeout = setTimeout(() => {
-      setIsEngineReady(true);
-      console.log('[useEngine] Engine ready (simulated)');
-    }, 1000);
+      worker.onerror = (error) => {
+        console.error('[useEngine] Worker error:', error);
+        setIsEngineReady(false);
+        setIsAnalyzing(false);
+      };
 
-    return () => {
-      clearTimeout(timeout);
-      if (workerRef.current) {
-        workerRef.current.terminate();
+      worker.postMessage({ type: 'init' });
+      workerRef.current = worker;
+
+      return () => {
+        console.log('[useEngine] Terminating worker...');
+        worker.terminate();
+      };
+    } catch (error) {
+      console.error('[useEngine] Failed to initialize Stockfish worker:', error);
+    }
+  }, []);
+
+  const convertUciToSan = useCallback((fen: string, uciMove: string): string => {
+    try {
+      const game = new Chess(fen);
+      const from = uciMove.slice(0, 2);
+      const to = uciMove.slice(2, 4);
+      const promotion = uciMove.length > 4 ? uciMove.slice(4).toLowerCase() : undefined;
+      
+      const move = game.move({ from, to, promotion });
+      return move ? move.san : uciMove;
+    } catch (error) {
+      return uciMove;
+    }
+  }, []);
+
+  const convertPvToSan = useCallback((fen: string, pvMoves: string[]): string[] => {
+    const sanMoves: string[] = [];
+    const game = new Chess(fen);
+
+    for (const uciMove of pvMoves) {
+      const from = uciMove.slice(0, 2);
+      const to = uciMove.slice(2, 4);
+      const promotion = uciMove.length > 4 ? uciMove.slice(4).toLowerCase() : undefined;
+      
+      try {
+        const move = game.move({ from, to, promotion });
+        if (move) {
+          sanMoves.push(move.san);
+        } else {
+          break;
+        }
+      } catch (error) {
+        break;
       }
-    };
+    }
+
+    return sanMoves;
   }, []);
 
   const handleWorkerMessage = useCallback((message: any) => {
     switch (message.type) {
       case 'ready':
+        console.log('[useEngine] Engine ready');
         setIsEngineReady(true);
         break;
 
-      case 'info':
-        // TODO: Parse UCI info lines and update analysis state
-        console.log('[useEngine] Analysis update:', message.data);
+      case 'info': {
+        const info: UciInfoResult = message.data;
+        
+        // Update current depth
+        if (info.depth !== null) {
+          setCurrentDepth(info.depth);
+        }
+
+        // Process multi-PV lines
+        if (info.multipv !== null && info.pv && info.pvLine && info.score) {
+          const pvMoves = info.pvLine.split(' ');
+          const pvSan = convertPvToSan(currentFenRef.current, pvMoves);
+          
+          // Normalize score based on side to move
+          const fen = currentFenRef.current;
+          const turn = new Chess(fen).turn();
+          let normalizedScore = info.score.value;
+          
+          if (info.score.type === 'cp' || info.score.type === 'mate') {
+            if (turn === 'b') {
+              normalizedScore = -normalizedScore;
+            }
+          }
+
+          const analysis: EngineAnalysis = {
+            multipv: info.multipv,
+            depth: info.depth || 0,
+            score: normalizedScore,
+            scoreType: info.score.type,
+            bestMove: info.pv,
+            san: convertUciToSan(fen, info.pv),
+            pv: pvMoves,
+            pvSan: pvSan,
+          };
+
+          analysisMapRef.current.set(info.multipv, analysis);
+
+          // Update state with sorted analysis lines
+          const sortedAnalysis = Array.from(analysisMapRef.current.values())
+            .filter((a): a is EngineAnalysis => 
+              a.bestMove !== undefined && 
+              a.san !== undefined && 
+              a.pv !== undefined &&
+              a.pvSan !== undefined
+            )
+            .sort((a, b) => a.multipv - b.multipv);
+
+          setAnalysis(sortedAnalysis);
+        }
         break;
+      }
 
       case 'bestmove':
+        console.log('[useEngine] Analysis complete');
         setIsAnalyzing(false);
-        console.log('[useEngine] Analysis complete:', message.data);
         break;
 
       case 'error':
@@ -112,12 +182,13 @@ export function useEngine(): UseEngineReturn {
         break;
 
       default:
-        console.log('[useEngine] Unknown message:', message);
+        // Ignore unknown messages
+        break;
     }
-  }, []);
+  }, [convertUciToSan, convertPvToSan]);
 
   const startAnalysis = useCallback(
-    (fen: string, analysisDepth?: number) => {
+    (fen: string, analysisDepth?: number, multipv: number = 3) => {
       const targetDepth = analysisDepth || depth;
 
       if (!isEngineReady) {
@@ -125,38 +196,32 @@ export function useEngine(): UseEngineReturn {
         return;
       }
 
+      if (!workerRef.current) {
+        console.warn('[useEngine] Worker not initialized');
+        return;
+      }
+
       console.log(
-        `[useEngine] Starting analysis (STUB): FEN=${fen}, Depth=${targetDepth}`
+        `[useEngine] Starting analysis: FEN=${fen.slice(0, 30)}..., Depth=${targetDepth}, MultiPV=${multipv}`
       );
 
+      // Reset analysis state
+      currentFenRef.current = fen;
+      analysisMapRef.current.clear();
+      setAnalysis([]);
+      setCurrentDepth(0);
       setIsAnalyzing(true);
 
-      // TODO: Send analysis command to worker
-      // workerRef.current?.postMessage({
-      //   type: 'analyze',
-      //   data: { fen, depth: targetDepth },
-      // });
-
-      // Placeholder: Simulate analysis result
-      setTimeout(() => {
-        setAnalysis([
-          {
-            multipv: 1,
-            depth: targetDepth,
-            score: 50,
-            scoreType: 'cp',
-            bestMove: 'e2e4',
-            pv: ['e2e4', 'e7e5', 'g1f3'],
-          },
-        ]);
-        setIsAnalyzing(false);
-      }, 2000);
+      workerRef.current.postMessage({
+        type: 'analyze',
+        data: { fen, depth: targetDepth, multipv },
+      });
     },
     [isEngineReady, depth]
   );
 
   const stopAnalysis = useCallback(() => {
-    console.log('[useEngine] Stopping analysis (STUB)');
+    console.log('[useEngine] Stopping analysis');
 
     if (workerRef.current) {
       workerRef.current.postMessage({ type: 'stop' });
@@ -169,6 +234,7 @@ export function useEngine(): UseEngineReturn {
     isEngineReady,
     isAnalyzing,
     analysis,
+    currentDepth,
     startAnalysis,
     stopAnalysis,
     setDepth,

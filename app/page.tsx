@@ -5,6 +5,7 @@ import GameControls from '@/components/GameControls';
 import MoveHistory from '@/components/MoveHistory';
 import Clock from '@/components/Clock';
 import TimeControlSelector from '@/components/TimeControlSelector';
+import EnginePanel from '@/components/EnginePanel';
 import { useGame } from '@/hooks/useGame';
 
 export default function Home() {
@@ -65,7 +66,7 @@ export default function Home() {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+        <div className="flex flex-col xl:flex-row gap-8 items-start justify-center">
           {/* Left Column: Clocks and Board */}
           <div className="flex flex-col items-center gap-4">
             <Clock
@@ -77,7 +78,7 @@ export default function Home() {
             <Board />
           </div>
 
-          {/* Right Column: Controls, Time Control, and Move History */}
+          {/* Middle Column: Controls, Time Control, and Move History */}
           <div className="flex flex-col gap-6">
             <TimeControlSelector
               currentTimeControl={timeControl}
@@ -94,15 +95,20 @@ export default function Home() {
 
             <MoveHistory history={history} />
           </div>
+
+          {/* Right Column: Engine Analysis */}
+          <div className="flex flex-col gap-6">
+            <EnginePanel />
+          </div>
         </div>
 
         <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
           <p>
             <strong>Migration Progress:</strong> Board rendering ✓, Piece
-            movement ✓, Move history ✓, Game controls ✓, Time controls ✓
+            movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine analysis ✓
           </p>
           <p className="mt-2">
-            <strong>Next:</strong> Engine integration, Advanced features
+            <strong>Phase 3:</strong> Advanced features (appearance, easter egg)
           </p>
         </div>
       </div>
