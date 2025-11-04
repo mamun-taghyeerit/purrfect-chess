@@ -1,7 +1,7 @@
 'use client';
 
 import { useGame } from '@/hooks/useGame';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ArrowOverlay, { type Arrow, type PreviewArrow, parseSquare, squareCenter, buildArrowPoints } from './ArrowOverlay';
 
 /**
@@ -69,8 +69,8 @@ export default function Board({
   } | null>(null);
 
   // File and rank labels for coordinates (matching legacy)
-  const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-  const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+  const files = useMemo(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], []);
+  const ranks = useMemo(() => [8, 7, 6, 5, 4, 3, 2, 1], []);
 
   // Get last move for highlighting
   const lastMove = history.length > 0 ? history[history.length - 1] : null;
@@ -80,7 +80,7 @@ export default function Board({
     const file = files[fileIndex];
     const rank = 8 - rankIndex;
     return `${file}${rank}`;
-  }, []);
+  }, [files]);
 
   // Helper to categorize moves into non-captures and captures (single pass optimization)
   const categorizeMoves = (moves: any[]) => {
@@ -120,7 +120,7 @@ export default function Board({
     const fileIndex = clamp(Math.floor(coords.x * 8), 0, 7);
     const rankIndex = clamp(Math.floor(coords.y * 8), 0, 7);
     return algebraicAt(fileIndex, rankIndex);
-  }, [boardCoordsFromClient, clamp]);
+  }, [boardCoordsFromClient, clamp, algebraicAt]);
 
   const pointFromClient = useCallback((clientX: number, clientY: number) => {
     const coords = boardCoordsFromClient(clientX, clientY);
