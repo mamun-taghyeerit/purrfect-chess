@@ -115,7 +115,7 @@ export default function Board() {
     if (selectedSquare) {
       // Try to move piece
       const success = movePiece(selectedSquare, square);
-      
+
       // Clear selection state
       setSelectedSquare(null);
       setLegalMoves([]);
@@ -154,7 +154,7 @@ export default function Board() {
 
       const moves = game.moves({ square: square as any, verbose: true });
       const { legal, captures } = categorizeMoves(moves);
-      
+
       // Set drag state
       setIsDragging(true);
       setSelectedSquare(square);
@@ -174,7 +174,7 @@ export default function Board() {
   const handleDragEnd = (e: React.DragEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     img.style.opacity = NORMAL_OPACITY;
-    
+
     // Clear drag state
     clearDragState();
   };
@@ -189,11 +189,12 @@ export default function Board() {
     targetSquare: string
   ) => {
     e.preventDefault();
-    
+
     // Get source square from dataTransfer or fallback to ref
     // Note: Some browsers may clear dataTransfer.getData in certain scenarios,
     // so we maintain dragSourceRef as a reliable backup
-    const fromSquare = e.dataTransfer.getData('text/plain') || dragSourceRef.current;
+    const fromSquare =
+      e.dataTransfer.getData('text/plain') || dragSourceRef.current;
 
     if (fromSquare) {
       // Attempt move - invalid moves are rejected by movePiece, no state mutation
@@ -252,24 +253,30 @@ export default function Board() {
               const isLegalMove = legalMoves.includes(square);
               const isCaptureMove = captureMoves.includes(square);
               const isLastMoveSquare =
-                lastMove && (lastMove.from === square || lastMove.to === square);
+                lastMove &&
+                (lastMove.from === square || lastMove.to === square);
 
               // Build className for square (matching legacy with drag-specific classes)
               let squareClasses = `square ${isLight ? 'light' : 'dark'}`;
-              
+
               // Use drag-specific classes during drag operations (lighter shades)
               if (isSelected) {
                 squareClasses += isDragging ? ' drag-selected' : ' selected';
               }
               if (isLastMoveSquare) squareClasses += ' last-move';
               if (isLegalMove) {
-                squareClasses += isDragging ? ' drag-move-hint' : ' legal-move-hint';
+                squareClasses += isDragging
+                  ? ' drag-move-hint'
+                  : ' legal-move-hint';
               }
               if (isCaptureMove) {
-                squareClasses += isDragging ? ' drag-capture-hint' : ' legal-capture-hint';
+                squareClasses += isDragging
+                  ? ' drag-capture-hint'
+                  : ' legal-capture-hint';
               }
               if (isPiece) {
-                squareClasses += piece.color === 'w' ? ' white-piece' : ' black-piece';
+                squareClasses +=
+                  piece.color === 'w' ? ' white-piece' : ' black-piece';
               }
 
               return (
@@ -319,7 +326,7 @@ function getPieceTypeName(type: string): string {
 /**
  * Helper function to get piece image path
  * Images are from /public/assets/ (CC BY 4.0)
- * 
+ *
  * Note: Using regular <img> instead of Next.js Image component
  * for compatibility with HTML5 drag-and-drop. The Image component
  * interferes with drag events due to its wrapper structure.

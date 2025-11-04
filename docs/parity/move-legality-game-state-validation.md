@@ -6,13 +6,14 @@
 
 ## Executive Summary
 
-**Result: Perfect Parity Achieved** 
+**Result: Perfect Parity Achieved**
 
 All 53 comprehensive tests pass, confirming that move legality, game state detection, and SAN generation are **identical** between the legacy app (`src/game.ts`) and Next.js app (`hooks/useGame.ts`).
 
 ## Methodology
 
 Both implementations were tested using:
+
 - Direct comparison using the underlying chess.js instance
 - React Testing Library's `renderHook` for Next.js implementation
 - All 27 FEN fixtures covering edge cases
@@ -42,11 +43,11 @@ const [game] = useState(() => new Chess());
 
 The only differences are architectural, not functional:
 
-| Aspect | Legacy (src/game.ts) | Next.js (hooks/useGame.ts) |
-|--------|---------------------|---------------------------|
-| State Management | Module-level state object | React useState/useCallback |
-| API Style | Imperative (direct calls) | Hook-based (React patterns) |
-| Timer Management | setInterval/clearInterval | useRef + setInterval |
+| Aspect            | Legacy (src/game.ts)           | Next.js (hooks/useGame.ts)       |
+| ----------------- | ------------------------------ | -------------------------------- |
+| State Management  | Module-level state object      | React useState/useCallback       |
+| API Style         | Imperative (direct calls)      | Hook-based (React patterns)      |
+| Timer Management  | setInterval/clearInterval      | useRef + setInterval             |
 | Move Notification | Callbacks (onMove, onGameOver) | State updates trigger re-renders |
 
 **Critical:** Both delegate all chess logic (move validation, game state, SAN) to the same chess.js instance, ensuring identical behavior.
@@ -103,6 +104,7 @@ Total: 53 tests, 0 failures
 **Validation:** All legal moves generated identically in both implementations
 
 Evidence:
+
 - Starting position: 20 legal moves (16 pawn + 4 knight)
 - After 1.e4: 20 legal moves for Black
 - Castling rights respected correctly
@@ -117,6 +119,7 @@ Evidence:
 **Validation:** Check, checkmate, stalemate, and draw detection identical
 
 Evidence:
+
 - Checkmate fixtures: Both detect same checkmate state
 - Stalemate fixtures: Both detect stalemate correctly (corner, trapped king, pawn trap)
 - Check detection: Identical across all positions
@@ -131,6 +134,7 @@ Evidence:
 **Validation:** Standard Algebraic Notation generated identically
 
 Evidence:
+
 - Pawn moves: `e4`, `exd5`
 - Piece moves: `Nf3`, `Bc4`, `Qh5`
 - Castling: `O-O`, `O-O-O`
@@ -147,6 +151,7 @@ Evidence:
 **Validation:** Move history structure and ply grouping identical
 
 Evidence:
+
 - History structure: Same verbose move objects
 - Move numbering: Correctly calculated (Math.floor(i / 2) + 1)
 - Ply grouping: Moves correctly grouped by pairs (white + black)
@@ -198,11 +203,13 @@ Evidence:
 ### FEN Fixtures (27 files)
 
 All FEN fixtures validated for:
+
 - Legal move generation consistency
 - Game state detection consistency
 - Move execution consistency
 
 Categories:
+
 - `basic-*.fen` (3): Starting position, empty board, after e4
 - `castling-*.fen` (4): All rights, no rights, partial rights, ready position
 - `enpassant-*.fen` (3): White can capture, black can capture, not available
@@ -215,11 +222,13 @@ Categories:
 ### PGN Fixtures (10 files)
 
 All PGN fixtures validated for:
+
 - PGN parsing consistency
 - Move replay consistency
 - PGN export format consistency
 
 Categories:
+
 - `short-*.pgn` (3): Scholar's mate, fool's mate, draw
 - `standard-*.pgn` (7): Italian, Caro-Kann, Ruy Lopez, French Defense, Queen's Gambit, Sicilian Defense, King's Indian
 

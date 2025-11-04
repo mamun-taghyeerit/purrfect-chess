@@ -46,7 +46,7 @@ This project follows modern automation principles with a focus on **purrfection*
   - Configuration at top: `STOCKFISH_VERSION`, `VARIANT`, `VARIANT_HASH`
   - Supports multiple variants: `lite-single`, `lite`, `single`, `full`
   - Currently using: `lite-single` (~7MB, no CORS required, single-threaded WASM)
-  
+
 ### When Adding Dependencies
 
 **ALWAYS prefer automation over manual copying:**
@@ -57,6 +57,7 @@ This project follows modern automation principles with a focus on **purrfection*
 4. Document the automation in this file
 
 **NEVER:**
+
 - Manually copy files from node_modules to public/
 - Commit auto-generated files that can be regenerated from dependencies
 - Create manual processes when automation is possible

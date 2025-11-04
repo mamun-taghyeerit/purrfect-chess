@@ -2,20 +2,20 @@ import React from 'react';
 
 /**
  * EvaluationBar Component
- * 
+ *
  * Purpose: Display a visual evaluation bar showing position advantage.
- * 
+ *
  * Status: STUB - Props defined, rendering not implemented.
- * 
+ *
  * Phase X Task: Wire this component into the main page and implement rendering.
- * 
+ *
  * Design:
  * - Vertical bar on left/right side of board
  * - White advantage: bar extends upward
  * - Black advantage: bar extends downward
  * - Even position: bar centered
  * - Mate scores: full bar with "M" indicator
- * 
+ *
  * TODO (Phase X):
  * 1. Implement visual bar rendering (SVG or CSS)
  * 2. Convert centipawn score to bar height (-1000 to +1000 cp → 0% to 100%)
@@ -61,7 +61,7 @@ export interface EvaluationBarProps {
 
 export default function EvaluationBar(_props: EvaluationBarProps) {
   // TODO(Phase X): Implement evaluation bar rendering
-  // 
+  //
   // const {
   //   scoreCp = 0,
   //   mateIn = null,

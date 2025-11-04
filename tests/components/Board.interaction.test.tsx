@@ -1,6 +1,6 @@
 /**
  * Tests for Board interaction semantics parity with legacy implementation
- * 
+ *
  * Validates:
  * - Click-to-select, click-to-move, re-selection
  * - Drag-and-drop with proper state management
@@ -52,7 +52,9 @@ const createMockGameState = (overrides = {}) => ({
       { from: 'e2', to: 'e4', san: 'e4', flags: 'b' },
     ]),
     board: vi.fn(),
-    fen: vi.fn(() => 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
+    fen: vi.fn(
+      () => 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    ),
     history: vi.fn(() => []),
     turn: vi.fn(() => 'w'),
     isCheck: vi.fn(() => false),
@@ -118,7 +120,7 @@ describe('Board Interaction Semantics', () => {
 
       // Click d2 (different piece) - should re-select
       fireEvent.click(d2Square!);
-      
+
       // e2 should no longer be selected, d2 should be selected
       expect(e2Square?.classList.contains('selected')).toBe(false);
       expect(d2Square?.classList.contains('selected')).toBe(true);
@@ -157,7 +159,7 @@ describe('Board Interaction Semantics', () => {
 
       // Click e4 to move
       fireEvent.click(e4Square!);
-      
+
       expect(mockMovePiece).toHaveBeenCalledWith('e2', 'e4');
       expect(e2Square?.classList.contains('selected')).toBe(false);
     });
@@ -310,7 +312,13 @@ describe('Board Interaction Semantics', () => {
           ...createMockGameState().game,
           moves: vi.fn(() => [
             { from: 'e2', to: 'e3', san: 'e3', flags: 'n' },
-            { from: 'e2', to: 'e4', san: 'e4', flags: 'b', captured: undefined },
+            {
+              from: 'e2',
+              to: 'e4',
+              san: 'e4',
+              flags: 'b',
+              captured: undefined,
+            },
           ]),
         },
       });
@@ -329,7 +337,7 @@ describe('Board Interaction Semantics', () => {
       // Check drag-specific classes are applied
       expect(e2Square?.classList.contains('drag-selected')).toBe(true);
       expect(e3Square?.classList.contains('drag-move-hint')).toBe(true);
-      
+
       // Regular classes should NOT be present during drag
       expect(e2Square?.classList.contains('selected')).toBe(false);
       expect(e3Square?.classList.contains('legal-move-hint')).toBe(false);
@@ -357,7 +365,7 @@ describe('Board Interaction Semantics', () => {
       // Check normal classes are applied
       expect(e2Square?.classList.contains('selected')).toBe(true);
       expect(e3Square?.classList.contains('legal-move-hint')).toBe(true);
-      
+
       // Drag classes should NOT be present
       expect(e2Square?.classList.contains('drag-selected')).toBe(false);
       expect(e3Square?.classList.contains('drag-move-hint')).toBe(false);

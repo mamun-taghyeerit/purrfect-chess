@@ -4,12 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 /**
  * Appearance Controls Component
- * 
+ *
  * Ported from src/ui.ts (lines 20-341)
  * Provides sliders for customizing board appearance:
  * - Light/Dark square colors (hue, saturation, brightness)
  * - White/Black piece colors (hue, saturation, brightness, scale)
- * 
+ *
  * Uses CSS custom properties to apply filters
  */
 
@@ -54,44 +54,143 @@ const groupConfigs: GroupConfig[] = [
     key: 'light',
     label: 'Light Squares',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
     ],
   },
   {
     key: 'dark',
     label: 'Dark Squares',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
     ],
   },
   {
     key: 'whitePieces',
     label: 'White Pieces',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` },
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'scale',
+        label: 'Size',
+        min: 80,
+        max: 120,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
     ],
   },
   {
     key: 'blackPieces',
     label: 'Black Pieces',
     sliders: [
-      { key: 'hue', label: 'Hue', min: -180, max: 180, step: 1, format: (v) => `${v}°` },
-      { key: 'saturation', label: 'Saturation', min: 0, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'brightness', label: 'Brightness', min: 25, max: 200, step: 1, format: (v) => `${v}%` },
-      { key: 'scale', label: 'Size', min: 80, max: 120, step: 1, format: (v) => `${v}%` },
+      {
+        key: 'hue',
+        label: 'Hue',
+        min: -180,
+        max: 180,
+        step: 1,
+        format: (v) => `${v}°`,
+      },
+      {
+        key: 'saturation',
+        label: 'Saturation',
+        min: 0,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'brightness',
+        label: 'Brightness',
+        min: 25,
+        max: 200,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
+      {
+        key: 'scale',
+        label: 'Size',
+        min: 80,
+        max: 120,
+        step: 1,
+        format: (v) => `${v}%`,
+      },
     ],
   },
 ];
 
 export default function AppearanceControls() {
-  const [appearance, setAppearance] = useState<AppearanceState>(appearanceDefaults);
+  const [appearance, setAppearance] =
+    useState<AppearanceState>(appearanceDefaults);
 
   // Helper to calculate scale value
   const formatScale = (scale: number) => ((scale || 100) / 100).toFixed(2);
@@ -109,10 +208,16 @@ export default function AppearanceControls() {
         root.style.setProperty('--dark-square-filter', filter);
       } else if (key === 'whitePieces') {
         root.style.setProperty('--white-piece-filter', filter);
-        root.style.setProperty('--white-piece-scale', formatScale(group.scale || 100));
+        root.style.setProperty(
+          '--white-piece-scale',
+          formatScale(group.scale || 100)
+        );
       } else if (key === 'blackPieces') {
         root.style.setProperty('--black-piece-filter', filter);
-        root.style.setProperty('--black-piece-scale', formatScale(group.scale || 100));
+        root.style.setProperty(
+          '--black-piece-scale',
+          formatScale(group.scale || 100)
+        );
       }
     });
   }, []);
@@ -161,7 +266,10 @@ export default function AppearanceControls() {
       </div>
 
       {groupConfigs.map((group) => (
-        <div key={group.key} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div
+          key={group.key}
+          className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+        >
           <div className="flex justify-between items-center mb-3">
             <h4 className="font-medium text-sm">{group.label}</h4>
             <button
@@ -193,7 +301,11 @@ export default function AppearanceControls() {
                     step={slider.step}
                     value={value}
                     onChange={(e) =>
-                      handleSliderChange(group.key, slider.key, Number(e.target.value))
+                      handleSliderChange(
+                        group.key,
+                        slider.key,
+                        Number(e.target.value)
+                      )
                     }
                     className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                   />

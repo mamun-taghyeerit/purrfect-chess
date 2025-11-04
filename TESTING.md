@@ -77,16 +77,17 @@ describe('MyButton', () => {
   it('should call onClick when clicked', () => {
     const handleClick = vi.fn();
     render(<MyButton onClick={handleClick}>Click me</MyButton>);
-    
+
     const button = screen.getByText('Click me');
     fireEvent.click(button);
-    
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 });
 ```
 
 **Key Points:**
+
 - No need to import React explicitly (handled by vitest config)
 - Use `screen` queries to find elements
 - Use `fireEvent` or `userEvent` to simulate interactions
@@ -106,17 +107,18 @@ import { useCounter } from '@/hooks/useCounter';
 describe('useCounter', () => {
   it('should increment counter', () => {
     const { result } = renderHook(() => useCounter());
-    
+
     act(() => {
       result.current.increment();
     });
-    
+
     expect(result.current.count).toBe(1);
   });
 });
 ```
 
 **Key Points:**
+
 - Use `renderHook` to test hooks in isolation
 - Wrap state updates in `act()` to ensure React updates are flushed
 - Test the hook's public API, not implementation details
@@ -135,11 +137,11 @@ import { DataComponent } from '@/components/DataComponent';
 describe('DataComponent', () => {
   it('should display data after loading', async () => {
     render(<DataComponent />);
-    
+
     // Use findBy for elements that appear asynchronously
     const data = await screen.findByText('Loaded data');
     expect(data).toBeInTheDocument();
-    
+
     // Or use waitFor for more complex conditions
     await waitFor(() => {
       expect(screen.getByText('Loaded data')).toBeInTheDocument();
@@ -191,22 +193,24 @@ vi.stubGlobal('Worker', MockWorker);
 ### DO ✅
 
 1. **Test user behavior, not implementation**
+
    ```tsx
    // Good: Test what the user sees
    expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
-   
+
    // Bad: Test internal state
    expect(component.state.isSubmitting).toBe(false);
    ```
 
 2. **Use accessible queries**
+
    ```tsx
    // Preferred order:
-   screen.getByRole('button', { name: /submit/i })
-   screen.getByLabelText('Username')
-   screen.getByPlaceholderText('Enter name')
-   screen.getByText('Welcome')
-   screen.getByTestId('custom-element') // Last resort
+   screen.getByRole('button', { name: /submit/i });
+   screen.getByLabelText('Username');
+   screen.getByPlaceholderText('Enter name');
+   screen.getByText('Welcome');
+   screen.getByTestId('custom-element'); // Last resort
    ```
 
 3. **Clean up after tests**
@@ -214,23 +218,25 @@ vi.stubGlobal('Worker', MockWorker);
    - For manual cleanup needs, use `afterEach` or `beforeEach`
 
 4. **Use descriptive test names**
+
    ```tsx
    // Good
-   it('should display error message when form is invalid')
-   
+   it('should display error message when form is invalid');
+
    // Bad
-   it('test 1')
+   it('test 1');
    ```
 
 5. **Organize tests with describe blocks**
+
    ```tsx
    describe('MyComponent', () => {
      describe('when user is logged in', () => {
-       it('should show dashboard')
+       it('should show dashboard');
      });
-     
+
      describe('when user is logged out', () => {
-       it('should show login form')
+       it('should show login form');
      });
    });
    ```
@@ -246,11 +252,12 @@ vi.stubGlobal('Worker', MockWorker);
    - Use accessible queries from `screen` instead
 
 3. **Don't forget to handle async operations**
+
    ```tsx
    // Bad - will likely fail
    render(<AsyncComponent />);
    expect(screen.getByText('Data')).toBeInTheDocument();
-   
+
    // Good
    render(<AsyncComponent />);
    await screen.findByText('Data');
@@ -270,14 +277,14 @@ import userEvent from '@testing-library/user-event';
 it('should submit form with valid data', async () => {
   const onSubmit = vi.fn();
   render(<LoginForm onSubmit={onSubmit} />);
-  
+
   // Type in fields
   await userEvent.type(screen.getByLabelText('Email'), 'test@example.com');
   await userEvent.type(screen.getByLabelText('Password'), 'password123');
-  
+
   // Submit form
   fireEvent.click(screen.getByRole('button', { name: /login/i }));
-  
+
   expect(onSubmit).toHaveBeenCalledWith({
     email: 'test@example.com',
     password: 'password123',
@@ -290,10 +297,10 @@ it('should submit form with valid data', async () => {
 ```tsx
 it('should apply CSS variables', () => {
   render(<AppearanceControls />);
-  
+
   const root = document.documentElement;
   const filterValue = root.style.getPropertyValue('--light-square-filter');
-  
+
   expect(filterValue).toContain('hue-rotate(0deg)');
 });
 ```
@@ -303,9 +310,9 @@ it('should apply CSS variables', () => {
 ```tsx
 it('should respond to keyboard events', () => {
   render(<KeyboardComponent />);
-  
+
   fireEvent.keyDown(document, { key: 'Escape' });
-  
+
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 ```
@@ -353,11 +360,13 @@ vi.stubGlobal('Worker', MockWorker);
 ### Issue: Tests are slow
 
 **Possible causes:**
+
 1. Too many components rendering in a single test
 2. Not cleaning up timers/intervals
 3. Waiting for unnecessary timeouts
 
 **Solutions:**
+
 - Use `vi.useFakeTimers()` for testing timeouts
 - Ensure cleanup with `afterEach`
 - Split large tests into smaller, focused tests
@@ -381,11 +390,13 @@ yarn test:coverage
 ```
 
 Coverage reports are generated in:
+
 - Text format (console output)
 - HTML format (`coverage/index.html`)
 - JSON format (`coverage/coverage-final.json`)
 
 **Coverage targets:**
+
 - Aim for >80% coverage on critical paths
 - 100% coverage is not always necessary or practical
 - Focus on high-value, user-facing code

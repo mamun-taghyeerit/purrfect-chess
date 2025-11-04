@@ -14,6 +14,7 @@ This guide helps contributors work on Phase X parity tasks efficiently while min
 ### 1. Legacy is Source of Truth
 
 The legacy Vite app in `src/` defines correct behavior. When in doubt:
+
 - Check legacy implementation first
 - Match legacy behavior exactly
 - Document any intentional deviations
@@ -21,12 +22,14 @@ The legacy Vite app in `src/` defines correct behavior. When in doubt:
 ### 2. Test with Fixtures
 
 Use provided test corpuses to validate parity:
+
 - **FEN fixtures:** `docs/fixtures/fen/*.fen` (25 positions)
 - **PGN fixtures:** `docs/fixtures/pgn/*.pgn` (10 games)
 
 ### 3. Side-by-Side Validation
 
 Always run both apps side-by-side:
+
 ```bash
 # Terminal 1: Legacy
 yarn dev          # → http://localhost:5173
@@ -40,6 +43,7 @@ Compare visually and functionally for each change.
 ### 4. Modular Development
 
 Follow separation of concerns to enable parallel work:
+
 - One component per file
 - One fixture per file
 - One test suite per feature
@@ -50,6 +54,7 @@ Follow separation of concerns to enable parallel work:
 ### Step 1: Choose a Workstream
 
 See [`docs/phase-x-parity.md`](./phase-x-parity.md) for 14 workstreams. Pick one that:
+
 - Is not already in progress (check Issue #40 comments)
 - Matches your expertise
 - Has clear acceptance criteria
@@ -75,12 +80,14 @@ yarn test
 Study the legacy code for your workstream:
 
 **Example: Arrow Drawing (Workstream #9)**
+
 ```bash
 # View legacy arrow implementation
 cat src/board.ts | grep -A 20 "arrow"
 ```
 
 Understand:
+
 - Data structures used
 - Interaction model (right-click drag)
 - Visual rendering approach
@@ -100,6 +107,7 @@ components/
 ```
 
 Each component:
+
 - Has one clear purpose
 - Accepts well-typed props
 - Returns JSX (or null if stub)
@@ -133,7 +141,10 @@ Test with fixtures as you develop:
 
 ```typescript
 // Load fixture
-const fen = readFileSync('docs/fixtures/fen/castling-ready-position.fen', 'utf-8');
+const fen = readFileSync(
+  'docs/fixtures/fen/castling-ready-position.fen',
+  'utf-8'
+);
 
 // Test in component
 loadFen(fen);
@@ -179,6 +190,7 @@ Follow [`docs/runbooks/side-by-side.md`](./runbooks/side-by-side.md):
 ```
 
 Acceptance criteria:
+
 - **Visual:** ≤2px difference
 - **Functional:** Identical behavior
 - **Performance:** Equal or better
@@ -194,11 +206,13 @@ If you discover parity issues:
 **Severity:** Minor
 
 **Legacy Behavior:**
+
 - Arrows persist until manually cleared
 - Right-click drag creates arrow
 - Maximum 10 arrows allowed
 
 **Next.js Behavior:**
+
 - Arrows clear on board click (bug)
 - No limit on arrow count
 
@@ -220,6 +234,7 @@ git push origin feat/arrow-drawing-parity
 ```
 
 PR description should include:
+
 - **Workstream:** Which of the 14 workstreams
 - **Fixtures Tested:** List FEN/PGN files tested
 - **Parity Status:** Visual/functional/performance results
@@ -233,11 +248,13 @@ PR description should include:
 Work on different files from other contributors:
 
 **Good:**
+
 - Alice: `components/ArrowOverlay.tsx`
 - Bob: `components/EvaluationBar.tsx`
 - Carol: `tests/parity/fenpgn.roundtrip.test.ts`
 
 **Bad:**
+
 - Alice: `components/Board.tsx` (lines 1-50)
 - Bob: `components/Board.tsx` (lines 51-100)
 - Carol: `components/Board.tsx` (lines 101-150)

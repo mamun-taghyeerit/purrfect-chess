@@ -71,7 +71,7 @@ describe('AppearanceControls component', () => {
 
       // Get all groups
       const groups = container.querySelectorAll('.border');
-      
+
       // Each group should have a reset button
       groups.forEach((group) => {
         const resetButton = group.querySelector('button');

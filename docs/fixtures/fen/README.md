@@ -44,6 +44,7 @@ const fenFixture = readFileSync(
 ## Fixture Format
 
 Each `.fen` file contains:
+
 - Line 1: FEN string
 - Line 2+: Comment describing the position (optional)
 

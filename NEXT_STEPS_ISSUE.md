@@ -61,6 +61,7 @@ Below is the original next steps document, preserved for historical reference.
 This issue tracks the remaining work to complete the Next.js migration for Purrfect Chess, following the initial skeleton setup in the migration PR.
 
 The skeleton provides:
+
 - ✅ Next.js 14 + React 18 + TypeScript setup
 - ✅ Placeholder Board component with chess.js integration
 - ✅ Stub implementations for engine hooks and workers
@@ -79,26 +80,30 @@ These tasks port the essential chess functionality from vanilla TypeScript to Re
 **Priority: HIGH** - ✅ COMPLETE
 
 ✅ **Replace Unicode pieces with PNG images** from `/public/assets/`
-  - Use `w_pawn.png`, `b_knight.png`, etc. instead of Unicode symbols
-  - Implement proper piece rendering with Next.js Image component
-  - Related file: `src/board.ts` (lines 6-23, piece image paths)
+
+- Use `w_pawn.png`, `b_knight.png`, etc. instead of Unicode symbols
+- Implement proper piece rendering with Next.js Image component
+- Related file: `src/board.ts` (lines 6-23, piece image paths)
 
 ✅ **Implement drag-and-drop functionality**
-  - Port drag handlers from `src/board.ts` (dragFrom, dragTo, interactive state)
-  - Add HTML5 drag-and-drop events with `onDragStart`, `onDragOver`, `onDrop`
-  - Handle piece selection and move execution via `useGame` hook
-  - Related file: `src/board.ts` (lines 47-50, drag state)
+
+- Port drag handlers from `src/board.ts` (dragFrom, dragTo, interactive state)
+- Add HTML5 drag-and-drop events with `onDragStart`, `onDragOver`, `onDrop`
+- Handle piece selection and move execution via `useGame` hook
+- Related file: `src/board.ts` (lines 47-50, drag state)
 
 ✅ **Implement click-to-select and click-to-move interaction**
-  - Click piece to select and show legal moves
-  - Click destination square to move
-  - Click different piece to change selection
+
+- Click piece to select and show legal moves
+- Click destination square to move
+- Click different piece to change selection
 
 ✅ **Add square highlighting**
-  - Legal move indicators (green circles for empty squares, rings for captures)
-  - Last move highlighting (yellow background overlay)
-  - Selected square highlighting (blue ring)
-  - Related file: `src/board.ts` (BoardRenderOptions interface)
+
+- Legal move indicators (green circles for empty squares, rings for captures)
+- Last move highlighting (yellow background overlay)
+- Selected square highlighting (blue ring)
+- Related file: `src/board.ts` (BoardRenderOptions interface)
 
 - [ ] **Implement custom themes**
   - Piece opacity slider (customization from UI)
@@ -146,6 +151,7 @@ Complete the engine worker and hook from stubs to fully functional UCI implement
 **Stockfish Variant Details:**
 
 **Selected Variant**: Lite Single-threaded WASM
+
 - **Version**: 17.1.0 (commit hash: 03e3232)
 - **Format**: WebAssembly (WASM)
 - **Threading**: Single-threaded (no SharedArrayBuffer/CORS required)
@@ -156,6 +162,7 @@ Complete the engine worker and hook from stubs to fully functional UCI implement
 - **Performance**: Native WASM speed (faster than asm.js)
 
 **Why This Variant?**
+
 1. **No CORS requirements**: Works on any hosting platform without special headers
 2. **Reasonable size**: ~7MB vs ~75MB for full version (better for web delivery)
 3. **Single-threaded**: Simpler threading model, no SharedArrayBuffer complexity
@@ -163,12 +170,14 @@ Complete the engine worker and hook from stubs to fully functional UCI implement
 5. **Sufficient strength**: Good enough for casual browser-based analysis
 
 **Other Variants Available** (change in `scripts/vendor-stockfish.js`):
+
 - **lite** (multi-threaded): ~7MB, requires CORS, faster on multi-core
 - **single** (full): ~75MB, no CORS, strongest single-threaded
 - **full** (multi-threaded): ~75MB, requires CORS, strongest overall
 - **asm** (asm.js): ~10MB, no WASM, universal compatibility (slowest)
 
 **Automation Approach**:
+
 - Stockfish package is a **devDependency** (not committed to repo)
 - Binaries are **auto-vendored** during build from `node_modules/stockfish/src/`
 - Vendor script is **ESM format** (consistent with `"type": "module"` in package.json)
@@ -176,6 +185,7 @@ Complete the engine worker and hook from stubs to fully functional UCI implement
 - Upgrade path: `yarn upgrade stockfish` + update hash in vendor script
 
 This approach provides:
+
 - ✅ Reproducible builds (same version across environments)
 - ✅ Easy upgrades (just update package version)
 - ✅ No manual file management
@@ -187,43 +197,49 @@ This approach provides:
 **Priority: MEDIUM** - ✅ COMPLETE
 
 ✅ **Implement time controls in `hooks/useGame.ts`**
-  - Add clock state (white time, black time, active color)
-  - Implement timer with increment support (100ms tick interval)
-  - Handle time expiration (flag fall) and timeout game over
-  - Port logic from `src/game.ts` (lines 6-20, time state; lines 32-60, timer logic)
-  - Port logic from `src/game/time-controls.ts`
+
+- Add clock state (white time, black time, active color)
+- Implement timer with increment support (100ms tick interval)
+- Handle time expiration (flag fall) and timeout game over
+- Port logic from `src/game.ts` (lines 6-20, time state; lines 32-60, timer logic)
+- Port logic from `src/game/time-controls.ts`
 
 ✅ **Create time control UI components**
-  - `components/TimeControlSelector.tsx` for time selection (presets: 1+0, 3+0, 3+2, 5+0, 5+1, 10+0, 15+10, 30+0)
-  - `components/Clock.tsx` to display remaining time for both players (MM:SS format)
-  - Visual indication of active player's clock
-  - Disable selector after game starts
-  - Related file: `src/ui.ts` (time control DOM elements)
+
+- `components/TimeControlSelector.tsx` for time selection (presets: 1+0, 3+0, 3+2, 5+0, 5+1, 10+0, 15+10, 30+0)
+- `components/Clock.tsx` to display remaining time for both players (MM:SS format)
+- Visual indication of active player's clock
+- Disable selector after game starts
+- Related file: `src/ui.ts` (time control DOM elements)
 
 ✅ **Port UI control components**
-  - `components/GameControls.tsx` with Reset, FEN Import/Export, PGN Export buttons
-  - `components/MoveHistory.tsx` to display move list in algebraic notation
-  - Implement handlers using `useGame` hook methods
-  - Related file: `src/ui.ts` (control panel initialization)
+
+- `components/GameControls.tsx` with Reset, FEN Import/Export, PGN Export buttons
+- `components/MoveHistory.tsx` to display move list in algebraic notation
+- Implement handlers using `useGame` hook methods
+- Related file: `src/ui.ts` (control panel initialization)
 
 ### 2.4 Move History & Validation
 
 **Priority: MEDIUM** - ✅ COMPLETE
 
 ✅ **Create `components/MoveHistory.tsx`**
-  - Display move list in algebraic notation (SAN)
-  - Group by move pairs (White & Black)
-  - Scrollable container with max height
-  - Port logic from `src/game.ts` (move history tracking)
+
+- Display move list in algebraic notation (SAN)
+- Group by move pairs (White & Black)
+- Scrollable container with max height
+- Port logic from `src/game.ts` (move history tracking)
 
 ✅ **Port move validation utilities**
-  - Integrate chess.js into `useGame` hook for move legality checks
-  - Expose game state (check, checkmate, stalemate)
-  - Add FEN/PGN import/export support
+
+- Integrate chess.js into `useGame` hook for move legality checks
+- Expose game state (check, checkmate, stalemate)
+- Add FEN/PGN import/export support
 
 ---
 
 **Phase 2 Summary:** Core chess functionality is now complete! The Next.js app has:
+
 - ✅ Fully functional chess board with piece images
 - ✅ Drag-and-drop and click-to-move interaction
 - ✅ Legal move highlighting
@@ -233,6 +249,7 @@ This approach provides:
 - ✅ Game status detection (check, checkmate, stalemate, timeout)
 
 **Remaining Phase 2 tasks:**
+
 - Appearance customization (theme sliders)
 - Stockfish engine integration
 - Engine analysis panel
@@ -345,19 +362,19 @@ Port the Easter egg feature:
 
 ### Module Mapping Reference
 
-| Vanilla TS Module | Next.js Equivalent | Status |
-|-------------------|-------------------|--------|
-| `src/main.ts` | `app/page.tsx` | ✅ Complete |
-| `src/board.ts` | `components/Board.tsx` | 🟡 Partial (placeholder) |
-| `src/game.ts` | `hooks/useGame.ts` | 🟡 Partial (basic logic) |
-| `src/engine.ts` | `hooks/useEngine.ts` + `workers/stockfish.worker.ts` | 🟡 Stub only |
-| `src/ui.ts` | Multiple components (Controls, Clock, etc.) | ⭕ Not started |
-| `src/types.ts` | Reusable as-is | ✅ Complete |
-| `src/engine/uci-parser.ts` | `lib/uci-parser.ts` or inline in worker | ⭕ Not started |
-| `src/game/move-validator.ts` | `lib/move-validator.ts` | ⭕ Not started |
-| `src/game/position-utils.ts` | `lib/position-utils.ts` | ⭕ Not started |
-| `src/game/time-controls.ts` | Integrated into `useGame` | ⭕ Not started |
-| `src/ui/easter-egg.ts` | `lib/easter-egg.ts` + component | ⭕ Not started |
+| Vanilla TS Module            | Next.js Equivalent                                   | Status                   |
+| ---------------------------- | ---------------------------------------------------- | ------------------------ |
+| `src/main.ts`                | `app/page.tsx`                                       | ✅ Complete              |
+| `src/board.ts`               | `components/Board.tsx`                               | 🟡 Partial (placeholder) |
+| `src/game.ts`                | `hooks/useGame.ts`                                   | 🟡 Partial (basic logic) |
+| `src/engine.ts`              | `hooks/useEngine.ts` + `workers/stockfish.worker.ts` | 🟡 Stub only             |
+| `src/ui.ts`                  | Multiple components (Controls, Clock, etc.)          | ⭕ Not started           |
+| `src/types.ts`               | Reusable as-is                                       | ✅ Complete              |
+| `src/engine/uci-parser.ts`   | `lib/uci-parser.ts` or inline in worker              | ⭕ Not started           |
+| `src/game/move-validator.ts` | `lib/move-validator.ts`                              | ⭕ Not started           |
+| `src/game/position-utils.ts` | `lib/position-utils.ts`                              | ⭕ Not started           |
+| `src/game/time-controls.ts`  | Integrated into `useGame`                            | ⭕ Not started           |
+| `src/ui/easter-egg.ts`       | `lib/easter-egg.ts` + component                      | ⭕ Not started           |
 
 ---
 

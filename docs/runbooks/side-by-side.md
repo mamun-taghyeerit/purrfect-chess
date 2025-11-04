@@ -3,6 +3,7 @@
 **Purpose:** Validate functional and visual parity between the legacy Vite app and the Next.js app.
 
 **Prerequisites:**
+
 - Node.js installed (see `.nvmrc`)
 - Dependencies installed (`yarn`)
 - Stockfish binaries vendored (`yarn vendor:stockfish`)
@@ -35,6 +36,7 @@ yarn next:dev
 ### Scenario 1: Initial Board Rendering
 
 **Test:**
+
 1. Load both apps
 2. Compare initial board position
 3. Check coordinate labels (a-h, 1-8)
@@ -43,6 +45,7 @@ yarn next:dev
 **Expected:** Identical visual appearance within ≤2px tolerance.
 
 **Checklist:**
+
 - [ ] Board squares render identically
 - [ ] Pieces positioned identically
 - [ ] Coordinate labels match
@@ -53,6 +56,7 @@ yarn next:dev
 ### Scenario 2: Piece Movement (Click)
 
 **Test:**
+
 1. Click e2 pawn in both apps
 2. Verify legal move indicators (green circles)
 3. Click e4 to move
@@ -61,6 +65,7 @@ yarn next:dev
 **Expected:** Identical interaction and visual feedback.
 
 **Checklist:**
+
 - [ ] Legal moves highlighted identically
 - [ ] Move executes on click
 - [ ] Last move highlighting matches
@@ -71,6 +76,7 @@ yarn next:dev
 ### Scenario 3: Piece Movement (Drag-and-Drop)
 
 **Test:**
+
 1. Drag e2 pawn to e4 in both apps
 2. Verify drag feedback
 3. Verify drop acceptance
@@ -79,6 +85,7 @@ yarn next:dev
 **Expected:** Identical drag-and-drop behavior.
 
 **Checklist:**
+
 - [ ] Drag cursor feedback matches
 - [ ] Legal drop zones highlighted identically
 - [ ] Move executes on drop
@@ -89,6 +96,7 @@ yarn next:dev
 ### Scenario 4: FEN Import/Export
 
 **Test:**
+
 1. Load test FEN: `rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2`
 2. Compare board positions
 3. Export FEN from both apps
@@ -97,6 +105,7 @@ yarn next:dev
 **Expected:** Identical FEN import/export format.
 
 **Checklist:**
+
 - [ ] Board renders identically from FEN
 - [ ] Exported FEN strings match exactly
 - [ ] Round-trip FEN (import → export) preserves data
@@ -108,6 +117,7 @@ yarn next:dev
 ### Scenario 5: PGN Export
 
 **Test:**
+
 1. Play moves: e4 e5 Nf3 Nc6
 2. Export PGN from both apps
 3. Compare PGN format and headers
@@ -115,6 +125,7 @@ yarn next:dev
 **Expected:** Identical PGN format.
 
 **Checklist:**
+
 - [ ] PGN headers match (Event, Site, Date, etc.)
 - [ ] Move notation matches (SAN format)
 - [ ] Result field matches
@@ -127,6 +138,7 @@ yarn next:dev
 ### Scenario 6: Time Controls
 
 **Test:**
+
 1. Select "3+2" time control in both apps
 2. Make moves and observe clocks
 3. Verify increment application
@@ -135,6 +147,7 @@ yarn next:dev
 **Expected:** Identical timing behavior (within system clock precision).
 
 **Checklist:**
+
 - [ ] Initial times match (3:00)
 - [ ] Clocks countdown identically
 - [ ] Increment applies identically (+2 seconds)
@@ -145,6 +158,7 @@ yarn next:dev
 ### Scenario 7: Engine Analysis
 
 **Test:**
+
 1. Trigger "gmmamun" Easter egg in both apps
 2. Start analysis with depth 15
 3. Compare multi-PV output
@@ -153,6 +167,7 @@ yarn next:dev
 **Expected:** Identical engine analysis display.
 
 **Checklist:**
+
 - [ ] Easter egg triggers identically
 - [ ] Engine panel appears identically
 - [ ] Multi-PV lines match
@@ -160,6 +175,7 @@ yarn next:dev
 - [ ] Depth progression matches
 
 **Acceptable Variance:**
+
 - Engine scores may differ by ±5 centipawns (non-deterministic search)
 - Time to reach depth may vary by ±20% (CPU differences)
 - Move ordering in multi-PV may differ at same depth (engine exploration)
@@ -172,6 +188,7 @@ yarn next:dev
 ### Scenario 8: Appearance Customization
 
 **Test:**
+
 1. Adjust "Light Squares" hue slider to +90°
 2. Compare visual effect
 3. Adjust "White Pieces" scale to 110%
@@ -181,6 +198,7 @@ yarn next:dev
 **Expected:** Identical visual effects from appearance controls.
 
 **Checklist:**
+
 - [ ] Slider ranges match
 - [ ] Visual effects match (hue, saturation, brightness)
 - [ ] Piece scale matches
@@ -191,6 +209,7 @@ yarn next:dev
 ### Scenario 9: Game States
 
 **Test:**
+
 1. Load checkmate FEN: `r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4`
 2. Verify "Checkmate" message
 3. Load stalemate FEN (see `docs/fixtures/fen/stalemate-*.fen`)
@@ -199,6 +218,7 @@ yarn next:dev
 **Expected:** Identical game state detection and UI messaging.
 
 **Checklist:**
+
 - [ ] Checkmate detected identically
 - [ ] Stalemate detected identically
 - [ ] Check detected identically
@@ -211,6 +231,7 @@ yarn next:dev
 ### Scenario 10: Arrow Drawing (Legacy Feature)
 
 **Test:**
+
 1. **Legacy only:** Right-click drag from e2 to e4
 2. Verify arrow appears
 3. **Next.js:** Feature not yet implemented
@@ -220,6 +241,7 @@ yarn next:dev
 **Status:** ⏳ Not implemented in Next.js (Phase X task).
 
 **Checklist:**
+
 - [ ] Arrow drawing UI implemented
 - [ ] Right-click drag creates arrow
 - [ ] Multiple arrows supported

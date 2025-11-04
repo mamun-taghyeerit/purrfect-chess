@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2025-11-04  
-**Decision Makers:** Purrfect Chess Team  
+**Decision Makers:** Purrfect Chess Team
 
 ## Context
 
@@ -57,6 +57,7 @@ Phase X focuses on:
 5. **Verification**: Ensure ≤2px visual tolerance and identical behavior
 
 Phase X is **complete** when:
+
 - All acceptance criteria met
 - All fixtures pass in both apps
 - Side-by-side comparison shows no meaningful deltas
@@ -105,6 +106,7 @@ Phase X is **complete** when:
 Phase X will be tracked in [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) with the following deliverables:
 
 ### Documentation
+
 - `docs/phase-x-parity.md` - Master parity document
 - `docs/adr/0001-phase-x-parity-approach.md` - This ADR
 - `docs/runbooks/side-by-side.md` - Side-by-side validation guide
@@ -112,15 +114,18 @@ Phase X will be tracked in [Issue #40](https://github.com/purrfectsoft/purrfect-
 - Update `MIGRATION.md` to reference Phase X
 
 ### Fixtures
+
 - `docs/fixtures/fen/` - 25 FEN positions (edge cases, special positions)
 - `docs/fixtures/pgn/` - 10 PGN games (various game lengths, scenarios)
 
 ### Test Scaffolds
+
 - `tests/parity/fenpgn.roundtrip.test.ts` - FEN/PGN I/O validation
 - `tests/parity/board.visual.test.tsx` - Visual snapshot tests
 - `tests/engine/uci-parser.test.ts` - UCI parsing validation
 
 ### Component Completion
+
 - Implement arrow drawing system
 - Wire EvaluationBar component
 - Validate all appearance customization

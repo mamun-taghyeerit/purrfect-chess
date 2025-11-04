@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 /**
  * Stockfish Vendoring Script
- * 
+ *
  * Automatically copies the appropriate Stockfish variant from node_modules
  * to the public/libs directory for use in the Next.js application.
- * 
+ *
  * Stockfish Package Details:
  * - Package: stockfish@17.1.0 (chess.com maintained)
  * - Source: https://github.com/nmrugg/stockfish.js
  * - License: GPL v3
- * 
+ *
  * Available Variants:
  * 1. Multi-threaded WASM (~75MB): Strongest, requires CORS headers
  * 2. Single-threaded WASM (~75MB): Strong, no CORS required
  * 3. Lite Multi-threaded WASM (~7MB): Weaker, requires CORS headers
  * 4. Lite Single-threaded WASM (~7MB): Weaker, no CORS required
  * 5. ASM.js (~10MB): Weakest, universal compatibility
- * 
+ *
  * Selected Variant: Lite Single-threaded WASM
  * Rationale:
  * - No CORS headers required (works in all deployment scenarios)
@@ -39,18 +39,24 @@ const STOCKFISH_VERSION = '17.1';
 const VARIANT = 'lite-single';
 const VARIANT_HASH = '03e3232';
 
-const SOURCE_DIR = path.join(__dirname, '..', 'node_modules', 'stockfish', 'src');
+const SOURCE_DIR = path.join(
+  __dirname,
+  '..',
+  'node_modules',
+  'stockfish',
+  'src'
+);
 const TARGET_DIR = path.join(__dirname, '..', 'public', 'libs');
 
 // Determine which files to copy based on variant
 const getFilesToCopy = (variant, hash) => {
   const baseName = `stockfish-${STOCKFISH_VERSION}-${variant}-${hash}`;
-  
+
   switch (variant) {
     case 'lite-single':
       return [
         { src: `${baseName}.js`, dest: 'stockfish-lite-single.js' },
-        { src: `${baseName}.wasm`, dest: 'stockfish-lite-single.wasm' }
+        { src: `${baseName}.wasm`, dest: 'stockfish-lite-single.wasm' },
       ];
     default:
       throw new Error(`Unknown variant: ${variant}`);
@@ -74,7 +80,7 @@ function vendorStockfish() {
 
   // Get files to copy
   const files = getFilesToCopy(VARIANT, VARIANT_HASH);
-  
+
   let totalSize = 0;
   let copiedCount = 0;
 
@@ -91,7 +97,7 @@ function vendorStockfish() {
 
     // Copy file
     fs.copyFileSync(sourcePath, targetPath);
-    
+
     // Get file size
     const stats = fs.statSync(targetPath);
     const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);

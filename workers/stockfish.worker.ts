@@ -41,7 +41,9 @@ let isAnalyzing = false;
  */
 function initStockfish() {
   try {
-    console.log('[Stockfish Worker] Initializing Stockfish 17.1 (lite-single WASM)...');
+    console.log(
+      '[Stockfish Worker] Initializing Stockfish 17.1 (lite-single WASM)...'
+    );
 
     // Load the stockfish worker from public/libs/
     // Using lite-single variant: single-threaded WASM, ~7MB, no CORS required
@@ -76,8 +78,9 @@ function initStockfish() {
  */
 function handleStockfishMessage(message: string | { data?: string }) {
   // Handle both string messages and object messages
-  const trimmed = typeof message === 'string' ? message.trim() : (message.data || '').trim();
-  
+  const trimmed =
+    typeof message === 'string' ? message.trim() : (message.data || '').trim();
+
   if (!trimmed) return;
 
   // Log raw UCI messages for debugging (commented out for production)
@@ -92,7 +95,9 @@ function handleStockfishMessage(message: string | { data?: string }) {
   if (trimmed === 'readyok') {
     if (!isReady) {
       isReady = true;
-      console.log('[Stockfish Worker] Engine ready (Stockfish 17.1 lite-single WASM)');
+      console.log(
+        '[Stockfish Worker] Engine ready (Stockfish 17.1 lite-single WASM)'
+      );
       ctx.postMessage({ type: 'ready' });
     }
     return;
@@ -150,12 +155,7 @@ ctx.onmessage = (event: MessageEvent) => {
         return;
       }
 
-      const {
-        fen,
-        depth = 16,
-        multipv = 3,
-        movetime = null,
-      } = data;
+      const { fen, depth = 16, multipv = 3, movetime = null } = data;
 
       console.log(
         `[Stockfish Worker] Starting analysis: depth=${depth}, multipv=${multipv}`

@@ -1,6 +1,6 @@
 /**
  * Vitest Setup File
- * 
+ *
  * This file runs before all tests to set up the testing environment.
  * It configures:
  * - Testing library cleanup

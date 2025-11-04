@@ -68,7 +68,7 @@ export function useGame() {
     const threefoldRepetition = game.isThreefoldRepetition();
     const insufficientMaterial = game.isInsufficientMaterial();
     const draw = game.isDraw();
-    
+
     setGameState((prev) => ({
       ...prev,
       position: pos,
@@ -147,9 +147,13 @@ export function useGame() {
             const newState = {
               ...prev,
               whiteTime:
-                prev.turn === 'w' ? prev.whiteTime + incrementMs : prev.whiteTime,
+                prev.turn === 'w'
+                  ? prev.whiteTime + incrementMs
+                  : prev.whiteTime,
               blackTime:
-                prev.turn === 'b' ? prev.blackTime + incrementMs : prev.blackTime,
+                prev.turn === 'b'
+                  ? prev.blackTime + incrementMs
+                  : prev.blackTime,
             };
             return newState;
           });
@@ -193,15 +197,18 @@ export function useGame() {
     }));
   }, [game, stopTimer]);
 
-  const setTimeControl = useCallback((timeControl: TimeControl) => {
-    stopTimer();
-    setGameState((prev) => ({
-      ...prev,
-      whiteTime: timeControl.minutes * 60 * 1000,
-      blackTime: timeControl.minutes * 60 * 1000,
-      timeControl,
-    }));
-  }, [stopTimer]);
+  const setTimeControl = useCallback(
+    (timeControl: TimeControl) => {
+      stopTimer();
+      setGameState((prev) => ({
+        ...prev,
+        whiteTime: timeControl.minutes * 60 * 1000,
+        blackTime: timeControl.minutes * 60 * 1000,
+        timeControl,
+      }));
+    },
+    [stopTimer]
+  );
 
   const loadFen = useCallback(
     (fen: string) => {
@@ -226,6 +233,23 @@ export function useGame() {
     return game.pgn();
   }, [game]);
 
+  const loadPgn = useCallback(
+    (pgn: string) => {
+      try {
+        stopTimer();
+        game.loadPgn(pgn);
+        updateGameState();
+        return true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unable to load PGN';
+        console.error('Invalid PGN:', errorMessage);
+        return false;
+      }
+    },
+    [game, updateGameState, stopTimer]
+  );
+
   useEffect(() => {
     // Initialize game state on mount
     updateGameState();
@@ -243,6 +267,7 @@ export function useGame() {
     loadFen,
     getFen,
     getPgn,
+    loadPgn,
     setTimeControl,
     isTimerRunning,
     game, // Expose the underlying chess.js instance for advanced usage
