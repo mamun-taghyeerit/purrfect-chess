@@ -188,9 +188,30 @@ const groupConfigs: GroupConfig[] = [
   },
 ];
 
-export default function AppearanceControls() {
+interface AppearanceControlsProps {
+  /** Which appearance groups to display. If not provided, shows all groups. */
+  groups?: Array<keyof AppearanceState>;
+  /** Whether to show the global "Reset All" button. Default: true when showing all groups */
+  showGlobalReset?: boolean;
+}
+
+export default function AppearanceControls({
+  groups,
+  showGlobalReset,
+}: AppearanceControlsProps = {}) {
   const [appearance, setAppearance] =
     useState<AppearanceState>(appearanceDefaults);
+
+  // Determine which groups to display
+  const displayGroups = groups
+    ? groupConfigs.filter((g) => groups.includes(g.key))
+    : groupConfigs;
+
+  // Show global reset by default only if showing all groups
+  const shouldShowGlobalReset =
+    showGlobalReset !== undefined
+      ? showGlobalReset
+      : !groups || groups.length === groupConfigs.length;
 
   // Helper to calculate scale value
   const formatScale = (scale: number) => ((scale || 100) / 100).toFixed(2);
@@ -254,18 +275,20 @@ export default function AppearanceControls() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Appearance</h3>
-        <button
-          onClick={handleGlobalReset}
-          className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          title="Reset all appearance settings"
-        >
-          ↻ Reset All
-        </button>
-      </div>
+      {shouldShowGlobalReset && (
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Appearance</h3>
+          <button
+            onClick={handleGlobalReset}
+            className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="Reset all appearance settings"
+          >
+            ↻ Reset All
+          </button>
+        </div>
+      )}
 
-      {groupConfigs.map((group) => (
+      {displayGroups.map((group) => (
         <div
           key={group.key}
           className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
