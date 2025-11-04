@@ -11,8 +11,19 @@ import EvaluationBar from '@/components/EvaluationBar';
 import { useGame } from '@/hooks/useGame';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { EngineHighlight } from '@/components/Board';
+
+// Helper function to format time in MM:SS format
+const formatClockTime = (timeMs: number): string => {
+  const minutes = Math.floor(timeMs / 60000)
+    .toString()
+    .padStart(2, '0');
+  const seconds = Math.floor((timeMs % 60000) / 1000)
+    .toString()
+    .padStart(2, '0');
+  return `${minutes}:${seconds}`;
+};
 
 export default function Home() {
   const {
@@ -33,6 +44,9 @@ export default function Home() {
     setTimeControl,
     isTimerRunning,
   } = useGame();
+
+  // Memoize the current date to prevent re-creation on every render
+  const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
   const { isAnalyzing, analysis, currentDepth } = useEngine();
   const [isEnginePanelVisible, setIsEnginePanelVisible] = useState(false);
@@ -113,13 +127,7 @@ export default function Home() {
                     : 'bg-gray-900 text-gray-400'
                 }`}
               >
-                {Math.floor(whiteTime / 60000)
-                  .toString()
-                  .padStart(2, '0')}
-                :
-                {Math.floor((whiteTime % 60000) / 1000)
-                  .toString()
-                  .padStart(2, '0')}
+                {formatClockTime(whiteTime)}
               </div>
 
               {/* White Appearance Controls: Light Squares + White Pieces */}
@@ -260,9 +268,7 @@ export default function Home() {
                 </div>
                 <div className="flex justify-between items-center py-1.5 border-b border-gray-700/50">
                   <span className="font-semibold text-blue-300">Date</span>
-                  <span className="font-mono text-gray-100">
-                    {new Date().toLocaleDateString('en-CA')}
-                  </span>
+                  <span className="font-mono text-gray-100">{currentDate}</span>
                 </div>
                 <div className="flex justify-between items-center py-1.5 border-b border-gray-700/50">
                   <span className="font-semibold text-blue-300">
@@ -313,13 +319,7 @@ export default function Home() {
                     : 'bg-gray-900 text-gray-400'
                 }`}
               >
-                {Math.floor(blackTime / 60000)
-                  .toString()
-                  .padStart(2, '0')}
-                :
-                {Math.floor((blackTime % 60000) / 1000)
-                  .toString()
-                  .padStart(2, '0')}
+                {formatClockTime(blackTime)}
               </div>
 
               {/* Black Appearance Controls: Dark Squares + Black Pieces */}
