@@ -109,8 +109,14 @@ export default function Board() {
 
   // Clear board UI state when game resets (history becomes empty)
   // This matches legacy behavior where reset calls clearSelection()
-  const previousHistoryLength = useRef(history.length);
+  const previousHistoryLength = useRef<number>();
   useEffect(() => {
+    // Initialize on first render
+    if (previousHistoryLength.current === undefined) {
+      previousHistoryLength.current = history.length;
+      return;
+    }
+    
     // Detect reset: history length goes from > 0 to 0
     if (previousHistoryLength.current > 0 && history.length === 0) {
       // Clear all board UI state (matching legacy clearSelection + state reset)

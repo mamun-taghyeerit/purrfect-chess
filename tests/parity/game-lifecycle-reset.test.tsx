@@ -52,8 +52,6 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
       const mockMovePiece = vi.fn();
       const mockResetGame = vi.fn();
 
-      let historyLength = 1; // Start with a move made
-
       const mockState = {
         position: {
           e2: { type: 'p', color: 'w' },
@@ -95,12 +93,6 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
         } as any,
       };
 
-      // Mock resetGame to update history
-      mockResetGame.mockImplementation(() => {
-        historyLength = 0;
-        mockState.history = [];
-      });
-
       const useGameSpy = vi
         .spyOn(useGameModule, 'useGame')
         .mockReturnValue(mockState);
@@ -115,7 +107,6 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
       expect(e2Square?.classList.contains('selected')).toBe(true);
 
       // Simulate reset by updating mock to empty history
-      mockState.history = [];
       useGameSpy.mockReturnValue({
         ...mockState,
         history: [],
