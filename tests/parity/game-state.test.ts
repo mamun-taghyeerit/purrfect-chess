@@ -12,17 +12,26 @@ import { join } from 'path';
  * This tests the core game logic independent of React hooks.
  */
 
+const fenFixturesDir = join(__dirname, '../../docs/fixtures/fen');
+
+/**
+ * Helper function to load a FEN fixture file
+ * @param filename - The FEN fixture filename (e.g., 'checkmate-back-rank.fen')
+ * @returns The FEN string from the first line of the file
+ */
+function loadFenFixture(filename: string): string {
+  const fenPath = join(fenFixturesDir, filename);
+  const fenContent = readFileSync(fenPath, 'utf-8').trim();
+  const [fen] = fenContent.split('\n');
+  return fen;
+}
+
 describe('Phase X Parity: Game State Detection', () => {
-  const fenFixturesDir = join(__dirname, '../../docs/fixtures/fen');
   
   describe('Checkmate Detection', () => {
     it('detects back rank mate', () => {
       const game = new Chess();
-      // Load the checkmate-back-rank.fen fixture
-      const fenPath = join(fenFixturesDir, 'checkmate-back-rank.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('checkmate-back-rank.fen');
       game.load(fen);
       
       expect(game.isCheckmate()).toBe(true);
@@ -32,10 +41,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects Scholar\'s mate', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'checkmate-scholars-mate.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('checkmate-scholars-mate.fen');
       game.load(fen);
       
       expect(game.isCheckmate()).toBe(true);
@@ -44,10 +50,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects Fool\'s mate', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'checkmate-fools-mate.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('checkmate-fools-mate.fen');
       game.load(fen);
       
       expect(game.isCheckmate()).toBe(true);
@@ -58,10 +61,7 @@ describe('Phase X Parity: Game State Detection', () => {
   describe('Stalemate Detection', () => {
     it('detects stalemate in corner', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'stalemate-corner.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('stalemate-corner.fen');
       game.load(fen);
       
       expect(game.isStalemate()).toBe(true);
@@ -71,10 +71,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects stalemate with king trapped', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'stalemate-king-trapped.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('stalemate-king-trapped.fen');
       game.load(fen);
       
       expect(game.isStalemate()).toBe(true);
@@ -83,10 +80,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects stalemate with pawn trap', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'stalemate-pawn-trap.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('stalemate-pawn-trap.fen');
       game.load(fen);
       
       expect(game.isStalemate()).toBe(true);
@@ -97,10 +91,7 @@ describe('Phase X Parity: Game State Detection', () => {
   describe('Draw Conditions', () => {
     it('detects insufficient material - kings only', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'draw-insufficient-material-kings.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('draw-insufficient-material-kings.fen');
       game.load(fen);
       
       expect(game.isInsufficientMaterial()).toBe(true);
@@ -110,10 +101,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects insufficient material - king and bishop vs king', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'draw-insufficient-material-kb-vs-k.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('draw-insufficient-material-kb-vs-k.fen');
       game.load(fen);
       
       expect(game.isInsufficientMaterial()).toBe(true);
@@ -122,10 +110,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects insufficient material - king and knight vs king', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'draw-insufficient-material-kn-vs-k.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('draw-insufficient-material-kn-vs-k.fen');
       game.load(fen);
       
       expect(game.isInsufficientMaterial()).toBe(true);
@@ -134,10 +119,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('detects 50-move rule draw', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'draw-50-move-rule.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('draw-50-move-rule.fen');
       game.load(fen);
       
       // The 50-move rule is indicated by the halfmove clock in FEN
@@ -149,10 +131,7 @@ describe('Phase X Parity: Game State Detection', () => {
   describe('Special Moves', () => {
     it('handles en passant availability', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'enpassant-white-can-capture.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('enpassant-white-can-capture.fen');
       game.load(fen);
       
       // Verify en passant is available in the position
@@ -163,10 +142,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('handles castling rights correctly', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'castling-all-available.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('castling-all-available.fen');
       game.load(fen);
       
       // Verify castling moves are available
@@ -177,10 +153,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('handles promotion correctly', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'promotion-white-ready.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('promotion-white-ready.fen');
       game.load(fen);
       
       // Verify promotion moves are available
@@ -193,10 +166,7 @@ describe('Phase X Parity: Game State Detection', () => {
   describe('Move Legality', () => {
     it('validates moves in starting position', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'basic-starting-position.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('basic-starting-position.fen');
       game.load(fen);
       
       // In starting position, white has 20 legal moves
@@ -206,10 +176,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('generates correct SAN notation', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'basic-starting-position.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('basic-starting-position.fen');
       game.load(fen);
       
       // Test a specific move and verify SAN
@@ -220,10 +187,7 @@ describe('Phase X Parity: Game State Detection', () => {
     
     it('handles complex middlegame position', () => {
       const game = new Chess();
-      const fenPath = join(fenFixturesDir, 'edge-complex-middlegame.fen');
-      const fenContent = readFileSync(fenPath, 'utf-8').trim();
-      const [fen] = fenContent.split('\n');
-      
+      const fen = loadFenFixture('edge-complex-middlegame.fen');
       game.load(fen);
       
       // Should be able to calculate moves without error
