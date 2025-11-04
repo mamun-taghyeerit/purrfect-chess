@@ -7,6 +7,14 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  
+  /* Appearance customization CSS variables */
+  --light-square-filter: hue-rotate(0deg) saturate(1) brightness(1);
+  --dark-square-filter: hue-rotate(0deg) saturate(1) brightness(1);
+  --white-piece-filter: hue-rotate(0deg) saturate(1) brightness(1);
+  --black-piece-filter: hue-rotate(0deg) saturate(1) brightness(1);
+  --white-piece-scale: 1;
+  --black-piece-scale: 1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,4 +33,23 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+}
+
+/* Appearance customization styles */
+.square-light {
+  filter: var(--light-square-filter);
+}
+
+.square-dark {
+  filter: var(--dark-square-filter);
+}
+
+.piece-white {
+  filter: var(--white-piece-filter);
+  transform: scale(var(--white-piece-scale));
+}
+
+.piece-black {
+  filter: var(--black-piece-filter);
+  transform: scale(var(--black-piece-scale));
 }

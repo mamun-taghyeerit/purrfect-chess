@@ -121,7 +121,7 @@ export default function Board() {
                   key={square}
                   className={`
                     w-16 h-16 flex items-center justify-center relative
-                    ${isLight ? 'bg-amber-100' : 'bg-amber-600'}
+                    ${isLight ? 'bg-amber-100 square-light' : 'bg-amber-600 square-dark'}
                     ${isSelected ? 'ring-4 ring-blue-500 ring-inset' : ''}
                     ${isLastMoveSquare ? 'bg-yellow-300 bg-opacity-50' : ''}
                     hover:opacity-90 transition-opacity cursor-pointer
@@ -141,7 +141,7 @@ export default function Board() {
                         alt={`${piece.color} ${piece.type}`}
                         width={56}
                         height={56}
-                        className="pointer-events-none select-none"
+                        className={`pointer-events-none select-none ${piece.color === 'w' ? 'piece-white' : 'piece-black'}`}
                         draggable={false}
                       />
                     </div>
