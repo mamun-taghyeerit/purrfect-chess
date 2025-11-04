@@ -100,7 +100,7 @@ describe('Engine Overlays Integration', () => {
         { from: 'g1', to: 'f3', rank: 3 },
       ];
 
-      const { container } = render(<ArrowOverlay arrows={arrows} />);
+      const { container } = render(<ArrowOverlay engineArrows={arrows} />);
 
       const arrow1 = container.querySelector('.engine-arrow-1');
       const arrow2 = container.querySelector('.engine-arrow-2');
@@ -112,7 +112,7 @@ describe('Engine Overlays Integration', () => {
     });
 
     it('should render nothing when no arrows provided', () => {
-      const { container } = render(<ArrowOverlay arrows={[]} />);
+      const { container } = render(<ArrowOverlay />);
       const svg = container.querySelector('svg');
       expect(svg).toBeFalsy();
     });
@@ -123,7 +123,7 @@ describe('Engine Overlays Integration', () => {
         { from: 'd2', to: 'd4', rank: 5 }, // Should become 3
       ];
 
-      const { container } = render(<ArrowOverlay arrows={arrows} />);
+      const { container } = render(<ArrowOverlay engineArrows={arrows} />);
 
       // Rank 0 should be clamped to 1
       const arrow1 = container.querySelector('.engine-arrow-1');
