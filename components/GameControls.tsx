@@ -39,14 +39,26 @@ export default function GameControls({
 
   const handleExportFen = () => {
     const fen = onExportFen();
-    navigator.clipboard.writeText(fen);
-    alert('FEN copied to clipboard!');
+    navigator.clipboard
+      .writeText(fen)
+      .then(() => {
+        console.log('FEN copied to clipboard');
+      })
+      .catch((err) => {
+        console.error('Failed to copy FEN:', err);
+      });
   };
 
   const handleExportPgn = () => {
     const pgn = onExportPgn();
-    navigator.clipboard.writeText(pgn);
-    alert('PGN copied to clipboard!');
+    navigator.clipboard
+      .writeText(pgn)
+      .then(() => {
+        console.log('PGN copied to clipboard');
+      })
+      .catch((err) => {
+        console.error('Failed to copy PGN:', err);
+      });
   };
 
   return (

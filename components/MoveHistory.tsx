@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import type { Move } from '@/lib/types';
 
 /**
  * MoveHistory Component - Display game move history
@@ -10,14 +11,6 @@ import React from 'react';
  * - Display moves in algebraic notation
  * - Grouped by move number (White & Black)
  */
-
-interface Move {
-  san: string;
-  from: string;
-  to: string;
-  color: string;
-  piece: string;
-}
 
 interface MoveHistoryProps {
   history: Move[];

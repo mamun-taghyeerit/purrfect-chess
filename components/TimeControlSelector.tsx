@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import type { TimeControl } from '@/lib/types';
 
 /**
  * TimeControlSelector Component - Select time control presets
@@ -10,11 +11,6 @@ import React from 'react';
  * - Preset time controls (3+0, 5+1, 10+0, etc.)
  * - Visual indication of selected preset
  */
-
-interface TimeControl {
-  minutes: number;
-  increment: number;
-}
 
 interface TimeControlSelectorProps {
   currentTimeControl: TimeControl;

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
+import type { Position, TimeControl } from '@/lib/types';
 
 /**
  * Custom hook for managing chess game state
@@ -15,15 +16,6 @@ import { Chess } from 'chess.js';
  * - Move history tracking
  * - Game over detection (checkmate, stalemate, timeout)
  */
-
-interface Position {
-  [square: string]: { type: string; color: string } | null | string;
-}
-
-interface TimeControl {
-  minutes: number;
-  increment: number;
-}
 
 interface GameState {
   position: Position;
@@ -93,14 +85,14 @@ export function useGame() {
     setIsTimerRunning(true);
 
     timerRef.current = setInterval(() => {
-      const now = Date.now();
-      const delta = lastTickRef.current ? now - lastTickRef.current : 0;
-      lastTickRef.current = now;
-
       setGameState((prev) => {
         if (prev.isGameOver) {
           return prev;
         }
+
+        const now = Date.now();
+        const delta = lastTickRef.current ? now - lastTickRef.current : 0;
+        lastTickRef.current = now;
 
         const newState = { ...prev };
 
@@ -108,13 +100,11 @@ export function useGame() {
           newState.whiteTime = Math.max(0, prev.whiteTime - delta);
           if (newState.whiteTime === 0) {
             newState.isGameOver = true;
-            stopTimer();
           }
         } else {
           newState.blackTime = Math.max(0, prev.blackTime - delta);
           if (newState.blackTime === 0) {
             newState.isGameOver = true;
-            stopTimer();
           }
         }
 
@@ -122,6 +112,13 @@ export function useGame() {
       });
     }, 100);
   }, [stopTimer]);
+
+  // Stop timer when game is over
+  useEffect(() => {
+    if (gameState.isGameOver && isTimerRunning) {
+      stopTimer();
+    }
+  }, [gameState.isGameOver, isTimerRunning, stopTimer]);
 
   const movePiece = useCallback(
     (from: string, to: string, promotion?: string) => {

@@ -189,5 +189,12 @@ function getPieceImagePath(piece: { type: string; color: string }): string {
   };
 
   const pieceName = pieceNames[piece.type.toLowerCase()];
+  
+  // Fallback to pawn if piece type is unknown
+  if (!pieceName) {
+    console.warn(`Unknown piece type: ${piece.type}, defaulting to pawn`);
+    return `/assets/${colorPrefix}_pawn.png`;
+  }
+  
   return `/assets/${colorPrefix}_${pieceName}.png`;
 }
