@@ -2,17 +2,25 @@
 
 import { useGame } from '@/hooks/useGame';
 import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
+import { useState } from 'react';
 
 /**
- * Engine Analysis Panel Component
+ * Engine Analysis Panel Component (Legacy-compatible version)
  *
  * Displays Stockfish engine analysis with multi-PV support
  * Shows top engine lines with evaluations and principal variations
+ * Matches legacy appearance from src/ui.ts
  */
 
 interface EngineLineProps {
   analysis: EngineAnalysis;
   index: number;
+}
+
+interface EnginePanelProps {
+  onClose?: () => void;
+  engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
+  onEngineDisplayModeChange?: (mode: 'squares' | 'arrows' | 'both') => void;
 }
 
 function EngineLine({ analysis, index }: EngineLineProps) {
@@ -60,7 +68,11 @@ function EngineLine({ analysis, index }: EngineLineProps) {
   );
 }
 
-export default function EnginePanel() {
+export default function EnginePanel({
+  onClose,
+  engineDisplayMode = 'arrows',
+  onEngineDisplayModeChange,
+}: EnginePanelProps) {
   const { getFen } = useGame();
   const {
     isEngineReady,
@@ -71,69 +83,204 @@ export default function EnginePanel() {
     stopAnalysis,
   } = useEngine();
 
+  const [depth, setDepth] = useState(18);
+
   const handleAnalyzeClick = () => {
     const fen = getFen();
     if (isAnalyzing) {
       stopAnalysis();
     } else {
-      startAnalysis(fen, 18, 3);
+      startAnalysis(fen, depth, 3);
+    }
+  };
+
+  const handleClose = () => {
+    if (isAnalyzing) {
+      stopAnalysis();
+    }
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  const handleOverlayModeChange = (mode: 'squares' | 'arrows' | 'both') => {
+    if (onEngineDisplayModeChange) {
+      onEngineDisplayModeChange(mode);
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full max-w-md">
+    <div
+      className="w-full rounded-xl p-4"
+      style={{
+        background: '#2f2f2f',
+        border: '1px solid #575757',
+        boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.35)',
+      }}
+    >
+      {/* Header with Close button (matching legacy) */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-          🐱 Engine Analysis
-        </h2>
+        <h3 className="text-lg font-semibold" style={{ color: '#f0f0f0' }}>
+          Engine Analysis
+        </h3>
         <button
-          onClick={handleAnalyzeClick}
-          disabled={!isEngineReady}
-          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${
-            isEngineReady
-              ? isAnalyzing
-                ? 'bg-red-600 hover:bg-red-700 text-white'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-          }`}
+          onClick={handleClose}
+          className="px-3 py-1.5 text-sm rounded-lg font-semibold transition-all"
+          style={{
+            background: '#555',
+            color: '#fff',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
         >
-          {isAnalyzing ? 'Stop' : 'Analyze'}
+          Close
         </button>
       </div>
 
+      {/* Depth Control (matching legacy) */}
+      <label className="grid grid-cols-[auto_auto_1fr] items-center gap-2 mb-4 text-sm">
+        <span style={{ color: '#dcdcdc' }}>Search Depth:</span>
+        <span
+          className="font-semibold min-w-[2rem] text-center"
+          style={{ color: '#f0f0f0' }}
+        >
+          {depth}
+        </span>
+        <input
+          type="range"
+          min="6"
+          max="30"
+          step="1"
+          value={depth}
+          onChange={(e) => setDepth(parseInt(e.target.value, 10))}
+          className="w-full"
+          style={{
+            accentColor: '#9198e5',
+          }}
+        />
+      </label>
+
+      {/* Start/Stop Buttons */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={handleAnalyzeClick}
+          disabled={!isEngineReady || isAnalyzing}
+          className="flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all"
+          style={{
+            background:
+              isEngineReady && !isAnalyzing
+                ? 'linear-gradient(135deg, #e66465, #9198e5)'
+                : '#555',
+            color: '#fff',
+            border: 'none',
+            cursor: isEngineReady && !isAnalyzing ? 'pointer' : 'not-allowed',
+            boxShadow:
+              isEngineReady && !isAnalyzing
+                ? '0 6px 18px rgba(230, 100, 101, 0.35)'
+                : 'none',
+          }}
+        >
+          Start Analysis
+        </button>
+        <button
+          onClick={() => stopAnalysis()}
+          disabled={!isAnalyzing}
+          className="flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all"
+          style={{
+            background: isAnalyzing ? '#dc2626' : '#555',
+            color: '#fff',
+            border: 'none',
+            cursor: isAnalyzing ? 'pointer' : 'not-allowed',
+          }}
+          onMouseEnter={(e) => {
+            if (isAnalyzing) e.currentTarget.style.background = '#b91c1c';
+          }}
+          onMouseLeave={(e) => {
+            if (isAnalyzing) e.currentTarget.style.background = '#dc2626';
+          }}
+        >
+          Stop
+        </button>
+      </div>
+
+      {/* Overlay Controls (matching legacy) */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <span className="text-sm" style={{ color: '#dcdcdc' }}>
+          Overlay:
+        </span>
+        <div className="flex gap-2 flex-wrap">
+          {(['squares', 'arrows', 'both'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => handleOverlayModeChange(mode)}
+              className="px-4 py-1.5 text-sm rounded-lg font-semibold transition-all min-w-[96px]"
+              style={{
+                background:
+                  engineDisplayMode === mode
+                    ? 'linear-gradient(135deg, #e66465, #9198e5)'
+                    : '#555',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow:
+                  engineDisplayMode === mode
+                    ? '0 6px 18px rgba(230, 100, 101, 0.35)'
+                    : 'none',
+              }}
+              onMouseEnter={(e) => {
+                if (engineDisplayMode !== mode)
+                  e.currentTarget.style.background = '#666';
+              }}
+              onMouseLeave={(e) => {
+                if (engineDisplayMode !== mode)
+                  e.currentTarget.style.background = '#555';
+              }}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Engine Status */}
-      <div className="mb-4 text-sm">
+      <div className="mb-3 text-sm">
         {!isEngineReady && (
-          <div className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
-            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+          <div className="flex items-center gap-2" style={{ color: '#999' }}>
+            <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
             Initializing Stockfish...
           </div>
         )}
         {isEngineReady && !isAnalyzing && (
-          <div className="text-green-600 dark:text-green-400">
-            ✓ Engine ready
-          </div>
+          <div style={{ color: '#4ade80' }}>✓ Engine ready</div>
         )}
         {isAnalyzing && (
-          <div className="text-blue-600 dark:text-blue-400 flex items-center gap-2">
-            <div className="animate-pulse h-2 w-2 bg-blue-600 rounded-full" />
+          <div className="flex items-center gap-2" style={{ color: '#60a5fa' }}>
+            <div className="animate-pulse h-2 w-2 bg-blue-500 rounded-full" />
             Analyzing... (depth {currentDepth})
           </div>
         )}
       </div>
 
       {/* Analysis Lines */}
-      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden">
+      <div
+        className="rounded-lg overflow-hidden"
+        style={{
+          background: '#1f1f1f',
+          border: '1px solid #444',
+        }}
+      >
         {analysis.length === 0 ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+          <div className="p-4 text-center text-sm" style={{ color: '#999' }}>
             {isAnalyzing
               ? 'Computing best moves...'
               : isEngineReady
-                ? 'Click Analyze to start'
+                ? 'Click Start Analysis to begin'
                 : 'Waiting for engine...'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="divide-y divide-gray-700">
             {analysis.map((line, index) => (
               <EngineLine key={line.multipv} analysis={line} index={index} />
             ))}
@@ -141,7 +288,7 @@ export default function EnginePanel() {
         )}
       </div>
 
-      <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+      <div className="mt-4 text-xs text-center" style={{ color: '#999' }}>
         Powered by Stockfish 17
       </div>
     </div>
