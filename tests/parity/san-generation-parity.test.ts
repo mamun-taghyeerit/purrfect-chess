@@ -128,6 +128,32 @@ describe('Phase X Parity: SAN Generation', () => {
       expect(nextMove.san).toBe('e8=Q');
     });
 
+    it('should default to queen promotion when piece not specified', () => {
+      const fen = '8/4P3/8/8/8/8/8/4K2k w - - 0 1';
+      
+      const legacyGame = new Chess();
+      legacyGame.load(fen);
+      
+      const { result } = renderHook(() => useGame());
+      act(() => {
+        result.current.loadFen(fen);
+      });
+      
+      // Promote without specifying piece (should default to queen)
+      const legacyMove = legacyGame.move({ from: 'e7', to: 'e8', promotion: 'q' });
+      
+      act(() => {
+        // Don't specify promotion piece - should default to queen
+        result.current.movePiece('e7', 'e8');
+      });
+      const nextMove = result.current.history[0];
+      
+      expect(nextMove.san).toBe(legacyMove.san);
+      expect(nextMove.san).toBe('e8=Q');
+      expect(nextMove.promotion).toBe('q');
+    });
+
+
     it('should generate identical SAN for en passant', () => {
       const fen = 'rnbqkbnr/ppp1p1pp/8/3pPp2/8/8/PPPP1PPP/RNBQKBNR w KQkq f6 0 3';
       

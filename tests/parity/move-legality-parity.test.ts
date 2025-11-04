@@ -390,5 +390,37 @@ describe('Phase X Parity: Move Legality', () => {
       expect(legacyMove).toBeNull();
       expect(nextSuccess).toBe(false);
     });
+
+    it('should execute promotion moves identically with default to queen', () => {
+      const fen = '8/4P3/8/8/8/8/8/4K2k w - - 0 1';
+      
+      const legacyGame = new Chess();
+      legacyGame.load(fen);
+      
+      const { result } = renderHook(() => useGame());
+      act(() => {
+        result.current.loadFen(fen);
+      });
+      
+      // Legacy defaults to queen when promotion not specified
+      const legacyMove = legacyGame.move({ from: 'e7', to: 'e8', promotion: 'q' });
+      
+      let nextSuccess = false;
+      act(() => {
+        // Next.js should also default to queen when promotion not specified
+        nextSuccess = result.current.movePiece('e7', 'e8');
+      });
+      
+      // Both should succeed
+      expect(nextSuccess).toBe(true);
+      expect(legacyMove).not.toBeNull();
+      
+      // FENs should match (pawn promoted to queen on e8)
+      expect(result.current.fen).toBe(legacyGame.fen());
+      
+      // Both should have promoted to queen
+      expect(legacyMove.promotion).toBe('q');
+      expect(result.current.history[0].promotion).toBe('q');
+    });
   });
 });
