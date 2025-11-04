@@ -695,8 +695,8 @@ export default function Board({
         <div 
           id="board" 
           ref={boardRef}
-          role="grid"
-          aria-label="Chess board"
+          role="application"
+          aria-label="Chess board with 64 squares"
         >
           {Array.from({ length: 8 }, (_, rankIndex) =>
             Array.from({ length: 8 }, (_, fileIndex) => {
