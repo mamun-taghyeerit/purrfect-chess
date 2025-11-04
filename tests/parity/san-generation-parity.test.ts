@@ -410,6 +410,8 @@ describe('Phase X Parity: SAN Generation', () => {
       }
       
       const legacyPgn = legacyGame.pgn({ max_width: 10 });
+      // Note: Direct game instance access used here for testing PGN options
+      // In production code, useGame.getPgn() should be used (doesn't support options yet)
       const nextPgn = result.current.game.pgn({ max_width: 10 });
       
       expect(nextPgn).toBe(legacyPgn);

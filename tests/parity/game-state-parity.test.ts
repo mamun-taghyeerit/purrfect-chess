@@ -40,15 +40,19 @@ describe('Phase X Parity: Game State Detection', () => {
     });
 
     it('should detect checkmate in fool\'s mate', () => {
-      const fen = 'r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4';
+      // Actual fool's mate position - Qh4# is checkmate
+      const fen = 'rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKB1R b KQkq - 0 2';
       
       const legacyGame = new Chess();
       legacyGame.load(fen);
+      // After Black plays Qh4#
+      legacyGame.move({ from: 'd8', to: 'h4' });
       const legacyCheckmate = legacyGame.isCheckmate();
       
       const { result } = renderHook(() => useGame());
       act(() => {
         result.current.loadFen(fen);
+        result.current.movePiece('d8', 'h4');
       });
       const nextCheckmate = result.current.checkmate;
       
