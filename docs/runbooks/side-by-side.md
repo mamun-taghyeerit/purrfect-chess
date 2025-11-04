@@ -159,7 +159,13 @@ yarn next:dev
 - [ ] Score format matches (cp/mate)
 - [ ] Depth progression matches
 
-**Note:** Engine output may vary slightly due to non-determinism, but format should match.
+**Acceptable Variance:**
+- Engine scores may differ by ±5 centipawns (non-deterministic search)
+- Time to reach depth may vary by ±20% (CPU differences)
+- Move ordering in multi-PV may differ at same depth (engine exploration)
+- **MUST match exactly:** UCI protocol format, score formatting, depth display
+
+**Note:** Engine output may vary slightly due to non-determinism, but format and UI display should match.
 
 ---
 

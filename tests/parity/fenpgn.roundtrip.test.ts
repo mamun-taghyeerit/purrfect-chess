@@ -29,7 +29,14 @@ describe.skip('Phase X Parity: FEN Round-Trip Corpus', () => {
   // 1. Load each .fen file from docs/fixtures/fen/
   // 2. Import FEN using useGame.loadFen()
   // 3. Export FEN using useGame.getFen()
-  // 4. Assert: exported FEN matches original FEN (or is semantically equivalent)
+  // 4. Assert: exported FEN matches original FEN
+  //    NOTE: "Semantically equivalent" means:
+  //      - Board position must be identical
+  //      - Side to move must match
+  //      - Castling rights must match
+  //      - En passant square must match (if any)
+  //      - Half-move clock may differ slightly (acceptable if logic differs)
+  //      - Full-move number must match
   // 5. Test in both legacy app logic and Next.js useGame hook
   
   it.todo('imports and exports FEN identically to legacy', () => {
