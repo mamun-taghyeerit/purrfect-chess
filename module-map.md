@@ -1,6 +1,7 @@
 # Module Map - Purrfect Chess Modularization Strategy
 
 ## Overview
+
 This document outlines the modularization strategy for refactoring Purrfect Chess into smaller, testable modules as preparation for TypeScript migration.
 
 ## Current Architecture (Stage A)
@@ -48,37 +49,44 @@ src/
 ## Stage B: Incremental Module Extraction
 
 ### Phase 1: Engine Module (Current)
+
 **Goal**: Extract UCI parsing logic from engine.js into testable submodules.
 
 **Step 1** (This PR):
+
 - ✅ Extract `parseInfoLine()` and `parseBestMove()` to `src/engine/uci-parser.js`
 - ✅ Add unit tests for UCI parser
 - ✅ Keep `engine.js` as a façade to preserve API compatibility
 
 **Step 2** (Future):
+
 - Extract analysis state management to `src/engine/analysis.js`
 - Extract worker lifecycle to `src/engine/worker-manager.js`
 - Maintain `engine.js` façade exporting `initEngine()`, `analyze()`, `stop()`
 
 ### Phase 2: Board Module (Future)
+
 - Extract rendering logic to `src/board/renderer.js`
 - Extract coordinate utilities to `src/board/coordinates.js`
 - Extract piece management to `src/board/piece-manager.js`
 - Keep `board.js` as façade
 
 ### Phase 3: Game Module (Future)
+
 - Extract state management to `src/game/state.js`
 - Extract time controls to `src/game/time-control.js`
 - Extract move validation to `src/game/move-validator.js`
 - Keep `game.js` as façade
 
 ### Phase 4: UI Module (Future)
+
 - Extract control handlers to `src/ui/controls.js`
 - Extract appearance logic to `src/ui/appearance.js`
 - Extract easter egg to `src/ui/easter-egg.js`
 - Keep `ui.js` as façade
 
 ### Phase 5: TypeScript Migration (Future)
+
 - Add TypeScript dev dependencies
 - Create shared types in `src/shared/types.ts`
 - Incrementally convert modules to TypeScript
@@ -87,11 +95,13 @@ src/
 ## Migration Policy
 
 ### Façade Pattern
+
 - **Always** preserve existing module APIs during refactoring
 - Keep original files (e.g., `engine.js`, `board.js`) as façades that re-export from submodules
 - This ensures zero breaking changes for main.js and other consumers
 
 ### Tests-First Approach
+
 - **Before** extracting a module, write comprehensive unit tests
 - Tests should cover:
   - Normal operation (happy path)
@@ -100,6 +110,7 @@ src/
 - Use tests to verify behavioral equivalence before and after extraction
 
 ### Incremental Refactoring
+
 - Extract **one module at a time**
 - Each extraction should be a separate PR with:
   - Clear purpose (what is being extracted)
@@ -108,6 +119,7 @@ src/
   - Documentation updates (like this file)
 
 ### TypeScript Readiness
+
 - Write modules in JavaScript with TypeScript migration in mind:
   - Clear input/output contracts
   - Minimal use of dynamic types
@@ -129,17 +141,20 @@ src/
 ## Testing Strategy
 
 ### Unit Tests
+
 - Use Vitest (fast, ESM-native, Vite-compatible)
 - Test files: `tests/<module>/<file>.test.js`
 - Focus on pure functions and isolated logic
 - Mock external dependencies (Workers, DOM)
 
 ### Integration Tests
+
 - Test module interactions (e.g., engine + parser)
 - Verify façade APIs work correctly
 - Ensure no behavioral regressions
 
 ### Manual Testing
+
 - Run `yarn dev` and verify UI functionality
 - Test engine analysis panel ("gmmamun" feature)
 - Test piece movement and game rules
@@ -165,6 +180,7 @@ yarn test:coverage
 ## Success Criteria
 
 Each extraction phase is complete when:
+
 - ✅ Module is extracted with clear API boundaries
 - ✅ Comprehensive unit tests exist and pass
 - ✅ Original module acts as façade with no API changes
@@ -175,16 +191,19 @@ Each extraction phase is complete when:
 ## Future Considerations
 
 ### Bundle Size
+
 - Monitor bundle size as modules are extracted
 - Use Vite's code-splitting features if needed
 - Lazy-load heavy modules (e.g., Stockfish worker)
 
 ### Performance
+
 - Profile before and after each extraction
 - Ensure no performance regressions
 - Optimize hot paths (e.g., board rendering, move validation)
 
 ### Maintainability
+
 - Keep modules small and focused (single responsibility)
 - Prefer composition over inheritance
 - Document public APIs with JSDoc

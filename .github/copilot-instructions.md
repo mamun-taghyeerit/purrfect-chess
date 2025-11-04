@@ -40,6 +40,7 @@ Purrfect Chess is a cat-themed chess board web application with local Stockfish 
 ## Development Workflow
 
 ### Setup
+
 ```bash
 nvm use                     # Use the correct Node.js version from .nvmrc
 yarn                        # Install dependencies (using Yarn Classic v1.x)
@@ -49,6 +50,7 @@ yarn preview                # Preview production build
 ```
 
 ### Important Notes
+
 - **Always run `nvm use` first**: Ensure you're using the correct Node.js version specified in `.nvmrc`
 - **Use Yarn Classic**: This project uses Yarn 1.x (Classic), not Yarn 2+ (Berry)
 - **Merge from develop**: Always pull/merge the latest `develop` branch before starting work
@@ -60,6 +62,7 @@ yarn preview                # Preview production build
 ## Coding Standards and Best Practices
 
 ### General Guidelines
+
 1. **Keep it minimal**: This is a toy project—prefer simplicity over complexity
 2. **Maintain vanilla JS**: Do not introduce frameworks like React, Vue, or Angular
 3. **ES modules**: Use modern ES6+ module syntax (`import`/`export`)
@@ -67,6 +70,7 @@ yarn preview                # Preview production build
 5. **Tailwind-first**: Use Tailwind utility classes for styling, avoid custom CSS unless necessary
 
 ### Code Style
+
 - Use descriptive variable and function names
 - Prefer `const` over `let` where possible
 - Use arrow functions for callbacks
@@ -74,6 +78,7 @@ yarn preview                # Preview production build
 - Add comments only for complex logic or non-obvious behavior
 
 ### Module Organization
+
 - `game.js`: Pure chess logic (game state, moves, time controls)
 - `board.js`: Visual board representation and rendering
 - `engine.js`: Stockfish worker communication
@@ -81,11 +86,13 @@ yarn preview                # Preview production build
 - `main.js`: Application initialization and state coordination
 
 ### File Modifications
+
 - **Asset licensing**: All piece/square PNGs are CC BY 4.0 licensed—maintain attribution
 - **Stockfish binaries**: Do not modify vendored engine files in `/public/libs/`
 - **Build configuration**: Changes to Vite, PostCSS, or Tailwind config should preserve existing behavior
 
 ### Testing and Validation
+
 - Always test changes with `yarn dev`
 - Verify the hidden "gmmamun" engine panel still works
 - Ensure time controls function correctly
@@ -95,30 +102,35 @@ yarn preview                # Preview production build
 ## Common Tasks
 
 ### Adding New Features
+
 1. Consider which module best fits the new functionality
 2. Maintain separation of concerns (game logic vs. UI vs. rendering)
 3. Test with both light and dark piece/square themes
 4. Ensure mobile responsiveness (Tailwind breakpoints)
 
 ### Bug Fixes
+
 1. Identify the affected module(s)
 2. Make minimal changes to fix the issue
 3. Verify fix doesn't break existing functionality
 4. Test edge cases (e.g., en passant, castling, promotion)
 
 ### Styling Changes
+
 1. Use Tailwind utilities first
 2. Only add custom CSS in `src/styles.css` if Tailwind doesn't support it
 3. Maintain the cat-themed aesthetic
 4. Ensure sufficient color contrast for accessibility
 
 ### Engine Integration
+
 - Stockfish communicates via Web Worker
 - Engine analysis runs asynchronously
 - Always stop engine before starting new analysis
 - Handle engine messages gracefully (not all positions have evaluations)
 
 ## Dependencies and Licensing
+
 - **chess.js**: Core chess logic library
 - **Vite**: Development and build tooling
 - **Tailwind CSS**: Utility-first CSS framework
@@ -126,12 +138,14 @@ yarn preview                # Preview production build
 - **Assets**: All images under `/public/assets/` are licensed under CC BY 4.0 (see `LICENSE.md`)
 
 ## Security and Best Practices
+
 - No sensitive data or API keys in this project
 - Stockfish runs locally in a Web Worker (no external API calls)
 - All dependencies should be regularly updated for security patches
 - Follow standard web security practices (CSP, XSS prevention)
 
 ## Goals and Constraints
+
 - **Goal**: Provide a fun, cat-themed chess experience with engine analysis
 - **Constraint**: Keep the project simple and maintainable as a toy project
 - **Constraint**: Maintain offline-first capability (no external API dependencies)

@@ -1,6 +1,6 @@
 /**
  * UCI Parser Module
- * 
+ *
  * Extracts and parses UCI (Universal Chess Interface) protocol messages from Stockfish.
  * This module provides defensive parsing for:
  * - info lines (depth, multipv, score cp/mate, pv, nodes, time, etc.)
@@ -22,27 +22,27 @@ export interface UciInfoResult {
   depth: number | null;
   multipv: number | null;
   score: UciScore | null;
-  pv: string | null;           // First move in UCI format (e.g., "e2e4")
-  pvLine: string | null;        // Full PV line, space-separated moves
+  pv: string | null; // First move in UCI format (e.g., "e2e4")
+  pvLine: string | null; // Full PV line, space-separated moves
   nodes: number | null;
   time: number | null;
-  nps: number | null;           // Nodes per second
-  hashfull: number | null;      // Hash table utilization (0-1000)
-  seldepth: number | null;      // Selective search depth
-  tbhits: number | null;        // Tablebase hits
+  nps: number | null; // Nodes per second
+  hashfull: number | null; // Hash table utilization (0-1000)
+  seldepth: number | null; // Selective search depth
+  tbhits: number | null; // Tablebase hits
 }
 
 /**
  * Parsed UCI bestmove data
  */
 export interface UciBestMoveResult {
-  bestmove: string | null;      // Best move in UCI format (e.g., "e2e4"), or null if no legal move
-  ponder: string | null;         // Ponder move in UCI format (e.g., "e7e5"), or null if not present
+  bestmove: string | null; // Best move in UCI format (e.g., "e2e4"), or null if no legal move
+  ponder: string | null; // Ponder move in UCI format (e.g., "e7e5"), or null if not present
 }
 
 /**
  * Parses a UCI "info" line and extracts relevant analysis data.
- * 
+ *
  * @param line - The raw UCI info line (e.g., "info depth 20 multipv 1 score cp 25 pv e2e4 e7e5")
  * @returns Parsed info object or null if line is invalid/incomplete
  */
@@ -68,7 +68,7 @@ export function parseInfoLine(line: string): UciInfoResult | null {
     nps: null,
     hashfull: null,
     seldepth: null,
-    tbhits: null
+    tbhits: null,
   };
 
   // Extract depth
@@ -105,21 +105,25 @@ export function parseInfoLine(line: string): UciInfoResult | null {
     if (Number.isFinite(value)) {
       result.score = {
         type: scoreMatch[1] as 'cp' | 'mate',
-        value: value
+        value: value,
       };
     }
   }
 
   // Extract PV (principal variation)
-  const pvMatch = trimmed.match(/\bpv\s+(.+?)(?:\s+(?:bmc|wdl|string|refutation|currline)|$)/);
+  const pvMatch = trimmed.match(
+    /\bpv\s+(.+?)(?:\s+(?:bmc|wdl|string|refutation|currline)|$)/
+  );
   if (pvMatch) {
     const rawPv = pvMatch[1].trim();
     // Filter tokens to only include valid UCI moves (4-5 characters: e2e4, e7e8q, etc.)
     const tokens = rawPv.split(/\s+/);
-    const moves = tokens.filter(token => /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(token));
-    
+    const moves = tokens.filter((token) =>
+      /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(token)
+    );
+
     if (moves.length > 0) {
-      result.pv = moves[0];           // First move
+      result.pv = moves[0]; // First move
       result.pvLine = moves.join(' '); // Full PV line (moves only)
     }
   }
@@ -174,7 +178,7 @@ export function parseInfoLine(line: string): UciInfoResult | null {
 
 /**
  * Parses a UCI "bestmove" line.
- * 
+ *
  * @param line - The raw UCI bestmove line (e.g., "bestmove e2e4" or "bestmove e2e4 ponder e7e5")
  * @returns Parsed bestmove object or null if invalid
  */
@@ -190,18 +194,20 @@ export function parseBestMove(line: string): UciBestMoveResult | null {
   }
 
   // Extract bestmove
-  const bestmoveMatch = trimmed.match(/^bestmove\s+([a-h][1-8][a-h][1-8][qrbn]?|none|null|\(none\))/);
+  const bestmoveMatch = trimmed.match(
+    /^bestmove\s+([a-h][1-8][a-h][1-8][qrbn]?|none|null|\(none\))/
+  );
   if (!bestmoveMatch) {
     return null;
   }
 
   const bestmove = bestmoveMatch[1];
-  
+
   // Handle special cases (no legal move available)
   if (bestmove === 'none' || bestmove === 'null' || bestmove === '(none)') {
     return {
       bestmove: null,
-      ponder: null
+      ponder: null,
     };
   }
 
@@ -214,6 +220,6 @@ export function parseBestMove(line: string): UciBestMoveResult | null {
 
   return {
     bestmove: bestmove,
-    ponder: ponder
+    ponder: ponder,
   };
 }

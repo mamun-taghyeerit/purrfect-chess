@@ -69,7 +69,7 @@ describe('parseInfoLine', () => {
       const result = parseInfoLine('info depth 20 score cp 25');
       expect(result.score).toEqual({
         type: 'cp',
-        value: 25
+        value: 25,
       });
     });
 
@@ -77,7 +77,7 @@ describe('parseInfoLine', () => {
       const result = parseInfoLine('info depth 15 score cp -150');
       expect(result.score).toEqual({
         type: 'cp',
-        value: -150
+        value: -150,
       });
     });
 
@@ -85,15 +85,17 @@ describe('parseInfoLine', () => {
       const result = parseInfoLine('info depth 10 score cp 0');
       expect(result.score).toEqual({
         type: 'cp',
-        value: 0
+        value: 0,
       });
     });
 
     it('should parse cp score with pv', () => {
-      const result = parseInfoLine('info depth 20 multipv 1 score cp 25 pv e2e4 e7e5');
+      const result = parseInfoLine(
+        'info depth 20 multipv 1 score cp 25 pv e2e4 e7e5'
+      );
       expect(result.score).toEqual({
         type: 'cp',
-        value: 25
+        value: 25,
       });
       expect(result.pv).toBe('e2e4');
       expect(result.pvLine).toBe('e2e4 e7e5');
@@ -105,7 +107,7 @@ describe('parseInfoLine', () => {
       const result = parseInfoLine('info depth 25 score mate 3');
       expect(result.score).toEqual({
         type: 'mate',
-        value: 3
+        value: 3,
       });
     });
 
@@ -113,7 +115,7 @@ describe('parseInfoLine', () => {
       const result = parseInfoLine('info depth 30 score mate -5');
       expect(result.score).toEqual({
         type: 'mate',
-        value: -5
+        value: -5,
       });
     });
 
@@ -121,7 +123,7 @@ describe('parseInfoLine', () => {
       const result = parseInfoLine('info depth 20 score mate 1 pv f7f8q');
       expect(result.score).toEqual({
         type: 'mate',
-        value: 1
+        value: 1,
       });
       expect(result.pv).toBe('f7f8q');
     });
@@ -224,9 +226,10 @@ describe('parseInfoLine', () => {
 
   describe('comprehensive real-world examples', () => {
     it('should parse full info line with cp score and pv', () => {
-      const line = 'info depth 20 seldepth 28 multipv 1 score cp 25 nodes 1500000 nps 300000 hashfull 500 tbhits 0 time 5000 pv e2e4 e7e5 g1f3 b8c6 f1c4 f8c5';
+      const line =
+        'info depth 20 seldepth 28 multipv 1 score cp 25 nodes 1500000 nps 300000 hashfull 500 tbhits 0 time 5000 pv e2e4 e7e5 g1f3 b8c6 f1c4 f8c5';
       const result = parseInfoLine(line);
-      
+
       expect(result.depth).toBe(20);
       expect(result.seldepth).toBe(28);
       expect(result.multipv).toBe(1);
@@ -241,9 +244,10 @@ describe('parseInfoLine', () => {
     });
 
     it('should parse full info line with mate score', () => {
-      const line = 'info depth 30 multipv 1 score mate 3 nodes 500000 time 2000 pv f7f8q g8h7 d8d7';
+      const line =
+        'info depth 30 multipv 1 score mate 3 nodes 500000 time 2000 pv f7f8q g8h7 d8d7';
       const result = parseInfoLine(line);
-      
+
       expect(result.depth).toBe(30);
       expect(result.multipv).toBe(1);
       expect(result.score).toEqual({ type: 'mate', value: 3 });
@@ -256,7 +260,7 @@ describe('parseInfoLine', () => {
     it('should parse multipv 2 line', () => {
       const line = 'info depth 18 multipv 2 score cp -15 pv d2d4 d7d5 c2c4';
       const result = parseInfoLine(line);
-      
+
       expect(result.depth).toBe(18);
       expect(result.multipv).toBe(2);
       expect(result.score).toEqual({ type: 'cp', value: -15 });
@@ -267,7 +271,7 @@ describe('parseInfoLine', () => {
     it('should parse multipv 3 line', () => {
       const line = 'info depth 16 multipv 3 score cp -50 pv c2c4 e7e6';
       const result = parseInfoLine(line);
-      
+
       expect(result.depth).toBe(16);
       expect(result.multipv).toBe(3);
       expect(result.score).toEqual({ type: 'cp', value: -50 });
@@ -303,7 +307,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove e2e4');
       expect(result).toEqual({
         bestmove: 'e2e4',
-        ponder: null
+        ponder: null,
       });
     });
 
@@ -311,7 +315,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove f7f8q');
       expect(result).toEqual({
         bestmove: 'f7f8q',
-        ponder: null
+        ponder: null,
       });
     });
 
@@ -319,7 +323,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove g1f3');
       expect(result).toEqual({
         bestmove: 'g1f3',
-        ponder: null
+        ponder: null,
       });
     });
   });
@@ -329,7 +333,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove e2e4 ponder e7e5');
       expect(result).toEqual({
         bestmove: 'e2e4',
-        ponder: 'e7e5'
+        ponder: 'e7e5',
       });
     });
 
@@ -337,7 +341,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove f7f8q ponder g8h7');
       expect(result).toEqual({
         bestmove: 'f7f8q',
-        ponder: 'g8h7'
+        ponder: 'g8h7',
       });
     });
 
@@ -345,7 +349,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove g1f3 ponder b8c6');
       expect(result).toEqual({
         bestmove: 'g1f3',
-        ponder: 'b8c6'
+        ponder: 'b8c6',
       });
     });
   });
@@ -355,7 +359,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove none');
       expect(result).toEqual({
         bestmove: null,
-        ponder: null
+        ponder: null,
       });
     });
 
@@ -363,7 +367,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove null');
       expect(result).toEqual({
         bestmove: null,
-        ponder: null
+        ponder: null,
       });
     });
 
@@ -371,7 +375,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove (none)');
       expect(result).toEqual({
         bestmove: null,
-        ponder: null
+        ponder: null,
       });
     });
 
@@ -379,7 +383,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('  bestmove   e2e4   ponder   e7e5  ');
       expect(result).toEqual({
         bestmove: 'e2e4',
-        ponder: 'e7e5'
+        ponder: 'e7e5',
       });
     });
   });
@@ -389,7 +393,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove e2e4 ponder c7c5');
       expect(result).toEqual({
         bestmove: 'e2e4',
-        ponder: 'c7c5'
+        ponder: 'c7c5',
       });
     });
 
@@ -397,7 +401,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove g1f3 ponder d7d5');
       expect(result).toEqual({
         bestmove: 'g1f3',
-        ponder: 'd7d5'
+        ponder: 'd7d5',
       });
     });
 
@@ -405,7 +409,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove e1g1 ponder e8g8');
       expect(result).toEqual({
         bestmove: 'e1g1',
-        ponder: 'e8g8'
+        ponder: 'e8g8',
       });
     });
 
@@ -413,7 +417,7 @@ describe('parseBestMove', () => {
       const result = parseBestMove('bestmove e1c1');
       expect(result).toEqual({
         bestmove: 'e1c1',
-        ponder: null
+        ponder: null,
       });
     });
   });

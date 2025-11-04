@@ -1,6 +1,6 @@
 /**
  * Easter Egg Module - "gmmamun" cheatcode feature
- * 
+ *
  * This module handles the hidden cheatcode that reveals the engine analysis panel.
  * The user must:
  * 1. Select the text "(Reserved for future use)"
@@ -22,13 +22,15 @@ const TARGET_TEXT = '(Reserved for future use)';
 function checkSelectedText(cheatTextEl) {
   const selection = window.getSelection();
   if (!selection) return false;
-  
+
   const selected = selection.toString().trim();
   if (!selected) return false;
-  
+
   try {
-    if (typeof selection.containsNode === 'function' &&
-        selection.containsNode(cheatTextEl, true)) {
+    if (
+      typeof selection.containsNode === 'function' &&
+      selection.containsNode(cheatTextEl, true)
+    ) {
       // Compare against the element's actual text content, trimmed
       if (selected === cheatTextEl.textContent.trim()) {
         return true;
@@ -37,7 +39,7 @@ function checkSelectedText(cheatTextEl) {
   } catch (error) {
     // Ignore selection errors (can happen in some browsers)
   }
-  
+
   return false;
 }
 
@@ -60,27 +62,27 @@ function handleSelection(cheatTextEl) {
  */
 function handleKeydown(event, enginePanelEl, onReveal) {
   const key = event.key;
-  
+
   // Escape key resets cheatcode state
   if (key === 'Escape') {
     cheatPrimed = false;
     cheatProgress = 0;
     return;
   }
-  
+
   if (!cheatPrimed) return;
-  
+
   const lowerKey = key.toLowerCase();
-  
+
   if (lowerKey === CHEAT_SEQUENCE[cheatProgress]) {
     cheatProgress += 1;
-    
+
     if (cheatProgress === CHEAT_SEQUENCE.length) {
       // Cheatcode complete!
       cheatPrimed = false;
       cheatProgress = 0;
       enginePanelEl.classList.remove('hidden');
-      
+
       if (typeof onReveal === 'function') {
         onReveal();
       }
@@ -104,14 +106,16 @@ export function setupEasterEgg(cheatTextEl, enginePanelEl, onReveal) {
   if (!cheatTextEl || !enginePanelEl) {
     throw new Error('setupEasterEgg requires cheatTextEl and enginePanelEl');
   }
-  
+
   // Listen for text selection on the target element
   cheatTextEl.addEventListener('mouseup', () => handleSelection(cheatTextEl));
   cheatTextEl.addEventListener('keyup', () => handleSelection(cheatTextEl));
-  
+
   // Listen for selection changes globally
-  document.addEventListener('selectionchange', () => handleSelection(cheatTextEl));
-  
+  document.addEventListener('selectionchange', () =>
+    handleSelection(cheatTextEl)
+  );
+
   // Listen for keydown events (cheatcode sequence and Escape to reset)
   document.addEventListener('keydown', (event) => {
     handleKeydown(event, enginePanelEl, onReveal);
@@ -124,9 +128,13 @@ export const _testing = {
   getCheatProgress: () => cheatProgress,
   getCheatSequence: () => CHEAT_SEQUENCE,
   getTargetText: () => TARGET_TEXT,
-  setCheatPrimed: (value) => { cheatPrimed = value; },
-  setCheatProgress: (value) => { cheatProgress = value; },
+  setCheatPrimed: (value) => {
+    cheatPrimed = value;
+  },
+  setCheatProgress: (value) => {
+    cheatProgress = value;
+  },
   checkSelectedText,
   handleSelection,
-  handleKeydown
+  handleKeydown,
 };

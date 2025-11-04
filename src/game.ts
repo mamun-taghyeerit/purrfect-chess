@@ -16,7 +16,7 @@ const state = {
   lastTick: null,
   gameOver: false,
   timeControl: { ...DEFAULT_TIME },
-  lastMoveInfo: null
+  lastMoveInfo: null,
 };
 
 function getTimeControlSettings() {
@@ -129,7 +129,7 @@ function notifyMove(move, status) {
       fen: state.game.fen(),
       pgn: state.game.pgn(),
       clocks: getClocks(),
-      status
+      status,
     });
   }
 }
@@ -147,7 +147,7 @@ export function initGame(handlers: GameHandlers = {}) {
     getPgn,
     getClocks,
     getTimeControl,
-    getLastMoveInfo
+    getLastMoveInfo,
   };
 }
 
@@ -167,7 +167,7 @@ export function getClocks(): ClockState {
   return {
     white: Math.max(0, Math.round(state.whiteTime)),
     black: Math.max(0, Math.round(state.blackTime)),
-    active: state.activeColor as 'w' | 'b'
+    active: state.activeColor as 'w' | 'b',
   };
 }
 
@@ -180,8 +180,12 @@ export function getLastMoveInfo(): MoveInfo | null {
 }
 
 export function startNewGame(control: Partial<TimeControl> = {}) {
-  const minutes = Number.isFinite(control.minutes) ? control.minutes : DEFAULT_TIME.minutes;
-  const increment = Number.isFinite(control.increment) ? control.increment : DEFAULT_TIME.increment;
+  const minutes = Number.isFinite(control.minutes)
+    ? control.minutes
+    : DEFAULT_TIME.minutes;
+  const increment = Number.isFinite(control.increment)
+    ? control.increment
+    : DEFAULT_TIME.increment;
 
   stopTimer();
   state.timerId = null;
@@ -224,7 +228,8 @@ export function loadFen(fen) {
   try {
     newGame.load(trimmedFen);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to load FEN.';
+    const message =
+      error instanceof Error ? error.message : 'Unable to load FEN.';
     return { success: false, message };
   }
 
@@ -249,7 +254,8 @@ export function loadPgn(pgn) {
       lastMove = history[history.length - 1];
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unable to load PGN.';
+    const message =
+      error instanceof Error ? error.message : 'Unable to load PGN.';
     return { success: false, message };
   }
 
@@ -259,7 +265,11 @@ export function loadPgn(pgn) {
   return { success: true };
 }
 
-function attemptMove(from: string, to: string, options: { promotion?: string } = {}) {
+function attemptMove(
+  from: string,
+  to: string,
+  options: { promotion?: string } = {}
+) {
   const { promotion } = options;
   if (state.gameOver) {
     return { success: false };
@@ -268,7 +278,7 @@ function attemptMove(from: string, to: string, options: { promotion?: string } =
   const movePayload = {
     from,
     to,
-    promotion: promotion || 'q'
+    promotion: promotion || 'q',
   };
 
   // Capture FEN before move

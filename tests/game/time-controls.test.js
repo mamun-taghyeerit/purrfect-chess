@@ -3,7 +3,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { computeEvalDepth, formatRemainingTime } from '../../src/game/time-controls.ts';
+import {
+  computeEvalDepth,
+  formatRemainingTime,
+} from '../../src/game/time-controls.ts';
 
 describe('computeEvalDepth', () => {
   describe('boundary cases for 10 minute threshold', () => {
@@ -84,7 +87,7 @@ describe('formatRemainingTime', () => {
 
     it('should handle large values', () => {
       expect(formatRemainingTime(3600, 3600)).toBe('3600.00s/3600.00');
-      expect(formatRemainingTime(1234.56, 5678.90)).toBe('1234.56s/5678.90');
+      expect(formatRemainingTime(1234.56, 5678.9)).toBe('1234.56s/5678.90');
     });
 
     it('should clamp negative values to 0', () => {

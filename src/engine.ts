@@ -81,20 +81,27 @@ function handleInfo(line) {
     pv: null,
     pvLine: null,
     score: null,
-    result: null
+    result: null,
   };
 
   // Update PV if available
   if (parsed.pv) {
     entry.pv = parsed.pv;
     entry.pvLine = parsed.pvLine;
-    console.log('[ENGINE] PV extracted:', { multipv: index, pv: entry.pv, pvLine: entry.pvLine });
+    console.log('[ENGINE] PV extracted:', {
+      multipv: index,
+      pv: entry.pv,
+      pvLine: entry.pvLine,
+    });
   }
 
   // Update score if available
   if (parsed.score) {
     entry.score = parsed.score;
-    console.log('[ENGINE] Score extracted:', { multipv: index, score: entry.score });
+    console.log('[ENGINE] Score extracted:', {
+      multipv: index,
+      score: entry.score,
+    });
   }
 
   // Build result if we have both pv and score
@@ -117,7 +124,7 @@ function buildResult(entry) {
     // If pv is missing, we can't build a result
     return null;
   }
-  
+
   const moves = pv.split(/\s+/);
   const uci = moves[0];
   const from = uci.slice(0, 2);
@@ -151,7 +158,7 @@ function buildResult(entry) {
     score: normalizedScore,
     scoreType: score.type,
     rawScore: score.value,
-    pvLine: pvLine || pv
+    pvLine: pvLine || pv,
   };
 }
 
@@ -191,15 +198,20 @@ export function initEngine() {
 }
 
 export function analyze(
-  fen: string, 
-  options: { 
-    depth?: number; 
-    multipv?: number; 
-    movetime?: number | null; 
+  fen: string,
+  options: {
+    depth?: number;
+    multipv?: number;
+    movetime?: number | null;
     onProgress?: ((data: { depth: number }) => void) | null;
   } = {}
 ): Promise<EngineAnalysisLine[]> {
-  const { depth = 16, multipv = 3, movetime = null, onProgress = null } = options;
+  const {
+    depth = 16,
+    multipv = 3,
+    movetime = null,
+    onProgress = null,
+  } = options;
   if (!worker || !isReady) {
     throw new Error('Engine not initialized');
   }
@@ -222,7 +234,7 @@ export function analyze(
     multipv: safeMultipv,
     partials: new Map(),
     currentDepth: 0,
-    maxDepth: movetime !== null ? null : searchDepth
+    maxDepth: movetime !== null ? null : searchDepth,
   };
 
   post('ucinewgame');

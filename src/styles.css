@@ -12,9 +12,21 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    sans-serif,
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol',
+    'Noto Color Emoji';
   background-color: #333;
   color: #f0f0f0;
   display: flex;
@@ -37,9 +49,9 @@ body {
 }
 
 h1,
- h2,
- h3,
- h4 {
+h2,
+h3,
+h4 {
   font-family: inherit;
   color: inherit;
   margin: 0;
@@ -150,7 +162,10 @@ h1,
   background: #1f1f1f;
   border: 2px solid #555;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
-  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .clock-display.active {
@@ -235,7 +250,10 @@ h1,
   cursor: pointer;
   background: #555;
   color: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.2s ease;
   text-decoration: none;
 }
 
@@ -413,7 +431,9 @@ h1,
   font-size: 1.1rem;
   cursor: pointer;
   padding: 2px;
-  transition: color 0.2s ease, transform 0.1s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .reset-group-btn:hover {
@@ -476,7 +496,6 @@ h1,
   cursor: pointer;
   border: 2px solid #fff;
 }
-
 
 .board-frame {
   background: #202020;
@@ -579,7 +598,11 @@ h1,
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(31, 31, 31, 0.3) 0%, rgba(45, 45, 45, 0.3) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(31, 31, 31, 0.3) 0%,
+    rgba(45, 45, 45, 0.3) 100%
+  );
   backdrop-filter: blur(8px);
   border-radius: 12px;
   opacity: 0;
@@ -618,7 +641,9 @@ h1,
   bottom: 0;
   height: 50%;
   background: linear-gradient(180deg, #f7fafc 0%, #cbd5f5 100%);
-  transition: height 0.25s ease, background 0.25s ease;
+  transition:
+    height 0.25s ease,
+    background 0.25s ease;
 }
 
 .eval-bar-track.black-advantage .eval-bar-fill {
@@ -638,7 +663,8 @@ h1,
 }
 
 @keyframes eval-bar-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -668,7 +694,9 @@ h1,
   height: 100%;
   background-size: cover;
   background-position: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .square.light {
@@ -695,11 +723,11 @@ h1,
 }
 
 /* Show grab cursor for draggable pieces */
-.square img[draggable="true"] {
+.square img[draggable='true'] {
   cursor: grab;
 }
 
-.square img[draggable="true"]:active {
+.square img[draggable='true']:active {
   cursor: grabbing;
 }
 
@@ -805,20 +833,20 @@ h1,
 
 /* Drag-specific highlights - lighter shades for better UX during drag */
 .square.drag-selected::after {
-  background: rgba(59, 130, 246, 0.20);  /* Lighter than selected (0.35) */
+  background: rgba(59, 130, 246, 0.2); /* Lighter than selected (0.35) */
 }
 
 .square.drag-move-hint::after {
   background: radial-gradient(
     circle,
-    rgba(34, 197, 94, 0.40) 0%,    /* Lighter than normal (0.65) */
-    rgba(34, 197, 94, 0.10) 70%,   /* Lighter than normal (0.15) */
-    rgba(34, 197, 94, 0) 80%
+    rgba(34, 197, 94, 0.4) 0%,
+    /* Lighter than normal (0.65) */ rgba(34, 197, 94, 0.1) 70%,
+    /* Lighter than normal (0.15) */ rgba(34, 197, 94, 0) 80%
   );
 }
 
 .square.drag-capture-hint::after {
-  background: rgba(239, 68, 68, 0.30);  /* Lighter than normal (0.45) */
+  background: rgba(239, 68, 68, 0.3); /* Lighter than normal (0.45) */
 }
 
 .square.drag-over {
@@ -1164,11 +1192,21 @@ h1,
     transform: translate(-50%, -50%) translateX(0);
     opacity: 0;
   }
-  10% { opacity: 1; }
-  30% { transform: translate(-50%, -50%) translateX(-10px); }
-  50% { transform: translate(-50%, -50%) translateX(10px); }
-  70% { transform: translate(-50%, -50%) translateX(-5px); }
-  85% { transform: translate(-50%, -50%) translateX(5px); }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    transform: translate(-50%, -50%) translateX(-10px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateX(10px);
+  }
+  70% {
+    transform: translate(-50%, -50%) translateX(-5px);
+  }
+  85% {
+    transform: translate(-50%, -50%) translateX(5px);
+  }
   100% {
     top: var(--target-y);
     left: var(--target-x);

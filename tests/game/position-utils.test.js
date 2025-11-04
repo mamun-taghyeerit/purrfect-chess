@@ -3,7 +3,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseFEN, generateFEN, boardFromFEN } from '../../src/game/position-utils.ts';
+import {
+  parseFEN,
+  generateFEN,
+  boardFromFEN,
+} from '../../src/game/position-utils.ts';
 
 // Standard starting position FEN
 const STARTING_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -13,7 +17,9 @@ describe('parseFEN', () => {
     it('should parse the starting position correctly', () => {
       const result = parseFEN(STARTING_FEN);
       expect(result).not.toBeNull();
-      expect(result.piecePlacement).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR');
+      expect(result.piecePlacement).toBe(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+      );
       expect(result.activeColor).toBe('w');
       expect(result.castling).toBe('KQkq');
       expect(result.enPassant).toBe('-');
@@ -25,7 +31,9 @@ describe('parseFEN', () => {
       const fen = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1';
       const result = parseFEN(fen);
       expect(result).not.toBeNull();
-      expect(result.piecePlacement).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR');
+      expect(result.piecePlacement).toBe(
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR'
+      );
       expect(result.activeColor).toBe('b');
       expect(result.castling).toBe('KQkq');
       expect(result.enPassant).toBe('e3');
@@ -34,7 +42,8 @@ describe('parseFEN', () => {
     });
 
     it('should parse a mid-game position', () => {
-      const fen = 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';
+      const fen =
+        'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';
       const result = parseFEN(fen);
       expect(result).not.toBeNull();
       expect(result.activeColor).toBe('w');
@@ -82,25 +91,40 @@ describe('parseFEN', () => {
     });
 
     it('should return null for incomplete FEN (missing fields)', () => {
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')).toBeNull();
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w')).toBeNull();
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq')).toBeNull();
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')
+      ).toBeNull();
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w')
+      ).toBeNull();
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq')
+      ).toBeNull();
     });
 
     it('should return null for invalid rank count', () => {
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP w KQkq - 0 1')).toBeNull(); // 7 ranks
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')).toBeNull(); // 9 ranks
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP w KQkq - 0 1')
+      ).toBeNull(); // 7 ranks
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+      ).toBeNull(); // 9 ranks
     });
 
     it('should return null for invalid active color', () => {
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR x KQkq - 0 1')).toBeNull();
-      expect(parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR W KQkq - 0 1')).toBeNull();
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR x KQkq - 0 1')
+      ).toBeNull();
+      expect(
+        parseFEN('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR W KQkq - 0 1')
+      ).toBeNull();
     });
   });
 
   describe('edge cases', () => {
     it('should handle extra whitespace', () => {
-      const fen = '  rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR   w   KQkq   -   0   1  ';
+      const fen =
+        '  rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR   w   KQkq   -   0   1  ';
       const result = parseFEN(fen);
       expect(result).not.toBeNull();
       expect(result.activeColor).toBe('w');
@@ -139,7 +163,9 @@ describe('generateFEN', () => {
         halfmove: 3,
         fullmove: 3,
       };
-      expect(generateFEN(state)).toBe('rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3');
+      expect(generateFEN(state)).toBe(
+        'rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3'
+      );
     });
 
     it('should handle en passant square', () => {
@@ -151,7 +177,9 @@ describe('generateFEN', () => {
         halfmove: 0,
         fullmove: 1,
       };
-      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1');
+      expect(generateFEN(state)).toBe(
+        'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'
+      );
     });
 
     it('should default halfmove and fullmove if not provided', () => {
@@ -161,7 +189,9 @@ describe('generateFEN', () => {
         castling: 'KQkq',
         enPassant: '-',
       };
-      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+      expect(generateFEN(state)).toBe(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+      );
     });
 
     it('should handle zero halfmove', () => {
@@ -173,7 +203,9 @@ describe('generateFEN', () => {
         halfmove: 0,
         fullmove: 1,
       };
-      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+      expect(generateFEN(state)).toBe(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+      );
     });
 
     it('should handle large move numbers', () => {
@@ -185,7 +217,9 @@ describe('generateFEN', () => {
         halfmove: 50,
         fullmove: 100,
       };
-      expect(generateFEN(state)).toBe('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 50 100');
+      expect(generateFEN(state)).toBe(
+        'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 50 100'
+      );
     });
   });
 
@@ -295,7 +329,8 @@ describe('boardFromFEN', () => {
     });
 
     it('should handle position with mixed pieces and empty squares', () => {
-      const fen = 'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';
+      const fen =
+        'r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4';
       const board = boardFromFEN(fen);
       expect(board).not.toBeNull();
       expect(board.length).toBe(8);
@@ -311,9 +346,9 @@ describe('boardFromFEN', () => {
       const board = boardFromFEN(fen);
       expect(board).not.toBeNull();
       expect(board.length).toBe(8);
-      board.forEach(rank => {
+      board.forEach((rank) => {
         expect(rank.length).toBe(8);
-        rank.forEach(square => {
+        rank.forEach((square) => {
           expect(square).toBeNull();
         });
       });
@@ -343,7 +378,7 @@ describe('round-trip conversion', () => {
       'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1',
     ];
 
-    fens.forEach(fen => {
+    fens.forEach((fen) => {
       const parsed = parseFEN(fen);
       expect(parsed).not.toBeNull();
       const generated = generateFEN(parsed);

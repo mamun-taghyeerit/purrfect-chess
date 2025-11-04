@@ -1,0 +1,20 @@
+import type { Metadata } from 'next';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Purrfect Chess - Next.js Migration',
+  description:
+    'Cat-themed chess board with local Stockfish, appearance sliders, and time controls',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}

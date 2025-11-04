@@ -1,0 +1,8 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Relax some rules for migration phase
+    "react/no-unescaped-entities": "warn",
+    "react-hooks/exhaustive-deps": "warn"
+  }
+}
