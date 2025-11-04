@@ -320,7 +320,6 @@ describe('Phase X Parity: Time Controls + Clocks', () => {
       });
 
       expect(result.current.blackTime).toBe(0);
-      expect(result.current.blackTime).toBeGreaterThanOrEqual(0);
     });
   });
 
