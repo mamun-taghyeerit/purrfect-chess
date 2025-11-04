@@ -189,6 +189,10 @@ export default function Board() {
     targetSquare: string
   ) => {
     e.preventDefault();
+    
+    // Get source square from dataTransfer or fallback to ref
+    // Note: Some browsers may clear dataTransfer.getData in certain scenarios,
+    // so we maintain dragSourceRef as a reliable backup
     const fromSquare = e.dataTransfer.getData('text/plain') || dragSourceRef.current;
 
     if (fromSquare) {
