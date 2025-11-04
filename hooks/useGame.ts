@@ -226,6 +226,21 @@ export function useGame() {
     return game.pgn();
   }, [game]);
 
+  const loadPgn = useCallback(
+    (pgn: string) => {
+      try {
+        stopTimer();
+        game.loadPgn(pgn);
+        updateGameState();
+        return true;
+      } catch (error) {
+        console.error('Invalid PGN:', error);
+        return false;
+      }
+    },
+    [game, updateGameState, stopTimer]
+  );
+
   useEffect(() => {
     // Initialize game state on mount
     updateGameState();
@@ -243,6 +258,7 @@ export function useGame() {
     loadFen,
     getFen,
     getPgn,
+    loadPgn,
     setTimeControl,
     isTimerRunning,
     game, // Expose the underlying chess.js instance for advanced usage

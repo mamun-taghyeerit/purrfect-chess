@@ -15,6 +15,7 @@ import React, { useState } from 'react';
 interface GameControlsProps {
   onReset: () => void;
   onLoadFen: (fen: string) => void;
+  onLoadPgn?: (pgn: string) => void;
   onExportFen: () => string;
   onExportPgn: () => string;
 }
@@ -22,11 +23,14 @@ interface GameControlsProps {
 export default function GameControls({
   onReset,
   onLoadFen,
+  onLoadPgn,
   onExportFen,
   onExportPgn,
 }: GameControlsProps) {
   const [fenInput, setFenInput] = useState('');
+  const [pgnInput, setPgnInput] = useState('');
   const [showFenInput, setShowFenInput] = useState(false);
+  const [showPgnInput, setShowPgnInput] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
   const handleImportFen = () => {
@@ -34,6 +38,14 @@ export default function GameControls({
       onLoadFen(fenInput.trim());
       setFenInput('');
       setShowFenInput(false);
+    }
+  };
+
+  const handleImportPgn = () => {
+    if (pgnInput.trim() && onLoadPgn) {
+      onLoadPgn(pgnInput.trim());
+      setPgnInput('');
+      setShowPgnInput(false);
     }
   };
 
@@ -85,6 +97,15 @@ export default function GameControls({
           📤 Export FEN
         </button>
 
+        {onLoadPgn && (
+          <button
+            onClick={() => setShowPgnInput(!showPgnInput)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            📥 Import PGN
+          </button>
+        )}
+
         <button
           onClick={handleExportPgn}
           className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
@@ -116,6 +137,38 @@ export default function GameControls({
               onClick={() => {
                 setShowFenInput(false);
                 setFenInput('');
+              }}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPgnInput && onLoadPgn && (
+        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <label className="block text-sm font-medium mb-2">
+            Enter PGN string:
+          </label>
+          <textarea
+            value={pgnInput}
+            onChange={(e) => setPgnInput(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 dark:bg-gray-700 dark:border-gray-600 font-mono text-sm"
+            placeholder="[Event &quot;?&quot;]&#10;[Site &quot;?&quot;]&#10;&#10;1. e4 e5 2. Nf3 Nc6 *"
+            rows={8}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleImportPgn}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Load
+            </button>
+            <button
+              onClick={() => {
+                setShowPgnInput(false);
+                setPgnInput('');
               }}
               className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
