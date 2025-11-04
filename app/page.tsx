@@ -152,6 +152,16 @@ export default function Home() {
               >
                 Overlay: {engineDisplayMode}
               </button>
+              {/* Dev-only: Quick access to engine panel for testing */}
+              {process.env.NODE_ENV === 'development' && !isEnginePanelVisible && (
+                <button
+                  onClick={() => setIsEnginePanelVisible(true)}
+                  className="px-3 py-1.5 text-sm rounded-lg bg-purple-700 hover:bg-purple-600 text-white transition-colors"
+                  title="Development only: Reveal engine panel"
+                >
+                  🔧 Show Engine
+                </button>
+              )}
             </div>
           </div>
 
