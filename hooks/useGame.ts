@@ -138,7 +138,8 @@ export function useGame() {
   const movePiece = useCallback(
     (from: string, to: string, promotion?: string) => {
       try {
-        const move = game.move({ from, to, promotion });
+        // Default to queen promotion if not specified (matches legacy behavior)
+        const move = game.move({ from, to, promotion: promotion || 'q' });
         if (move) {
           // Add increment to the player who just moved
           setGameState((prev) => {
