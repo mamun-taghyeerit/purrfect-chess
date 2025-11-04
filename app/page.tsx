@@ -365,8 +365,8 @@ export default function Home() {
                 flipped={isBoardFlipped}
               />
 
-              {/* Evaluation Bar (right side of board) */}
-              {isEvalBarVisible && (
+              {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
+              <div style={{ minWidth: '46px', visibility: isEvalBarVisible ? 'visible' : 'hidden' }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
@@ -375,7 +375,7 @@ export default function Home() {
                   currentDepth={currentDepth}
                   maxDepth={22}
                 />
-              )}
+              </div>
             </div>
 
             {/* Board controls */}
