@@ -3,95 +3,141 @@ import React from 'react';
 /**
  * EvaluationBar Component
  *
- * Purpose: Display a visual evaluation bar showing position advantage.
+ * Displays a visual evaluation bar showing position advantage.
+ * Matches legacy implementation (src/ui.ts lines 959-995, styles.css lines 585-689)
  *
- * Status: STUB - Props defined, rendering not implemented.
- *
- * Phase X Task: Wire this component into the main page and implement rendering.
- *
- * Design:
- * - Vertical bar on left/right side of board
- * - White advantage: bar extends upward
- * - Black advantage: bar extends downward
- * - Even position: bar centered
- * - Mate scores: full bar with "M" indicator
- *
- * TODO (Phase X):
- * 1. Implement visual bar rendering (SVG or CSS)
- * 2. Convert centipawn score to bar height (-1000 to +1000 cp → 0% to 100%)
- * 3. Handle mate scores (show "M5" for mate in 5, etc.)
- * 4. Add smooth transitions when evaluation changes
- * 5. Match legacy app visual style
- * 6. Add to main page layout (likely next to Board component)
+ * Features:
+ * - Vertical bar with white (top) and black (bottom) sections
+ * - Centipawn score mapped to bar height (-500 to +500 cp → 0% to 100%)
+ * - Mate scores shown with full bar
+ * - Smooth transitions on score changes
+ * - Analyzing animation when engine is running
+ * - Concealed mode (blurred backdrop when hidden)
  */
 
 export interface EvaluationBarProps {
   /**
    * Evaluation score in centipawns (100 cp = 1 pawn advantage)
    * Positive = white advantage, negative = black advantage
-   * Range typically -1000 to +1000 (beyond is winning/lost)
    */
-  scoreCp?: number;
+  scoreCp?: number | null;
 
   /**
    * Mate in N moves
    * Positive = white mates, negative = black mates
-   * null = no mate detected
    */
   mateIn?: number | null;
+
+  /**
+   * Whether the engine is currently analyzing
+   */
+  isAnalyzing?: boolean;
+
+  /**
+   * Whether the evaluation bar is visible (not concealed)
+   */
+  isVisible?: boolean;
+
+  /**
+   * Current search depth (for display)
+   */
+  currentDepth?: number;
+
+  /**
+   * Maximum search depth (for display)
+   */
+  maxDepth?: number;
 
   /**
    * Custom className for styling
    */
   className?: string;
-
-  /**
-   * Width of the evaluation bar in pixels
-   * @default 24
-   */
-  width?: number;
-
-  /**
-   * Height of the evaluation bar in pixels
-   * Should match board height
-   * @default 512
-   */
-  height?: number;
 }
 
-export default function EvaluationBar(_props: EvaluationBarProps) {
-  // TODO(Phase X): Implement evaluation bar rendering
-  //
-  // const {
-  //   scoreCp = 0,
-  //   mateIn = null,
-  //   className = '',
-  //   width = 24,
-  //   height = 512,
-  // } = _props;
-  //
-  // Calculate bar fill percentage:
-  // - scoreCp = 0 → 50% (centered)
-  // - scoreCp = +1000 → 100% (white winning)
-  // - scoreCp = -1000 → 0% (black winning)
-  // - mateIn > 0 → 100% with "M{n}" label
-  // - mateIn < 0 → 0% with "M{n}" label
-  //
-  // Render SVG or styled div with:
-  // - White section (top half)
-  // - Black section (bottom half)
-  // - Divider line at 50%
-  // - Smooth transition on score change
-  //
-  // Example structure:
-  // <div className={`evaluation-bar ${className}`} style={{ width, height }}>
-  //   <div className="white-section" style={{ height: `${whitePercent}%` }}>
-  //     {mateIn > 0 && <span>M{mateIn}</span>}
-  //   </div>
-  //   <div className="black-section" style={{ height: `${blackPercent}%` }}>
-  //     {mateIn < 0 && <span>M{Math.abs(mateIn)}</span>}
-  //   </div>
-  // </div>
+export default function EvaluationBar({
+  scoreCp = null,
+  mateIn = null,
+  isAnalyzing = false,
+  isVisible = true,
+  currentDepth = 0,
+  maxDepth = 22,
+  className = '',
+}: EvaluationBarProps) {
+  // Calculate bar fill percentage based on score
+  // Map -500 to +500 centipawns to 0% to 100%
+  // Score is from white's perspective: positive = white advantage
+  const calculateFillPercentage = (): number => {
+    // Handle mate scores - full bar
+    if (mateIn !== null) {
+      return mateIn > 0 ? 100 : 0;
+    }
 
-  return null;
+    // Handle no score
+    if (scoreCp === null || !Number.isFinite(scoreCp)) {
+      return 50; // Centered
+    }
+
+    // Clamp score to -500 to +500 range
+    const clamped = Math.max(-500, Math.min(500, scoreCp));
+    
+    // Map to 0-100 percentage (0 = black winning, 100 = white winning)
+    return ((clamped + 500) / 1000) * 100;
+  };
+
+  // Format score for display
+  const formatScore = (): string => {
+    if (mateIn !== null) {
+      const absM ate = Math.abs(mateIn);
+      return mateIn > 0 ? `M${absMate}` : `-M${absMate}`;
+    }
+
+    if (scoreCp === null || !Number.isFinite(scoreCp)) {
+      return '–';
+    }
+
+    const pawns = (scoreCp / 100).toFixed(1);
+    return scoreCp >= 0 ? `+${pawns}` : pawns;
+  };
+
+  // Determine advantage class for styling
+  const getAdvantageClass = (): string => {
+    if (mateIn !== null) {
+      return mateIn > 0 ? 'white-advantage' : 'black-advantage';
+    }
+
+    if (scoreCp === null || !Number.isFinite(scoreCp)) {
+      return '';
+    }
+
+    return scoreCp >= 0 ? 'white-advantage' : 'black-advantage';
+  };
+
+  const fillPercentage = calculateFillPercentage();
+  const scoreDisplay = formatScore();
+  const advantageClass = getAdvantageClass();
+
+  // Determine analyzing class
+  const analyzingClass = isAnalyzing && isVisible ? 'analyzing' : '';
+
+  return (
+    <div
+      className={`eval-bar ${!isVisible ? 'eval-bar-concealed' : ''} ${className}`}
+    >
+      <div className={`eval-bar-track ${advantageClass} ${analyzingClass}`}>
+        <div
+          className="eval-bar-fill"
+          style={{ height: `${fillPercentage}%` }}
+        />
+      </div>
+      <div className={`eval-bar-score ${advantageClass}`}>{scoreDisplay}</div>
+      
+      {/* Depth info (optional, shown when analyzing) */}
+      {isVisible && isAnalyzing && currentDepth > 0 && (
+        <div className="eval-bar-depth-info">
+          <span>d{currentDepth}</span>
+          {maxDepth > 0 && <span>/{maxDepth}</span>}
+        </div>
+      )}
+    </div>
+  );
 }

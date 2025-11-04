@@ -2,6 +2,7 @@
 
 import { useGame } from '@/hooks/useGame';
 import React, { useState, useEffect, useRef } from 'react';
+import ArrowOverlay from './ArrowOverlay';
 
 /**
  * Board Component - Interactive chess board matching legacy implementation
@@ -14,6 +15,7 @@ import React, { useState, useEffect, useRef } from 'react';
  * - Drag-and-drop with proper cancellation (ESC, blur)
  * - Re-selection semantics (clicking different piece changes selection)
  * - Lighter visual feedback during drag operations
+ * - Engine overlays: multi-PV square highlights and arrows
  * - Responsive sizing matching legacy breakpoints
  * - Orientation: A1 always bottom-left for white (default view)
  */
@@ -22,7 +24,25 @@ import React, { useState, useEffect, useRef } from 'react';
 const DRAG_OPACITY = '0.4';
 const NORMAL_OPACITY = '1';
 
-export default function Board() {
+// Engine highlight types (matching legacy)
+export interface EngineHighlight {
+  from?: string;
+  to?: string;
+  rank: number; // 1-3 for multi-PV ranking
+}
+
+export interface BoardProps {
+  /** Engine analysis highlights (multi-PV moves) */
+  engineHighlights?: EngineHighlight[];
+  
+  /** Engine overlay display mode */
+  engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
+}
+
+export default function Board({ 
+  engineHighlights = [],
+  engineDisplayMode = 'arrows'
+}: BoardProps) {
   const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
@@ -274,6 +294,22 @@ export default function Board() {
                 lastMove &&
                 (lastMove.from === square || lastMove.to === square);
 
+              // Check for engine highlights (multi-PV squares)
+              // Only apply if engineDisplayMode includes squares
+              const showEngineSquares = engineDisplayMode === 'both' || engineDisplayMode === 'squares';
+              let engineHighlightRank: number | null = null;
+              
+              if (showEngineSquares && engineHighlights.length > 0) {
+                // Find the highest-ranked (lowest number) engine highlight for this square
+                for (const highlight of engineHighlights) {
+                  if (highlight.from === square || highlight.to === square) {
+                    if (engineHighlightRank === null || highlight.rank < engineHighlightRank) {
+                      engineHighlightRank = Math.min(Math.max(highlight.rank, 1), 3); // Clamp to 1-3
+                    }
+                  }
+                }
+              }
+
               // Build className for square (matching legacy with drag-specific classes)
               let squareClasses = `square ${isLight ? 'light' : 'dark'}`;
 
@@ -295,6 +331,11 @@ export default function Board() {
               if (isPiece) {
                 squareClasses +=
                   piece.color === 'w' ? ' white-piece' : ' black-piece';
+              }
+              
+              // Add engine highlight class if applicable
+              if (engineHighlightRank !== null) {
+                squareClasses += ` engine-move-${engineHighlightRank}`;
               }
 
               return (
@@ -321,6 +362,19 @@ export default function Board() {
             })
           )}
         </div>
+
+        {/* Engine Arrow Overlay */}
+        {(engineDisplayMode === 'arrows' || engineDisplayMode === 'both') && (
+          <ArrowOverlay
+            arrows={engineHighlights
+              .filter((h) => h.from && h.to)
+              .map((h) => ({
+                from: h.from!,
+                to: h.to!,
+                rank: h.rank,
+              }))}
+          />
+        )}
       </div>
     </div>
   );
