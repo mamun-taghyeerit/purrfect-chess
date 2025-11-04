@@ -56,11 +56,19 @@ This project follows modern automation principles with a focus on **purrfection*
 3. Add the vendor script to relevant npm scripts (`postinstall`, `build`, etc.)
 4. Document the automation in this file
 
+**ALWAYS look in package README or GitHub when using a complex library:**
+
+- Before using a library, consult its README, documentation, or GitHub repository
+- This reduces guesswork and ensures correct usage patterns
+- Especially important for libraries with non-obvious APIs (e.g., chess.js, Stockfish, React libraries)
+- Example: Check `node_modules/chess.js/README.md` or https://github.com/jhlywa/chess.js before implementing move logic
+
 **NEVER:**
 
 - Manually copy files from node_modules to public/
 - Commit auto-generated files that can be regenerated from dependencies
 - Create manual processes when automation is possible
+- Guess at library APIs when documentation is readily available
 
 ## Project Structure
 
