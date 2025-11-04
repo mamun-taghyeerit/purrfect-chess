@@ -8,7 +8,7 @@
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
   
-  /* Appearance customization CSS variables */
+  /* Appearance customization CSS variables (matching legacy) */
   --light-square-filter: hue-rotate(0deg) saturate(1) brightness(1);
   --dark-square-filter: hue-rotate(0deg) saturate(1) brightness(1);
   --white-piece-filter: hue-rotate(0deg) saturate(1) brightness(1);
@@ -35,21 +35,227 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-/* Appearance customization styles */
-.square-light {
+/* Board Container - Matching legacy layout */
+.board-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Board Grid - 8×8 layout matching legacy */
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  position: relative;
+}
+
+/* Coordinate labels - matching legacy positioning */
+.board-files,
+.board-ranks {
+  position: absolute;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.board-files {
+  left: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.board-files span {
+  justify-self: center;
+}
+
+.board-files-top {
+  top: -22px;
+}
+
+.board-files-bottom {
+  bottom: -22px;
+}
+
+.board-ranks {
+  top: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  width: 22px;
+}
+
+.board-ranks span {
+  align-self: center;
+  justify-self: center;
+}
+
+.board-ranks-left {
+  left: -22px;
+}
+
+.board-ranks-right {
+  right: -22px;
+}
+
+/* Square styles - matching legacy exactly */
+.square {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.square.light {
+  background-image: url('/assets/sq_white.png');
   filter: var(--light-square-filter);
 }
 
-.square-dark {
+.square.dark {
+  background-image: url('/assets/sq_black.png');
   filter: var(--dark-square-filter);
 }
 
-.piece-white {
-  filter: var(--white-piece-filter);
-  transform: scale(var(--white-piece-scale));
+/* Piece image styles - matching legacy */
+.square img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease;
 }
 
-.piece-black {
+/* Show grab cursor for draggable pieces */
+.square img[draggable='true'] {
+  cursor: grab;
+}
+
+.square img[draggable='true']:active {
+  cursor: grabbing;
+}
+
+.square.white-piece img {
+  filter: var(--white-piece-filter);
+  transform: translate(-50%, -50%) scale(var(--white-piece-scale));
+}
+
+.square.black-piece img {
   filter: var(--black-piece-filter);
-  transform: scale(var(--black-piece-scale));
+  transform: translate(-50%, -50%) scale(var(--black-piece-scale));
+}
+
+/* Square highlighting - matching legacy with ::after pseudo-elements */
+.square.selected::after,
+.square.drag-selected::after,
+.square.last-move::after,
+.square.legal-move-hint::after,
+.square.legal-capture-hint::after,
+.square.drag-move-hint::after,
+.square.drag-capture-hint::after,
+.square.user-highlight::after,
+.square.engine-move-1::after,
+.square.engine-move-2::after,
+.square.engine-move-3::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.square.selected::after {
+  background: rgba(59, 130, 246, 0.35);
+}
+
+.square.last-move::after {
+  background: rgba(250, 204, 21, 0.35);
+}
+
+.square.legal-move-hint::after {
+  background: radial-gradient(
+    circle,
+    rgba(34, 197, 94, 0.65) 0%,
+    rgba(34, 197, 94, 0.15) 70%,
+    rgba(34, 197, 94, 0) 80%
+  );
+}
+
+.square.legal-capture-hint::after {
+  background: rgba(239, 68, 68, 0.45);
+}
+
+.square.user-highlight::after {
+  background: rgba(139, 92, 246, 0.4);
+}
+
+.square.engine-move-1::after {
+  background: rgba(59, 130, 246, 0.45);
+}
+
+.square.engine-move-2::after {
+  background: rgba(16, 185, 129, 0.45);
+}
+
+.square.engine-move-3::after {
+  background: rgba(244, 114, 182, 0.45);
+}
+
+/* Drag-specific highlights - lighter shades for better UX during drag */
+.square.drag-selected::after {
+  background: rgba(59, 130, 246, 0.2); /* Lighter than selected (0.35) */
+}
+
+.square.drag-move-hint::after {
+  background: radial-gradient(
+    circle,
+    rgba(34, 197, 94, 0.4) 0%,
+    rgba(34, 197, 94, 0.1) 70%,
+    rgba(34, 197, 94, 0) 80%
+  );
+}
+
+.square.drag-capture-hint::after {
+  background: rgba(239, 68, 68, 0.3); /* Lighter than normal (0.45) */
+}
+
+.square.drag-over {
+  box-shadow: inset 0 0 0 3px rgba(145, 152, 229, 0.6);
+}
+
+/* Responsive sizing - matching legacy breakpoints */
+@media (max-width: 320px) {
+  .board-container {
+    max-width: 280px;
+  }
+}
+
+@media (min-width: 768px) {
+  .board-container {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .board-container {
+    max-width: 600px;
+  }
 }
