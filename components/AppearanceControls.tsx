@@ -274,16 +274,36 @@ export default function AppearanceControls({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-3">
       {shouldShowGlobalReset && (
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Appearance</h3>
+        <div 
+          className="flex justify-between items-center mb-1"
+          style={{
+            borderBottom: '1px solid #5f5f5f',
+            paddingBottom: '10px'
+          }}
+        >
+          <h3 
+            className="text-lg font-semibold"
+            style={{ color: '#f0f0f0' }}
+          >
+            Appearance
+          </h3>
           <button
             onClick={handleGlobalReset}
-            className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
+            style={{
+              background: '#555',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+            onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
             title="Reset all appearance settings"
           >
-            ↻ Reset All
+            <span>↻</span>
+            <span>Reset All</span>
           </button>
         </div>
       )}
@@ -291,29 +311,45 @@ export default function AppearanceControls({
       {displayGroups.map((group) => (
         <div
           key={group.key}
-          className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+          className="rounded-lg p-3"
+          style={{
+            background: '#3a3a3a',
+            border: '1px solid #565656'
+          }}
         >
           <div className="flex justify-between items-center mb-3">
-            <h4 className="font-medium text-sm">{group.label}</h4>
+            <h4 className="font-semibold text-base" style={{ color: '#ddd' }}>
+              {group.label}
+            </h4>
             <button
               onClick={() => handleGroupReset(group.key)}
-              className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="text-lg p-0.5 transition-all hover:rotate-[30deg]"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#9198e5',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#e66465')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#9198e5')}
               title={`Reset ${group.label}`}
             >
               ↻
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2.5">
             {group.sliders.map((slider) => {
               const value = appearance[group.key][slider.key] as number;
               return (
-                <div key={slider.key} className="space-y-1">
+                <label 
+                  key={slider.key} 
+                  className="flex flex-col gap-1.5 text-sm"
+                  style={{ color: '#e0e0e0' }}
+                >
                   <div className="flex justify-between items-center">
-                    <label className="text-xs text-gray-600 dark:text-gray-400">
-                      {slider.label}
-                    </label>
-                    <span className="text-xs font-mono text-gray-700 dark:text-gray-300">
+                    <span>{slider.label}</span>
+                    <span className="text-xs" style={{ color: '#bbb' }}>
                       {slider.format(value)}
                     </span>
                   </div>
@@ -330,9 +366,17 @@ export default function AppearanceControls({
                         Number(e.target.value)
                       )
                     }
-                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full cursor-pointer slider-legacy"
+                    style={{
+                      height: '8px',
+                      borderRadius: '5px',
+                      background: '#666',
+                      WebkitAppearance: 'none',
+                      appearance: 'none',
+                      opacity: 0.85
+                    }}
                   />
-                </div>
+                </label>
               );
             })}
           </div>

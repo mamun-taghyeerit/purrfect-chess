@@ -75,14 +75,14 @@ export default function Home() {
     bestEval && bestEval.scoreType === 'mate' ? bestEval.score : null;
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-8">
-      <div className="z-10 w-full max-w-6xl">
-        <h1 className="text-4xl font-bold text-center mb-4">
+    <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
+      <div className="z-10 w-full" style={{ maxWidth: '1260px', margin: '0 auto' }}>
+        <h1 className="text-4xl font-bold text-center mb-4 text-gray-100">
           🐱 Purrfect Chess
         </h1>
 
         <div className="mb-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-gray-400">
             Next.js Migration - Phase 2: Core Structure & Initial Port
           </p>
         </div>
@@ -111,35 +111,79 @@ export default function Home() {
           </div>
         )}
 
-        <div className="flex flex-col xl:flex-row gap-8 items-start justify-center">
+        <div className="flex flex-col xl:flex-row gap-5 items-start justify-center">
           {/* Left Panel: White Controls */}
-          <div className="flex flex-col gap-6 xl:max-w-[320px] xl:flex-1">
-            <div className="bg-gray-800 dark:bg-gray-800 rounded-xl p-5 shadow-lg">
-              <h2 className="text-xl font-bold text-center mb-4 pb-3 border-b border-gray-700">
+          <div className="flex flex-col gap-5 xl:max-w-[320px] xl:flex-1 w-full">
+            <div 
+              className="rounded-xl p-5"
+              style={{
+                backgroundColor: '#444',
+                boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.35)'
+              }}
+            >
+              <h2 
+                className="text-2xl font-semibold text-center mb-5 pb-2.5"
+                style={{ 
+                  borderBottom: '2px solid #555',
+                  color: '#f0f0f0'
+                }}
+              >
                 White Controls
               </h2>
               
               {/* White's Clock Only */}
               <div
-                className={`p-3 rounded-xl text-center font-mono text-4xl font-bold mb-6 transition-all ${
+                className={`text-center font-mono font-bold mb-5 transition-all ${
                   turn === 'w' && isTimerRunning
-                    ? 'bg-gray-900 text-white ring-2 ring-blue-400 shadow-lg shadow-blue-500/50'
-                    : 'bg-gray-900 text-gray-400'
+                    ? ''
+                    : ''
                 }`}
+                style={{
+                  fontFamily: "'Orbitron', 'Fira Code', 'Menlo', monospace",
+                  fontSize: '2.6rem',
+                  padding: '12px 16px',
+                  borderRadius: '14px',
+                  background: '#1f1f1f',
+                  border: turn === 'w' && isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: turn === 'w' && isTimerRunning 
+                    ? '0 0 18px rgba(145, 152, 229, 0.7)' 
+                    : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
+                  transform: turn === 'w' && isTimerRunning ? 'translateY(-2px)' : 'none',
+                  color: '#f0f0f0'
+                }}
               >
                 {formatClockTime(whiteTime)}
               </div>
 
               {/* White Appearance Controls: Light Squares + White Pieces */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Appearance</h3>
+              <div className="mb-4">
+                <div 
+                  className="flex justify-between items-center mb-4"
+                  style={{
+                    borderBottom: '1px solid #5f5f5f',
+                    paddingBottom: '10px'
+                  }}
+                >
+                  <h3 
+                    className="text-lg font-semibold"
+                    style={{ color: '#f0f0f0' }}
+                  >
+                    Appearance
+                  </h3>
                   <button
                     onClick={() => {
                       // Reset handled by individual group reset buttons in AppearanceControls
                       window.location.reload();
                     }}
-                    className="px-3 py-1.5 text-sm border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors inline-flex items-center gap-1.5"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
+                    style={{
+                      background: '#555',
+                      color: '#fff',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
                     title="Reset all appearance settings"
                   >
                     <span>↻</span>
@@ -153,8 +197,14 @@ export default function Home() {
               </div>
 
               {/* Time Presets */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-center mb-3 pb-2 border-b border-gray-700">
+              <div className="mt-5">
+                <h3 
+                  className="text-lg font-semibold text-center mb-3 pb-2.5"
+                  style={{
+                    borderBottom: '1px solid #5f5f5f',
+                    color: '#f0f0f0'
+                  }}
+                >
                   Time Presets
                 </h3>
                 <TimeControlSelector
@@ -165,37 +215,72 @@ export default function Home() {
               </div>
 
               {/* Custom Time */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-center mb-3 pb-2 border-b border-gray-700">
+              <div className="mt-5">
+                <h3 
+                  className="text-lg font-semibold text-center mb-3 pb-2.5"
+                  style={{
+                    borderBottom: '1px solid #5f5f5f',
+                    color: '#f0f0f0'
+                  }}
+                >
                   Custom Time
                 </h3>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm text-gray-400">Minutes</label>
+                    <label className="text-sm" style={{ color: '#e0e0e0' }}>Minutes</label>
                     <input
                       type="number"
                       min="1"
                       max="180"
                       defaultValue={timeControl.minutes}
-                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                      className="rounded-lg px-2.5 py-2"
+                      style={{
+                        background: '#2b2b2b',
+                        border: '1px solid #555',
+                        color: '#fff',
+                        fontSize: '1rem'
+                      }}
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm text-gray-400">Increment (s)</label>
+                    <label className="text-sm" style={{ color: '#e0e0e0' }}>Increment (s)</label>
                     <input
                       type="number"
                       min="0"
                       max="60"
                       defaultValue={timeControl.increment}
-                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white"
+                      className="rounded-lg px-2.5 py-2"
+                      style={{
+                        background: '#2b2b2b',
+                        border: '1px solid #555',
+                        color: '#fff',
+                        fontSize: '1rem'
+                      }}
                     />
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold">
+                  <button 
+                    className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                    style={{
+                      background: '#555',
+                      color: '#fff',
+                      border: 'none'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                  >
                     Apply
                   </button>
-                  <button className="flex-1 px-3 py-2 text-sm bg-gradient-to-br from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-lg transition-colors font-semibold shadow-lg">
+                  <button 
+                    className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold"
+                    style={{
+                      background: 'linear-gradient(135deg, #e66465, #9198e5)',
+                      color: '#fff',
+                      border: 'none',
+                      boxShadow: '0 6px 18px rgba(230, 100, 101, 0.35)'
+                    }}
+                  >
                     Start
                   </button>
                 </div>
@@ -230,14 +315,30 @@ export default function Home() {
             <div className="flex gap-2 flex-wrap justify-center">
               <button
                 onClick={resetGame}
-                className="px-3 py-1.5 text-sm rounded-full border border-gray-600 hover:bg-gray-700 text-white transition-colors flex items-center gap-2"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+                style={{
+                  background: '#555',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
               >
                 <span>↻</span>
                 <span>Reset Game</span>
               </button>
               <button
                 onClick={() => setIsEvalBarVisible(!isEvalBarVisible)}
-                className="px-3 py-1.5 text-sm rounded-full border border-gray-600 hover:bg-gray-700 text-white transition-colors flex items-center gap-2"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+                style={{
+                  background: '#555',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
               >
                 <span>📊</span>
                 <span>{isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
@@ -247,7 +348,15 @@ export default function Home() {
                   // TODO: Implement move review functionality
                   alert('Move review feature coming soon!');
                 }}
-                className="px-3 py-1.5 text-sm rounded-full border border-gray-600 hover:bg-gray-700 text-white transition-colors flex items-center gap-2"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+                style={{
+                  background: '#555',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
               >
                 <span>⭐</span>
                 <span>Move Review</span>
@@ -255,32 +364,78 @@ export default function Home() {
             </div>
 
             {/* Match Card */}
-            <div className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-xl p-4 shadow-lg">
-              <h3 className="text-xl font-semibold text-center mb-3">
+            <div 
+              className="w-full rounded-xl p-4"
+              style={{
+                maxWidth: '600px',
+                background: '#3f3f3f',
+                border: '1px solid #555',
+                boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.35)'
+              }}
+            >
+              <h3 
+                className="text-xl font-semibold text-center mb-3"
+                style={{ color: '#f5f5f5' }}
+              >
                 Purrfect Chess Arena
               </h3>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-1.5 border-b border-gray-700/50">
-                  <span className="font-semibold text-blue-300">Event</span>
-                  <span className="font-mono text-gray-100">
+              <div className="flex flex-col gap-2">
+                <div 
+                  className="flex justify-between items-center py-1.5"
+                  style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}
+                >
+                  <span className="font-semibold" style={{ color: '#cdd0ff' }}>Event</span>
+                  <span 
+                    className="font-mono text-right"
+                    style={{
+                      fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                      color: '#f3f4ff'
+                    }}
+                  >
                     Purrfect Game - {timeControl.minutes}+{timeControl.increment}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-gray-700/50">
-                  <span className="font-semibold text-blue-300">Date</span>
-                  <span className="font-mono text-gray-100">{currentDate}</span>
+                <div 
+                  className="flex justify-between items-center py-1.5"
+                  style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}
+                >
+                  <span className="font-semibold" style={{ color: '#cdd0ff' }}>Date</span>
+                  <span 
+                    className="font-mono text-right"
+                    style={{
+                      fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                      color: '#f3f4ff'
+                    }}
+                  >
+                    {currentDate}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center py-1.5 border-b border-gray-700/50">
-                  <span className="font-semibold text-blue-300">
+                <div 
+                  className="flex justify-between items-center py-1.5"
+                  style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}
+                >
+                  <span className="font-semibold" style={{ color: '#cdd0ff' }}>
                     Time Control
                   </span>
-                  <span className="font-mono text-gray-100">
+                  <span 
+                    className="font-mono text-right"
+                    style={{
+                      fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                      color: '#f3f4ff'
+                    }}
+                  >
                     {timeControl.minutes} + {timeControl.increment}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
-                  <span className="font-semibold text-blue-300">Site</span>
-                  <span className="font-mono text-gray-100">
+                  <span className="font-semibold" style={{ color: '#cdd0ff' }}>Site</span>
+                  <span 
+                    className="font-mono text-right"
+                    style={{
+                      fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                      color: '#f3f4ff'
+                    }}
+                  >
                     Purrfect Universe (Online)
                   </span>
                 </div>
@@ -290,7 +445,8 @@ export default function Home() {
             {/* Easter Egg Trigger */}
             <p
               ref={setTargetElement}
-              className="text-sm text-gray-500 dark:text-gray-600 select-text cursor-text italic"
+              className="text-sm select-text cursor-text italic text-center"
+              style={{ color: '#777' }}
               title="Hidden feature trigger"
             >
               (Reserved for future use)
@@ -305,33 +461,73 @@ export default function Home() {
           </div>
 
           {/* Right Panel: Black Controls */}
-          <div className="flex flex-col gap-6 xl:max-w-[320px] xl:flex-1">
-            <div className="bg-gray-800 dark:bg-gray-800 rounded-xl p-5 shadow-lg">
-              <h2 className="text-xl font-bold text-center mb-4 pb-3 border-b border-gray-700">
+          <div className="flex flex-col gap-5 xl:max-w-[320px] xl:flex-1 w-full">
+            <div 
+              className="rounded-xl p-5"
+              style={{
+                backgroundColor: '#444',
+                boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.35)'
+              }}
+            >
+              <h2 
+                className="text-2xl font-semibold text-center mb-5 pb-2.5"
+                style={{ 
+                  borderBottom: '2px solid #555',
+                  color: '#f0f0f0'
+                }}
+              >
                 Black Controls
               </h2>
               
               {/* Black's Clock Only */}
               <div
-                className={`p-3 rounded-xl text-center font-mono text-4xl font-bold mb-6 transition-all ${
-                  turn === 'b' && isTimerRunning
-                    ? 'bg-gray-900 text-white ring-2 ring-blue-400 shadow-lg shadow-blue-500/50'
-                    : 'bg-gray-900 text-gray-400'
-                }`}
+                className="text-center font-mono font-bold mb-5 transition-all"
+                style={{
+                  fontFamily: "'Orbitron', 'Fira Code', 'Menlo', monospace",
+                  fontSize: '2.6rem',
+                  padding: '12px 16px',
+                  borderRadius: '14px',
+                  background: '#1f1f1f',
+                  border: turn === 'b' && isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: turn === 'b' && isTimerRunning 
+                    ? '0 0 18px rgba(145, 152, 229, 0.7)' 
+                    : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
+                  transform: turn === 'b' && isTimerRunning ? 'translateY(-2px)' : 'none',
+                  color: '#f0f0f0'
+                }}
               >
                 {formatClockTime(blackTime)}
               </div>
 
               {/* Black Appearance Controls: Dark Squares + Black Pieces */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Appearance</h3>
+              <div className="mb-4">
+                <div 
+                  className="flex justify-between items-center mb-4"
+                  style={{
+                    borderBottom: '1px solid #5f5f5f',
+                    paddingBottom: '10px'
+                  }}
+                >
+                  <h3 
+                    className="text-lg font-semibold"
+                    style={{ color: '#f0f0f0' }}
+                  >
+                    Appearance
+                  </h3>
                   <button
                     onClick={() => {
                       // Reset handled by individual group reset buttons in AppearanceControls
                       window.location.reload();
                     }}
-                    className="px-3 py-1.5 text-sm border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors inline-flex items-center gap-1.5"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
+                    style={{
+                      background: '#555',
+                      color: '#fff',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
                     title="Reset all appearance settings"
                   >
                     <span>↻</span>
@@ -345,18 +541,33 @@ export default function Home() {
               </div>
 
               {/* Moves */}
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-center mb-3 pb-2 border-b border-gray-700">Moves</h3>
+              <div className="mt-5">
+                <h3 
+                  className="text-lg font-semibold text-center mb-3 pb-2.5"
+                  style={{
+                    borderBottom: '1px solid #5f5f5f',
+                    color: '#f0f0f0'
+                  }}
+                >
+                  Moves
+                </h3>
                 <MoveHistory history={history} />
                 
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 flex flex-col gap-2">
                   <div className="flex gap-2">
                     <button
                       onClick={async () => {
                         const pgn = getPgn();
                         await navigator.clipboard.writeText(pgn);
                       }}
-                      className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                      style={{
+                        background: '#555',
+                        color: '#fff',
+                        border: 'none'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
                     >
                       Copy PGN
                     </button>
@@ -371,7 +582,14 @@ export default function Home() {
                           }
                         }
                       }}
-                      className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                      style={{
+                        background: '#555',
+                        color: '#fff',
+                        border: 'none'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
                     >
                       Load PGN
                     </button>
@@ -382,7 +600,14 @@ export default function Home() {
                         const fen = getFen();
                         await navigator.clipboard.writeText(fen);
                       }}
-                      className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                      style={{
+                        background: '#555',
+                        color: '#fff',
+                        border: 'none'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
                     >
                       Copy FEN
                     </button>
@@ -393,34 +618,51 @@ export default function Home() {
                           loadFen(fenText);
                         }
                       }}
-                      className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                      style={{
+                        background: '#555',
+                        color: '#fff',
+                        border: 'none'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
                     >
                       Load FEN
                     </button>
                   </div>
                 </div>
 
-                {/* PGN and FEN text areas (hidden by default, match legacy) */}
+                {/* PGN and FEN text areas (matching legacy) */}
                 <textarea
-                  className="w-full mt-3 p-2 bg-gray-900 border border-gray-700 rounded-lg text-xs font-mono text-gray-400 resize-none"
+                  className="w-full mt-3 p-2 rounded-lg text-xs font-mono resize-none"
                   rows={4}
                   placeholder="PGN will appear here"
                   value={getPgn()}
                   readOnly
+                  style={{
+                    background: '#2b2b2b',
+                    border: '1px solid #555',
+                    color: '#bbb'
+                  }}
                 />
                 <textarea
-                  className="w-full mt-2 p-2 bg-gray-900 border border-gray-700 rounded-lg text-xs font-mono text-gray-400 resize-none"
+                  className="w-full mt-2 p-2 rounded-lg text-xs font-mono resize-none"
                   rows={2}
                   placeholder="FEN will appear here"
                   value={getFen()}
                   readOnly
+                  style={{
+                    background: '#2b2b2b',
+                    border: '1px solid #555',
+                    color: '#bbb'
+                  }}
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-8 text-center text-sm" style={{ color: '#999' }}>
           <p>
             <strong>Migration Progress:</strong> Board rendering ✓, Piece
             movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine
