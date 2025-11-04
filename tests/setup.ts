@@ -9,10 +9,14 @@
  * - Custom matchers
  */
 
-import { afterEach, vi } from 'vitest';
+import { afterEach, expect, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+import * as matchers from 'vitest-axe/matchers';
 import React from 'react';
+
+// Extend expect with axe matchers
+expect.extend(matchers);
 
 // Cleanup after each test
 afterEach(() => {

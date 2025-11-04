@@ -68,6 +68,10 @@ export default function Board({
   const [isDragging, setIsDragging] = useState(false);
   const dragSourceRef = useRef<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  
+  // Keyboard navigation state
+  const [focusedSquare, setFocusedSquare] = useState<string | null>(null);
+  const squareRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   // Arrow state
   const [userArrows, setUserArrows] = useState<Map<string, Arrow>>(new Map());
@@ -435,6 +439,13 @@ export default function Board({
     };
   }, [isDragging]);
 
+  // Initialize focused square on first render (default to e2 for keyboard navigation)
+  useEffect(() => {
+    if (focusedSquare === null) {
+      setFocusedSquare('e2');
+    }
+  }, [focusedSquare]);
+
   // Clear board UI state when game resets or moves are made
   const previousHistoryLength = useRef<number>();
   useEffect(() => {
@@ -513,6 +524,64 @@ export default function Board({
       movePiece,
       game,
     ]
+  );
+
+  // Keyboard navigation handler
+  const handleBoardKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!focusedSquare) return;
+
+      const coords = parseSquare(focusedSquare);
+      if (!coords) return;
+
+      let newFileIndex = coords.file;
+      let newRankIndex = coords.rank;
+
+      // Arrow key navigation
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          newFileIndex = Math.max(0, coords.file - 1);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          newFileIndex = Math.min(7, coords.file + 1);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          newRankIndex = Math.max(0, coords.rank - 1);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          newRankIndex = Math.min(7, coords.rank + 1);
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          handleSquareClick(focusedSquare, e as any);
+          return;
+        case 'Escape':
+          e.preventDefault();
+          if (selectedSquare) {
+            setSelectedSquare(null);
+            setLegalMoves([]);
+            setCaptureMoves([]);
+          }
+          return;
+        default:
+          return;
+      }
+
+      const newSquare = algebraicAt(newFileIndex, newRankIndex);
+      setFocusedSquare(newSquare);
+
+      // Focus the new square element
+      const squareElement = squareRefs.current.get(newSquare);
+      if (squareElement) {
+        squareElement.focus();
+      }
+    },
+    [focusedSquare, selectedSquare, handleSquareClick, algebraicAt]
   );
 
   const handleSquareMouseDown = useCallback(
@@ -623,7 +692,12 @@ export default function Board({
         </div>
 
         {/* 8×8 Board grid */}
-        <div id="board" ref={boardRef}>
+        <div 
+          id="board" 
+          ref={boardRef}
+          role="application"
+          aria-label="Chess board with 64 squares"
+        >
           {Array.from({ length: 8 }, (_, rankIndex) =>
             Array.from({ length: 8 }, (_, fileIndex) => {
               const square = algebraicAt(fileIndex, rankIndex);
@@ -693,21 +767,52 @@ export default function Board({
                 squareClasses += ` engine-move-${engineHighlightRank}`;
               }
 
+              // Build ARIA label for the square
+              let ariaLabel: string;
+              if (isPiece) {
+                const colorName = piece.color === 'w' ? 'White' : 'Black';
+                const pieceName = getPieceTypeName(piece.type);
+                ariaLabel = `${square}, ${colorName} ${pieceName}`;
+              } else {
+                ariaLabel = `${square}, empty`;
+              }
+
+              if (isSelected) {
+                ariaLabel += ', selected';
+              }
+              if (isLegalMove || isCaptureMove) {
+                ariaLabel += ', legal move';
+              }
+
               return (
                 <div
                   key={square}
+                  ref={(el) => {
+                    if (el) {
+                      squareRefs.current.set(square, el);
+                    } else {
+                      squareRefs.current.delete(square);
+                    }
+                  }}
                   className={squareClasses}
                   data-square={square}
+                  role="button"
+                  aria-label={ariaLabel}
+                  aria-pressed={isSelected}
+                  tabIndex={focusedSquare === square ? 0 : -1}
                   onClick={(e) => handleSquareClick(square, e)}
                   onMouseDown={(e) => handleSquareMouseDown(square, e)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, square)}
+                  onFocus={() => setFocusedSquare(square)}
+                  onKeyDown={handleBoardKeyDown}
                 >
                   {isPiece && (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
                       src={getPieceImagePath(piece)}
-                      alt={`${piece.color === 'w' ? 'White' : 'Black'} ${getPieceTypeName(piece.type)}`}
+                      alt=""
+                      aria-hidden="true"
                       draggable
                       onDragStart={(e) => handleDragStart(e, square)}
                       onDragEnd={handleDragEnd}
@@ -752,7 +857,12 @@ function getPieceTypeName(type: string): string {
     q: 'queen',
     k: 'king',
   };
-  return pieceNames[type.toLowerCase()] || 'pawn'; // Default to 'pawn' for unknown types
+  const normalizedType = type.toLowerCase();
+  if (!(normalizedType in pieceNames)) {
+    console.warn(`Unknown piece type: ${type}`);
+    return 'unknown piece';
+  }
+  return pieceNames[normalizedType];
 }
 
 /**
