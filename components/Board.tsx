@@ -768,7 +768,7 @@ export default function Board({
               }
 
               // Build ARIA label for the square
-              let ariaLabel = `Square ${square}`;
+              let ariaLabel: string;
               if (isPiece) {
                 const colorName = piece.color === 'w' ? 'White' : 'Black';
                 const pieceName = getPieceTypeName(piece.type);
@@ -857,7 +857,12 @@ function getPieceTypeName(type: string): string {
     q: 'queen',
     k: 'king',
   };
-  return pieceNames[type.toLowerCase()] || 'pawn'; // Default to 'pawn' for unknown types
+  const normalizedType = type.toLowerCase();
+  if (!(normalizedType in pieceNames)) {
+    console.warn(`Unknown piece type: ${type}`);
+    return 'unknown piece';
+  }
+  return pieceNames[normalizedType];
 }
 
 /**
