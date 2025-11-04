@@ -60,11 +60,15 @@ export interface BoardProps {
 
   /** Engine overlay display mode */
   engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
+
+  /** Whether to flip the board (black perspective) */
+  flipped?: boolean;
 }
 
 export default function Board({
   engineHighlights = [],
   engineDisplayMode = 'arrows',
+  flipped = false,
 }: BoardProps) {
   const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -90,8 +94,9 @@ export default function Board({
   } | null>(null);
 
   // File and rank labels for coordinates (matching legacy)
-  const files = useMemo(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], []);
-  const ranks = useMemo(() => [8, 7, 6, 5, 4, 3, 2, 1], []);
+  // When flipped, reverse the arrays
+  const files = useMemo(() => flipped ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [flipped]);
+  const ranks = useMemo(() => flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1], [flipped]);
 
   // Get last move for highlighting
   const lastMove = history.length > 0 ? history[history.length - 1] : null;

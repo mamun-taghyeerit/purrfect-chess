@@ -15,7 +15,7 @@ import { useGame } from '@/hooks/useGame';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { EngineHighlight } from '@/components/Board';
 
 // Helper function to format time in MM:SS format
@@ -42,6 +42,13 @@ export default function Home() {
   // Refs for appearance controls
   const whiteAppearanceRef = useRef<AppearanceControlsHandle>(null);
   const blackAppearanceRef = useRef<AppearanceControlsHandle>(null);
+
+  // State for editable PGN/FEN text areas
+  const [pgnInput, setPgnInput] = useState('');
+  const [fenInput, setFenInput] = useState('');
+
+  // State for board flip
+  const [isBoardFlipped, setIsBoardFlipped] = useState(false);
 
   const {
     resetGame,
@@ -92,6 +99,25 @@ export default function Home() {
   const evalScore = bestEval ? bestEval.score : null;
   const evalMate =
     bestEval && bestEval.scoreType === 'mate' ? bestEval.score : null;
+
+  // Show notifications for game-ending conditions
+  const prevGameOverRef = useRef(false);
+  useEffect(() => {
+    if (isGameOver && !prevGameOverRef.current) {
+      // Game just ended
+      if (checkmate) {
+        const winner = turn === 'w' ? 'Black' : 'White';
+        showMessage('info', `Checkmate! ${winner} wins! 👑`);
+      } else if (stalemate) {
+        showMessage('info', 'Stalemate! The game is a draw. 🤝');
+      } else {
+        // Timeout
+        const winner = turn === 'w' ? 'Black' : 'White';
+        showMessage('info', `Time out! ${winner} wins on time. ⏰`);
+      }
+    }
+    prevGameOverRef.current = isGameOver;
+  }, [isGameOver, checkmate, stalemate, turn, showMessage]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
@@ -336,6 +362,7 @@ export default function Home() {
               <Board
                 engineHighlights={engineHighlights}
                 engineDisplayMode={engineDisplayMode}
+                flipped={isBoardFlipped}
               />
 
               {/* Evaluation Bar (right side of board) */}
@@ -367,6 +394,21 @@ export default function Home() {
               >
                 <span>↻</span>
                 <span>Reset Game</span>
+              </button>
+              <button
+                onClick={() => setIsBoardFlipped(!isBoardFlipped)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+                style={{
+                  background: '#555',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+              >
+                <span>🔄</span>
+                <span>Flip Board</span>
               </button>
               <button
                 onClick={() => setIsEvalBarVisible(!isEvalBarVisible)}
@@ -605,123 +647,132 @@ export default function Home() {
                 <MoveHistory history={history} />
                 
                 <div className="mt-4 flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async () => {
-                        const pgn = getPgn();
-                        try {
-                          await navigator.clipboard.writeText(pgn);
-                          showMessage('success', 'PGN copied to clipboard!');
-                        } catch (error) {
-                          showMessage('error', 'Unable to copy PGN.');
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
-                      style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Copy PGN
-                    </button>
-                    <button
-                      onClick={() => {
-                        const pgnText = prompt('Enter PGN:');
-                        if (pgnText) {
-                          const result = loadPgn(pgnText);
-                          if (result) {
-                            showMessage('success', 'PGN loaded successfully.');
+                  {/* PGN Section */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          const pgn = getPgn();
+                          try {
+                            await navigator.clipboard.writeText(pgn);
+                            showMessage('success', 'PGN copied to clipboard!');
+                          } catch (error) {
+                            showMessage('error', 'Unable to copy PGN.');
                           }
-                          // Error message is handled by useGame onError callback
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Copy PGN
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (pgnInput.trim()) {
+                            const result = loadPgn(pgnInput);
+                            if (result) {
+                              showMessage('success', 'PGN loaded successfully.');
+                              setPgnInput(''); // Clear input after successful load
+                            }
+                            // Error message is handled by useGame onError callback
+                          } else {
+                            showMessage('info', 'Enter a PGN in the text box below.');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Load PGN
+                      </button>
+                    </div>
+                    <textarea
+                      className="w-full p-2 rounded-lg text-xs font-mono resize-none"
+                      rows={4}
+                      placeholder="Current PGN (or type to load)"
+                      value={pgnInput || getPgn()}
+                      onChange={(e) => setPgnInput(e.target.value)}
                       style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
+                        background: '#2b2b2b',
+                        border: '1px solid #555',
+                        color: '#bbb'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Load PGN
-                    </button>
+                    />
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async () => {
-                        const fen = getFen();
-                        try {
-                          await navigator.clipboard.writeText(fen);
-                          showMessage('success', 'FEN copied to clipboard!');
-                        } catch (error) {
-                          showMessage('error', 'Unable to copy FEN.');
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
-                      style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Copy FEN
-                    </button>
-                    <button
-                      onClick={() => {
-                        const fenText = prompt('Enter FEN:');
-                        if (fenText) {
-                          const result = loadFen(fenText);
-                          if (result) {
-                            showMessage('success', 'FEN loaded successfully.');
+
+                  {/* FEN Section */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          const fen = getFen();
+                          try {
+                            await navigator.clipboard.writeText(fen);
+                            showMessage('success', 'FEN copied to clipboard!');
+                          } catch (error) {
+                            showMessage('error', 'Unable to copy FEN.');
                           }
-                          // Error message is handled by useGame onError callback
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Copy FEN
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (fenInput.trim()) {
+                            const result = loadFen(fenInput);
+                            if (result) {
+                              showMessage('success', 'FEN loaded successfully.');
+                              setFenInput(''); // Clear input after successful load
+                            }
+                            // Error message is handled by useGame onError callback
+                          } else {
+                            showMessage('info', 'Enter a FEN in the text box below.');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Load FEN
+                      </button>
+                    </div>
+                    <textarea
+                      className="w-full p-2 rounded-lg text-xs font-mono resize-none"
+                      rows={2}
+                      placeholder="Current FEN (or type to load)"
+                      value={fenInput || getFen()}
+                      onChange={(e) => setFenInput(e.target.value)}
                       style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
+                        background: '#2b2b2b',
+                        border: '1px solid #555',
+                        color: '#bbb'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Load FEN
-                    </button>
+                    />
                   </div>
                 </div>
-
-                {/* PGN and FEN text areas (matching legacy) */}
-                <textarea
-                  className="w-full mt-3 p-2 rounded-lg text-xs font-mono resize-none"
-                  rows={4}
-                  placeholder="PGN will appear here"
-                  value={getPgn()}
-                  readOnly
-                  style={{
-                    background: '#2b2b2b',
-                    border: '1px solid #555',
-                    color: '#bbb'
-                  }}
-                />
-                <textarea
-                  className="w-full mt-2 p-2 rounded-lg text-xs font-mono resize-none"
-                  rows={2}
-                  placeholder="FEN will appear here"
-                  value={getFen()}
-                  readOnly
-                  style={{
-                    background: '#2b2b2b',
-                    border: '1px solid #555',
-                    color: '#bbb'
-                  }}
-                />
               </div>
             </div>
           </div>
