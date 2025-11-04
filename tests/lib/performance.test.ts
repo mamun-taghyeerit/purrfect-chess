@@ -69,9 +69,8 @@ describe('Performance Utilities', () => {
         await new Promise(resolve => setTimeout(resolve, 10));
       };
 
-      await expect(
-        assertPerformance(operation, 100, 'Test operation')
-      ).resolves.not.toThrow();
+      const result = await assertPerformance(operation, 100, 'Test operation');
+      expect(typeof result).toBe('boolean');
     });
 
     it('should handle synchronous operations', async () => {
@@ -81,9 +80,18 @@ describe('Performance Utilities', () => {
         expect(sum).toBe(1000);
       };
 
-      await expect(
-        assertPerformance(operation, 100, 'Sync operation')
-      ).resolves.not.toThrow();
+      const result = await assertPerformance(operation, 100, 'Sync operation');
+      expect(typeof result).toBe('boolean');
+    });
+    
+    it('should return true when operation meets target', async () => {
+      const fastOperation = () => {
+        // Very fast operation
+        return 1 + 1;
+      };
+      
+      const result = await assertPerformance(fastOperation, 1000, 'Fast operation');
+      expect(result).toBe(true);
     });
   });
 });

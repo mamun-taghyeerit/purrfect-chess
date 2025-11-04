@@ -132,8 +132,12 @@ export default function EnginePanel({
         lastUpdateTimeRef.current = Date.now();
       }, UPDATE_THROTTLE_MS - timeSinceLastUpdate);
 
+      // Cleanup: cancel timeout if component unmounts or dependencies change
       return () => clearTimeout(timeoutId);
     }
+    
+    // No cleanup needed for immediate updates (no setTimeout created)
+    return undefined;
   }, [analysis, currentDepth]);
 
   const handleAnalyzeClick = () => {

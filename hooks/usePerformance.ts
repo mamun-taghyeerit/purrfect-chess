@@ -103,10 +103,8 @@ export function useDragPerformance() {
 export function useRenderCount(componentName: string) {
   const renderCountRef = useRef(0);
 
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      renderCountRef.current += 1;
-      console.log(`[Render Count] ${componentName}: ${renderCountRef.current}`);
-    }
-  });
+  if (process.env.NODE_ENV === 'development') {
+    renderCountRef.current += 1;
+    console.log(`[Render Count] ${componentName}: ${renderCountRef.current}`);
+  }
 }

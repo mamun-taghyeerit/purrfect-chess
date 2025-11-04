@@ -191,17 +191,21 @@ export function createRenderTracker(componentName: string) {
 /**
  * Performance assertion helper for tests
  * Validates that operations complete within expected time budget
+ * 
+ * @returns true if performance meets target, false otherwise
  */
 export async function assertPerformance(
   operation: () => Promise<void> | void,
   maxTimeMs: number,
   label: string = 'Operation'
-): Promise<void> {
+): Promise<boolean> {
   const start = performance.now();
   await operation();
   const elapsed = performance.now() - start;
 
-  if (elapsed > maxTimeMs) {
+  const meetsTarget = elapsed <= maxTimeMs;
+  
+  if (!meetsTarget) {
     console.warn(
       `Performance assertion failed: ${label} took ${Math.round(elapsed)}ms (expected ≤${maxTimeMs}ms)`
     );
@@ -210,6 +214,8 @@ export async function assertPerformance(
       `✓ Performance assertion passed: ${label} took ${Math.round(elapsed)}ms`
     );
   }
+  
+  return meetsTarget;
 }
 
 /**

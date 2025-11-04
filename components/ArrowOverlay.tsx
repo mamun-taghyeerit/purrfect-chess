@@ -316,6 +316,15 @@ const ArrowOverlay = memo(function ArrowOverlay({
   );
 }, (prevProps, nextProps) => {
   // Custom comparison to prevent re-renders when arrows haven't changed
+  // Note: Could use lodash.isEqual for simpler implementation, but avoiding
+  // external dependencies for this isolated comparison
+  
+  // Quick reference check - if arrays are same object, no need to deep compare
+  if (prevProps.userArrows === nextProps.userArrows &&
+      prevProps.engineArrows === nextProps.engineArrows &&
+      prevProps.previewArrow === nextProps.previewArrow) {
+    return true;
+  }
   
   // Compare user arrows
   if (prevProps.userArrows.length !== nextProps.userArrows.length) {
@@ -344,24 +353,28 @@ const ArrowOverlay = memo(function ArrowOverlay({
     }
   }
   
-  // Compare preview arrow
+  // Compare preview arrow - simplified comparison
   if (prevProps.previewArrow !== nextProps.previewArrow) {
+    // Both null/undefined - equal
+    if (!prevProps.previewArrow && !nextProps.previewArrow) {
+      return true;
+    }
+    // One is null - not equal
     if (!prevProps.previewArrow || !nextProps.previewArrow) {
       return false;
     }
-    if (
-      prevProps.previewArrow.from !== nextProps.previewArrow.from ||
-      prevProps.previewArrow.to !== nextProps.previewArrow.to
-    ) {
+    // Compare preview arrow properties
+    if (prevProps.previewArrow.from !== nextProps.previewArrow.from ||
+        prevProps.previewArrow.to !== nextProps.previewArrow.to) {
       return false;
     }
-    if (prevProps.previewArrow.toPoint || nextProps.previewArrow.toPoint) {
-      if (
-        !prevProps.previewArrow.toPoint ||
-        !nextProps.previewArrow.toPoint ||
-        prevProps.previewArrow.toPoint.x !== nextProps.previewArrow.toPoint.x ||
-        prevProps.previewArrow.toPoint.y !== nextProps.previewArrow.toPoint.y
-      ) {
+    // Compare toPoint if present
+    const prevPoint = prevProps.previewArrow.toPoint;
+    const nextPoint = nextProps.previewArrow.toPoint;
+    if (prevPoint || nextPoint) {
+      if (!prevPoint || !nextPoint ||
+          prevPoint.x !== nextPoint.x ||
+          prevPoint.y !== nextPoint.y) {
         return false;
       }
     }
