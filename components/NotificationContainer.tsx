@@ -80,8 +80,8 @@ export default function NotificationContainer({
               justifyContent: 'space-between',
               fontSize: '14px',
               fontWeight: '500',
-              animation: 'slideDown 0.3s ease-out',
               border: `2px solid ${styles.borderColor}`,
+              animation: 'slideDown 0.3s ease-out',
             }}
           >
             <span>{notification.message}</span>
@@ -106,7 +106,7 @@ export default function NotificationContainer({
           </div>
         );
       })}
-      <style jsx>{`
+      <style>{`
         @keyframes slideDown {
           from {
             opacity: 0;

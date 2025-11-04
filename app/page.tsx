@@ -59,7 +59,7 @@ export default function Home() {
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
-  const { isEngineReady, isAnalyzing, analysis, currentDepth } = useEngine({
+  const { isAnalyzing, analysis, currentDepth } = useEngine({
     onError: handleError,
   });
   const [isEnginePanelVisible, setIsEnginePanelVisible] = useState(false);

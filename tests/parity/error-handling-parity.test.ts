@@ -155,7 +155,7 @@ describe('Phase X Parity: Error Handling + Edge Cases', () => {
       const { result } = renderHook(() => useGame({ onError }));
 
       act(() => {
-        // Try to move pawn from e2 to e5 (illegal)
+        // Try to move pawn from e2 to e5 (illegal - pawns can only move 1 or 2 squares from starting position)
         result.current.movePiece('e2', 'e5');
       });
 

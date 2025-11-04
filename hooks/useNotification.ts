@@ -41,7 +41,11 @@ export function useNotification(): UseNotificationReturn {
     (type: NotificationType, message: string, duration: number = 3000) => {
       if (!message) return;
 
-      const id = `notification-${Date.now()}-${Math.random()}`;
+      // Use crypto.randomUUID if available, fallback to timestamp + random
+      const id =
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `notification-${Date.now()}-${Math.random()}`;
       const notification: Notification = {
         id,
         type,
