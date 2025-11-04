@@ -1,35 +1,50 @@
 /**
  * ArrowOverlay Component
  * 
- * Renders SVG arrows for engine analysis (multi-PV moves)
+ * Renders SVG arrows for both user-drawn arrows and engine analysis
  * Matching legacy implementation (src/board.ts lines 248-381)
  * 
  * Features:
  * - SVG viewBox coordinate system (0-8 for 8×8 board)
  * - Arrow head markers with context-stroke color
  * - Knight move arrows with bent paths
- * - Multiple arrows with rank-based colors (1-3)
+ * - User arrows (blue) and engine arrows (rank-based colors)
+ * - Arrow preview during right-click drag
  * - Positioned absolutely over board
  */
 
 import React from 'react';
 
 // Arrow constants (matching legacy)
-const SVG_NS = 'http://www.w3.org/2000/svg';
 const ARROW_THICKNESS = 0.16;
 const ARROW_HEAD_ID = 'board-arrow-head';
 const ARROW_HEAD_SIZE = 0.35;
 const ARROW_HEAD_LENGTH = 0.1;
 const ARROW_TAIL_OFFSET = 0.32;
 
+// Arrow colors (matching legacy)
+const ARROW_STROKE = 'rgba(145, 152, 229, 0.85)'; // User arrow color
+const ARROW_PREVIEW_STROKE = 'rgba(145, 152, 229, 0.6)'; // Preview color
+
 export interface Arrow {
   from: string;
   to: string;
-  rank: number; // 1-3 for multi-PV ranking
+  rank?: number; // 1-3 for engine arrows (multi-PV ranking), undefined for user arrows
+}
+
+export interface PreviewArrow {
+  from: string;
+  to?: string; // Undefined if dragging to arbitrary point
+  toPoint?: { x: number; y: number }; // For free-form preview
 }
 
 export interface ArrowOverlayProps {
-  arrows: Arrow[];
+  /** User-drawn arrows */
+  userArrows?: Arrow[];
+  /** Engine analysis arrows */
+  engineArrows?: Arrow[];
+  /** Preview arrow during drag */
+  previewArrow?: PreviewArrow | null;
 }
 
 /**
@@ -157,8 +172,29 @@ function buildArrowPath(from: string, to: string): string | null {
   return buildPath(points);
 }
 
-export default function ArrowOverlay({ arrows }: ArrowOverlayProps) {
-  if (!arrows || arrows.length === 0) {
+/**
+ * Build preview path for free-form arrow (from square center to arbitrary point)
+ */
+function buildPreviewPath(
+  fromPoint: { x: number; y: number },
+  toPoint: { x: number; y: number }
+): string | null {
+  if (!fromPoint || !toPoint) return null;
+  const points = shortenLastSegment([fromPoint, toPoint], ARROW_HEAD_LENGTH);
+  return buildPath(points);
+}
+
+export default function ArrowOverlay({
+  userArrows = [],
+  engineArrows = [],
+  previewArrow = null,
+}: ArrowOverlayProps) {
+  // Don't render if no arrows or preview
+  if (
+    userArrows.length === 0 &&
+    engineArrows.length === 0 &&
+    !previewArrow
+  ) {
     return null;
   }
 
@@ -195,13 +231,13 @@ export default function ArrowOverlay({ arrows }: ArrowOverlayProps) {
         </marker>
       </defs>
 
-      {/* Render arrows */}
-      {arrows.map((arrow, index) => {
+      {/* Render engine arrows (drawn first, under user arrows) */}
+      {engineArrows.map((arrow, index) => {
         const pathData = buildArrowPath(arrow.from, arrow.to);
         if (!pathData) return null;
 
         // Clamp rank to 1-3
-        const rank = Math.min(Math.max(arrow.rank, 1), 3);
+        const rank = Math.min(Math.max(arrow.rank ?? 1, 1), 3);
 
         return (
           <path
@@ -217,6 +253,63 @@ export default function ArrowOverlay({ arrows }: ArrowOverlayProps) {
           />
         );
       })}
+
+      {/* Render user arrows (drawn over engine arrows) */}
+      {userArrows.map((arrow, index) => {
+        const pathData = buildArrowPath(arrow.from, arrow.to);
+        if (!pathData) return null;
+
+        return (
+          <path
+            key={`user-arrow-${index}-${arrow.from}-${arrow.to}`}
+            className="board-arrow"
+            d={pathData}
+            fill="none"
+            stroke={ARROW_STROKE}
+            strokeWidth={ARROW_THICKNESS}
+            strokeLinecap="butt"
+            strokeLinejoin="round"
+            markerEnd={`url(#${ARROW_HEAD_ID})`}
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      })}
+
+      {/* Render preview arrow (drawn on top) */}
+      {previewArrow && (() => {
+        let pathData: string | null = null;
+        
+        if (previewArrow.to) {
+          // Preview to a specific square
+          pathData = buildArrowPath(previewArrow.from, previewArrow.to);
+        } else if (previewArrow.toPoint) {
+          // Preview to an arbitrary point
+          const fromPoint = squareCenter(previewArrow.from);
+          if (fromPoint) {
+            pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
+          }
+        }
+
+        if (!pathData) return null;
+
+        return (
+          <path
+            key="arrow-preview"
+            className="board-arrow board-arrow-preview"
+            d={pathData}
+            fill="none"
+            stroke={ARROW_PREVIEW_STROKE}
+            strokeWidth={ARROW_THICKNESS}
+            strokeLinecap="butt"
+            strokeLinejoin="round"
+            markerEnd={`url(#${ARROW_HEAD_ID})`}
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      })()}
     </svg>
   );
 }
+
+// Export utility functions for use in Board component
+export { parseSquare, squareCenter, buildArrowPoints };

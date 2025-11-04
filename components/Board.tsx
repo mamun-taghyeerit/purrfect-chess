@@ -1,8 +1,8 @@
 'use client';
 
 import { useGame } from '@/hooks/useGame';
-import React, { useState, useEffect, useRef } from 'react';
-import ArrowOverlay from './ArrowOverlay';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import ArrowOverlay, { type Arrow, type PreviewArrow, parseSquare, squareCenter, buildArrowPoints } from './ArrowOverlay';
 
 /**
  * Board Component - Interactive chess board matching legacy implementation
@@ -16,6 +16,7 @@ import ArrowOverlay from './ArrowOverlay';
  * - Re-selection semantics (clicking different piece changes selection)
  * - Lighter visual feedback during drag operations
  * - Engine overlays: multi-PV square highlights and arrows
+ * - Right-click arrow drawing with preview and toggle
  * - Responsive sizing matching legacy breakpoints
  * - Orientation: A1 always bottom-left for white (default view)
  */
@@ -23,6 +24,11 @@ import ArrowOverlay from './ArrowOverlay';
 // Constants
 const DRAG_OPACITY = '0.4';
 const NORMAL_OPACITY = '1';
+
+// Arrow drawing constants (matching legacy)
+const ARROW_DRAG_THRESHOLD = 6;
+const ARROW_HIT_TOLERANCE = 0.22;
+const ARROW_ORIGIN_PROTECT_RADIUS = 0.35;
 
 // Engine highlight types (matching legacy)
 export interface EngineHighlight {
@@ -51,19 +57,30 @@ export default function Board({
   const dragSourceRef = useRef<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
 
+  // Arrow state
+  const [userArrows, setUserArrows] = useState<Map<string, Arrow>>(new Map());
+  const [previewArrow, setPreviewArrow] = useState<PreviewArrow | null>(null);
+  const arrowDragRef = useRef<{
+    fromSquare: string;
+    startX: number;
+    startY: number;
+    dragDistance: number;
+    currentSquare: string;
+  } | null>(null);
+
   // File and rank labels for coordinates (matching legacy)
-  const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-  const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+  const files = useMemo(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], []);
+  const ranks = useMemo(() => [8, 7, 6, 5, 4, 3, 2, 1], []);
 
   // Get last move for highlighting
   const lastMove = history.length > 0 ? history[history.length - 1] : null;
 
   // Helper to get algebraic notation for square (file, rank indices)
-  const algebraicAt = (fileIndex: number, rankIndex: number): string => {
+  const algebraicAt = useCallback((fileIndex: number, rankIndex: number): string => {
     const file = files[fileIndex];
     const rank = 8 - rankIndex;
     return `${file}${rank}`;
-  };
+  }, [files]);
 
   // Helper to categorize moves into non-captures and captures (single pass optimization)
   const categorizeMoves = (moves: any[]) => {
@@ -80,6 +97,132 @@ export default function Board({
     );
   };
 
+  // Arrow utility functions (matching legacy)
+  const clamp = useCallback((value: number, min: number, max: number) => {
+    return Math.min(Math.max(value, min), max);
+  }, []);
+
+  const boardCoordsFromClient = useCallback((clientX: number, clientY: number) => {
+    if (!boardRef.current) return null;
+    const rect = boardRef.current.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+    const x = (clientX - rect.left) / rect.width;
+    const y = (clientY - rect.top) / rect.height;
+    return { x, y };
+  }, []);
+
+  const squareFromClient = useCallback((clientX: number, clientY: number): string | null => {
+    const coords = boardCoordsFromClient(clientX, clientY);
+    if (!coords) return null;
+    if (coords.x < 0 || coords.x >= 1 || coords.y < 0 || coords.y >= 1) {
+      return null;
+    }
+    const fileIndex = clamp(Math.floor(coords.x * 8), 0, 7);
+    const rankIndex = clamp(Math.floor(coords.y * 8), 0, 7);
+    return algebraicAt(fileIndex, rankIndex);
+  }, [boardCoordsFromClient, clamp, algebraicAt]);
+
+  const pointFromClient = useCallback((clientX: number, clientY: number) => {
+    const coords = boardCoordsFromClient(clientX, clientY);
+    if (!coords) return null;
+    const x = clamp(coords.x * 8, 0, 8);
+    const y = clamp(coords.y * 8, 0, 8);
+    return {
+      x: clamp(x, 0.5, 7.5),
+      y: clamp(y, 0.5, 7.5),
+    };
+  }, [boardCoordsFromClient, clamp]);
+
+  // Arrow hit detection (for left-click removal)
+  const distancePointToSegment = useCallback((
+    px: number,
+    py: number,
+    ax: number,
+    ay: number,
+    bx: number,
+    by: number
+  ) => {
+    const dx = bx - ax;
+    const dy = by - ay;
+    if (dx === 0 && dy === 0) {
+      return Math.hypot(px - ax, py - ay);
+    }
+    const t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+    const clampedT = clamp(t, 0, 1);
+    const cx = ax + dx * clampedT;
+    const cy = ay + dy * clampedT;
+    return Math.hypot(px - cx, py - cy);
+  }, [clamp]);
+
+  const findArrowHit = useCallback((point: { x: number; y: number } | null): string | null => {
+    if (!point) return null;
+    
+    for (const [key, arrow] of userArrows.entries()) {
+      const points = buildArrowPoints(arrow.from, arrow.to);
+      if (!points || points.length < 2) continue;
+
+      const origin = points[0];
+      // Check if there's a piece on the origin square (protection zone)
+      const piece = position[arrow.from];
+      const originHasPiece =
+        piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
+
+      if (originHasPiece) {
+        const originDistance = Math.hypot(point.x - origin.x, point.y - origin.y);
+        if (originDistance <= ARROW_ORIGIN_PROTECT_RADIUS) {
+          continue; // Skip this arrow if clicking near origin with a piece
+        }
+      }
+
+      // Check all segments of the arrow path
+      for (let index = 0; index < points.length - 1; index += 1) {
+        const a = points[index];
+        const b = points[index + 1];
+        const distance = distancePointToSegment(
+          point.x,
+          point.y,
+          a.x,
+          a.y,
+          b.x,
+          b.y
+        );
+        if (distance <= ARROW_HIT_TOLERANCE) {
+          return key;
+        }
+      }
+    }
+    return null;
+  }, [userArrows, position, distancePointToSegment]);
+
+  // Arrow manipulation functions
+  const toggleArrow = useCallback((from: string, to: string) => {
+    if (from === to) return;
+    const key = `${from}-${to}`;
+    
+    setUserArrows((prev) => {
+      const newArrows = new Map(prev);
+      if (newArrows.has(key)) {
+        newArrows.delete(key);
+      } else {
+        newArrows.set(key, { from, to });
+      }
+      return newArrows;
+    });
+  }, []);
+
+  const clearArrows = useCallback(() => {
+    setUserArrows(new Map());
+    setPreviewArrow(null);
+  }, []);
+
+  const removeArrow = useCallback((key: string) => {
+    setUserArrows((prev) => {
+      const newArrows = new Map(prev);
+      newArrows.delete(key);
+      return newArrows;
+    });
+  }, []);
+
   // Clear drag state
   const clearDragState = () => {
     setIsDragging(false);
@@ -88,6 +231,89 @@ export default function Board({
     setCaptureMoves([]);
     dragSourceRef.current = null;
   };
+
+  // Arrow drag handlers (matching legacy)
+  const startArrowDrag = useCallback((square: string, event: React.MouseEvent) => {
+    if (event.button !== 2) return; // Only right-click
+    
+    const fromPoint = squareCenter(square);
+    if (!fromPoint) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    arrowDragRef.current = {
+      fromSquare: square,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragDistance: 0,
+      currentSquare: square,
+    };
+
+    setPreviewArrow(null); // Will be shown on first move
+  }, []);
+
+  const updateArrowPreview = useCallback((event: MouseEvent) => {
+    const drag = arrowDragRef.current;
+    if (!drag) return;
+
+    const fromPoint = squareCenter(drag.fromSquare);
+    if (!fromPoint) {
+      setPreviewArrow(null);
+      return;
+    }
+
+    const targetPoint = pointFromClient(event.clientX, event.clientY);
+    const targetSquare = squareFromClient(event.clientX, event.clientY);
+
+    if (!targetPoint) {
+      setPreviewArrow(null);
+    } else {
+      if (targetSquare) {
+        drag.currentSquare = targetSquare;
+        setPreviewArrow({ from: drag.fromSquare, to: targetSquare });
+      } else {
+        setPreviewArrow({ from: drag.fromSquare, toPoint: targetPoint });
+      }
+    }
+
+    const distance = Math.hypot(
+      event.clientX - drag.startX,
+      event.clientY - drag.startY
+    );
+    drag.dragDistance = Math.max(drag.dragDistance, distance);
+  }, [pointFromClient, squareFromClient]);
+
+  const finalizeArrowDrag = useCallback(
+    (event: MouseEvent, options: { canceled?: boolean } = {}) => {
+      const drag = arrowDragRef.current;
+      arrowDragRef.current = null;
+      setPreviewArrow(null);
+
+      if (!drag || options.canceled) {
+        return;
+      }
+
+      const targetSquare =
+        drag.currentSquare ||
+        squareFromClient(event.clientX, event.clientY) ||
+        drag.fromSquare;
+      
+      const dragDistance = Math.max(
+        drag.dragDistance,
+        Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY)
+      );
+
+      // Small drags don't create arrows (matches legacy behavior)
+      if (dragDistance < ARROW_DRAG_THRESHOLD || targetSquare === drag.fromSquare) {
+        // Could trigger square context menu here if needed
+        return;
+      }
+
+      toggleArrow(drag.fromSquare, targetSquare);
+    },
+    [toggleArrow, squareFromClient]
+  );
 
   // Handle ESC key to cancel drag
   useEffect(() => {
@@ -112,6 +338,43 @@ export default function Board({
     };
   }, [isDragging]);
 
+  // Document-level event listeners for arrow dragging
+  useEffect(() => {
+    const handleDocumentMouseMove = (event: MouseEvent) => {
+      if (!arrowDragRef.current) return;
+      
+      // Check if right mouse button is still pressed
+      if (event.buttons !== undefined && (event.buttons & 2) === 0) {
+        finalizeArrowDrag(event, { canceled: true });
+        return;
+      }
+      
+      updateArrowPreview(event);
+    };
+
+    const handleDocumentMouseUp = (event: MouseEvent) => {
+      if (event.button !== 2) return; // Only right-click
+      if (!arrowDragRef.current) return;
+      
+      event.preventDefault();
+      finalizeArrowDrag(event);
+    };
+
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault(); // Prevent context menu
+    };
+
+    document.addEventListener('mousemove', handleDocumentMouseMove);
+    document.addEventListener('mouseup', handleDocumentMouseUp);
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('mousemove', handleDocumentMouseMove);
+      document.removeEventListener('mouseup', handleDocumentMouseUp);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, [finalizeArrowDrag, updateArrowPreview]);
+
   // Prevent text selection during drag (matching legacy)
   useEffect(() => {
     const preventSelection = (e: Event) => {
@@ -127,8 +390,7 @@ export default function Board({
     };
   }, [isDragging]);
 
-  // Clear board UI state when game resets (history becomes empty)
-  // This matches legacy behavior where reset calls clearSelection()
+  // Clear board UI state when game resets or moves are made
   const previousHistoryLength = useRef<number>();
   useEffect(() => {
     // Initialize on first render
@@ -137,15 +399,32 @@ export default function Board({
       return;
     }
     
-    // Detect reset: history length goes from > 0 to 0
-    if (previousHistoryLength.current > 0 && history.length === 0) {
-      // Clear all board UI state (matching legacy clearSelection + state reset)
+    const wasReset = previousHistoryLength.current > 0 && history.length === 0;
+    const wasMove = history.length > previousHistoryLength.current;
+    
+    if (wasReset) {
+      // Clear all board UI state on reset (matching legacy clearSelection + state reset)
       clearDragState();
+      clearArrows();
+    } else if (wasMove) {
+      // Clear arrows when a new move is made (matching legacy behavior)
+      clearArrows();
     }
+    
     previousHistoryLength.current = history.length;
-  }, [history.length]);
+  }, [history.length, clearArrows]);
 
-  const handleSquareClick = (square: string) => {
+  const handleSquareClick = useCallback((square: string, event: React.MouseEvent) => {
+    // Left-click arrow removal (matching legacy)
+    if (event.button === 0) {
+      const pointer = pointFromClient(event.clientX, event.clientY);
+      const hitKey = findArrowHit(pointer);
+      if (hitKey) {
+        removeArrow(hitKey);
+        return; // Don't process piece selection
+      }
+    }
+
     const piece = position[square];
     const isPiece =
       piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
@@ -175,7 +454,14 @@ export default function Board({
       setLegalMoves(legal);
       setCaptureMoves(captures);
     }
-  };
+  }, [pointFromClient, findArrowHit, removeArrow, position, selectedSquare, movePiece, game]);
+
+  const handleSquareMouseDown = useCallback((square: string, event: React.MouseEvent) => {
+    if (event.button === 2) {
+      // Right-click: start arrow drag
+      startArrowDrag(square, event);
+    }
+  }, [startArrowDrag]);
 
   const handleDragStart = (
     e: React.DragEvent<HTMLImageElement>,
@@ -343,7 +629,8 @@ export default function Board({
                   key={square}
                   className={squareClasses}
                   data-square={square}
-                  onClick={() => handleSquareClick(square)}
+                  onClick={(e) => handleSquareClick(square, e)}
+                  onMouseDown={(e) => handleSquareMouseDown(square, e)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, square)}
                 >
@@ -363,18 +650,22 @@ export default function Board({
           )}
         </div>
 
-        {/* Engine Arrow Overlay */}
-        {(engineDisplayMode === 'arrows' || engineDisplayMode === 'both') && (
-          <ArrowOverlay
-            arrows={engineHighlights
-              .filter((h) => h.from && h.to)
-              .map((h) => ({
-                from: h.from!,
-                to: h.to!,
-                rank: h.rank,
-              }))}
-          />
-        )}
+        {/* Arrow Overlay - Combines user arrows and engine arrows */}
+        <ArrowOverlay
+          userArrows={Array.from(userArrows.values())}
+          engineArrows={
+            engineDisplayMode === 'arrows' || engineDisplayMode === 'both'
+              ? engineHighlights
+                  .filter((h) => h.from && h.to)
+                  .map((h) => ({
+                    from: h.from!,
+                    to: h.to!,
+                    rank: h.rank,
+                  }))
+              : []
+          }
+          previewArrow={previewArrow}
+        />
       </div>
     </div>
   );
