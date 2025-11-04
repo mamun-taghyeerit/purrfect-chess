@@ -32,6 +32,14 @@ interface EnginePanelProps {
  * Memoized EngineLine component to prevent unnecessary re-renders
  * Only re-renders when analysis data actually changes
  */
+
+// Lineage colors matching legacy (blue, green, purple/pink) - memoized outside component
+const LINEAGE_COLORS = [
+  'rgba(59, 130, 246, 0.4)',  // blue for #1
+  'rgba(16, 185, 129, 0.4)',  // green for #2
+  'rgba(244, 114, 182, 0.4)', // pink for #3
+];
+
 const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps) {
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
@@ -47,13 +55,7 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
     return score > 0 ? '#10b981' : '#ef4444';
   };
 
-  // Lineage colors matching legacy (blue, green, purple/pink)
-  const lineageColors = [
-    'rgba(59, 130, 246, 0.4)',  // blue for #1
-    'rgba(16, 185, 129, 0.4)',  // green for #2
-    'rgba(244, 114, 182, 0.4)', // pink for #3
-  ];
-  const borderColor = lineageColors[index] || 'rgba(100, 100, 100, 0.4)';
+  const borderColor = LINEAGE_COLORS[index] || 'rgba(100, 100, 100, 0.4)';
 
   return (
     <div 

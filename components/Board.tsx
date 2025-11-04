@@ -881,8 +881,13 @@ export default function Board({
               className="move-badge"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (!target.src.endsWith('/good.png')) {
+                // Only attempt fallback once to prevent infinite loop
+                if (!target.dataset.fallbackAttempted && !target.src.endsWith('/good.png')) {
+                  target.dataset.fallbackAttempted = 'true';
                   target.src = '/assets/good.png';
+                } else if (target.dataset.fallbackAttempted) {
+                  // Hide badge if even fallback fails
+                  target.style.display = 'none';
                 }
               }}
               style={{

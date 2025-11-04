@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
  * Move Review Hook - Simplified stub implementation
@@ -32,6 +32,13 @@ export interface MoveBadge {
   square: string;
 }
 
+export interface LastMove {
+  from: string;
+  to: string;
+  san: string;
+  color: 'w' | 'b';
+}
+
 const MOVE_TYPES: MoveClassification[] = [
   'forced',
   'great',
@@ -51,21 +58,45 @@ const BADGE_DISPLAY_TIME = 4000; // 4 seconds
 export function useMoveReview() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [currentBadge, setCurrentBadge] = useState<MoveBadge | null>(null);
+  const timeoutRefs = useRef<{
+    analysis?: NodeJS.Timeout;
+    badge?: NodeJS.Timeout;
+  }>({});
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRefs.current.analysis) {
+        clearTimeout(timeoutRefs.current.analysis);
+      }
+      if (timeoutRefs.current.badge) {
+        clearTimeout(timeoutRefs.current.badge);
+      }
+    };
+  }, []);
 
   /**
    * Review the last move and display a badge
    * Stub implementation: randomly selects a classification
    * Returns the classification type for displaying in a toast
    */
-  const reviewLastMove = useCallback((lastMove: any, onComplete?: (classification: MoveClassification) => void) => {
+  const reviewLastMove = useCallback((lastMove: LastMove, onComplete?: (classification: MoveClassification) => void) => {
     if (!lastMove) {
       return null;
     }
 
     setIsReviewing(true);
 
+    // Clear any existing timeouts
+    if (timeoutRefs.current.analysis) {
+      clearTimeout(timeoutRefs.current.analysis);
+    }
+    if (timeoutRefs.current.badge) {
+      clearTimeout(timeoutRefs.current.badge);
+    }
+
     // Simulate analysis delay
-    setTimeout(() => {
+    timeoutRefs.current.analysis = setTimeout(() => {
       // Stub: Random classification
       const randomIndex = Math.floor(Math.random() * MOVE_TYPES.length);
       const classification = MOVE_TYPES[randomIndex];
@@ -84,7 +115,7 @@ export function useMoveReview() {
       }
 
       // Auto-clear badge after display time
-      setTimeout(() => {
+      timeoutRefs.current.badge = setTimeout(() => {
         setCurrentBadge(null);
       }, BADGE_DISPLAY_TIME);
     }, 500);
@@ -92,6 +123,10 @@ export function useMoveReview() {
 
   const clearBadge = useCallback(() => {
     setCurrentBadge(null);
+    if (timeoutRefs.current.badge) {
+      clearTimeout(timeoutRefs.current.badge);
+      timeoutRefs.current.badge = undefined;
+    }
   }, []);
 
   return {
