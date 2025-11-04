@@ -3,10 +3,28 @@
 import Board from '@/components/Board';
 import GameControls from '@/components/GameControls';
 import MoveHistory from '@/components/MoveHistory';
+import Clock from '@/components/Clock';
+import TimeControlSelector from '@/components/TimeControlSelector';
 import { useGame } from '@/hooks/useGame';
 
 export default function Home() {
-  const { resetGame, loadFen, getFen, getPgn, history, isGameOver, checkmate, stalemate, check } = useGame();
+  const {
+    resetGame,
+    loadFen,
+    getFen,
+    getPgn,
+    history,
+    isGameOver,
+    checkmate,
+    stalemate,
+    check,
+    whiteTime,
+    blackTime,
+    turn,
+    timeControl,
+    setTimeControl,
+    isTimerRunning,
+  } = useGame();
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8">
@@ -34,6 +52,11 @@ export default function Home() {
                 Stalemate! 🤝
               </div>
             )}
+            {isGameOver && !checkmate && !stalemate && (
+              <div className="text-2xl font-bold text-orange-600">
+                Time Out! ⏰
+              </div>
+            )}
             {check && !checkmate && (
               <div className="text-xl font-bold text-orange-600">
                 Check! ⚠️
@@ -43,13 +66,25 @@ export default function Home() {
         )}
 
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
-          {/* Left Column: Board */}
-          <div className="flex flex-col items-center">
+          {/* Left Column: Clocks and Board */}
+          <div className="flex flex-col items-center gap-4">
+            <Clock
+              whiteTime={whiteTime}
+              blackTime={blackTime}
+              activeColor={turn}
+              isRunning={isTimerRunning}
+            />
             <Board />
           </div>
 
-          {/* Right Column: Controls and Move History */}
+          {/* Right Column: Controls, Time Control, and Move History */}
           <div className="flex flex-col gap-6">
+            <TimeControlSelector
+              currentTimeControl={timeControl}
+              onSelect={setTimeControl}
+              disabled={history.length > 0}
+            />
+
             <GameControls
               onReset={resetGame}
               onLoadFen={loadFen}
@@ -63,11 +98,11 @@ export default function Home() {
 
         <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
           <p>
-            <strong>Migration Progress:</strong> Board rendering ✓, Piece movement ✓, 
-            Move history ✓, Game controls ✓
+            <strong>Migration Progress:</strong> Board rendering ✓, Piece
+            movement ✓, Move history ✓, Game controls ✓, Time controls ✓
           </p>
           <p className="mt-2">
-            <strong>Next:</strong> Time controls, Engine integration, Advanced features
+            <strong>Next:</strong> Engine integration, Advanced features
           </p>
         </div>
       </div>
