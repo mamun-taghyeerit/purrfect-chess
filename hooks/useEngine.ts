@@ -22,6 +22,10 @@ export interface EngineAnalysis {
   pvSan: string[];
 }
 
+interface UseEngineOptions {
+  onError?: (error: string) => void;
+}
+
 interface UseEngineReturn {
   isEngineReady: boolean;
   isAnalyzing: boolean;
@@ -32,7 +36,8 @@ interface UseEngineReturn {
   setDepth: (depth: number) => void;
 }
 
-export function useEngine(): UseEngineReturn {
+export function useEngine(options: UseEngineOptions = {}): UseEngineReturn {
+  const { onError } = options;
   const [isEngineReady, setIsEngineReady] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<EngineAnalysis[]>([]);
@@ -43,39 +48,12 @@ export function useEngine(): UseEngineReturn {
   const analysisMapRef = useRef<Map<number, Partial<EngineAnalysis>>>(
     new Map()
   );
+  const onErrorRef = useRef(onError);
 
+  // Keep onError ref up to date
   useEffect(() => {
-    try {
-      console.log('[useEngine] Initializing Stockfish worker...');
-
-      const worker = new Worker(
-        new URL('../workers/stockfish.worker.ts', import.meta.url)
-      );
-
-      worker.onmessage = (event) => {
-        handleWorkerMessage(event.data);
-      };
-
-      worker.onerror = (error) => {
-        console.error('[useEngine] Worker error:', error);
-        setIsEngineReady(false);
-        setIsAnalyzing(false);
-      };
-
-      worker.postMessage({ type: 'init' });
-      workerRef.current = worker;
-
-      return () => {
-        console.log('[useEngine] Terminating worker...');
-        worker.terminate();
-      };
-    } catch (error) {
-      console.error(
-        '[useEngine] Failed to initialize Stockfish worker:',
-        error
-      );
-    }
-  }, []);
+    onErrorRef.current = onError;
+  }, [onError]);
 
   const convertUciToSan = useCallback(
     (fen: string, uciMove: string): string => {
@@ -192,6 +170,9 @@ export function useEngine(): UseEngineReturn {
         case 'error':
           console.error('[useEngine] Engine error:', message.error);
           setIsAnalyzing(false);
+          if (onErrorRef.current) {
+            onErrorRef.current(message.error || 'Engine analysis failed.');
+          }
           break;
 
         default:
@@ -202,17 +183,63 @@ export function useEngine(): UseEngineReturn {
     [convertUciToSan, convertPvToSan]
   );
 
+  useEffect(() => {
+    try {
+      console.log('[useEngine] Initializing Stockfish worker...');
+
+      const worker = new Worker(
+        new URL('../workers/stockfish.worker.ts', import.meta.url)
+      );
+
+      worker.onmessage = (event) => {
+        handleWorkerMessage(event.data);
+      };
+
+      worker.onerror = (error) => {
+        console.error('[useEngine] Worker error:', error);
+        setIsEngineReady(false);
+        setIsAnalyzing(false);
+        if (onErrorRef.current) {
+          onErrorRef.current('Engine worker error occurred');
+        }
+      };
+
+      worker.postMessage({ type: 'init' });
+      workerRef.current = worker;
+
+      return () => {
+        console.log('[useEngine] Terminating worker...');
+        worker.terminate();
+      };
+    } catch (error) {
+      console.error(
+        '[useEngine] Failed to initialize Stockfish worker:',
+        error
+      );
+      setIsEngineReady(false);
+      if (onErrorRef.current) {
+        onErrorRef.current('Unable to initialize Stockfish.');
+      }
+    }
+  }, [handleWorkerMessage]);
+
   const startAnalysis = useCallback(
     (fen: string, analysisDepth?: number, multipv: number = 3) => {
       const targetDepth = analysisDepth || depth;
 
       if (!isEngineReady) {
         console.warn('[useEngine] Engine not ready');
+        if (onErrorRef.current) {
+          onErrorRef.current('Engine is not ready yet.');
+        }
         return;
       }
 
       if (!workerRef.current) {
         console.warn('[useEngine] Worker not initialized');
+        if (onErrorRef.current) {
+          onErrorRef.current('Engine worker not initialized.');
+        }
         return;
       }
 

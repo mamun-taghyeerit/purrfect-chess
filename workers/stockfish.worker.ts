@@ -56,6 +56,8 @@ function initStockfish() {
 
     stockfishEngine.onerror = (error: ErrorEvent) => {
       console.error('[Stockfish Worker] Engine error:', error);
+      // Note: isReady may already be false; this ensures state consistency after error
+      isReady = false;
       ctx.postMessage({
         type: 'error',
         error: 'Stockfish engine error: ' + error.message,
@@ -66,6 +68,7 @@ function initStockfish() {
     sendCommand('uci');
   } catch (error) {
     console.error('[Stockfish Worker] Failed to initialize:', error);
+    isReady = false;
     ctx.postMessage({
       type: 'error',
       error: 'Failed to initialize Stockfish: ' + (error as Error).message,

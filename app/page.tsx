@@ -8,10 +8,12 @@ import TimeControlSelector from '@/components/TimeControlSelector';
 import EnginePanel from '@/components/EnginePanel';
 import AppearanceControls from '@/components/AppearanceControls';
 import EvaluationBar from '@/components/EvaluationBar';
+import NotificationContainer from '@/components/NotificationContainer';
 import { useGame } from '@/hooks/useGame';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
-import { useState, useMemo } from 'react';
+import { useNotification } from '@/hooks/useNotification';
+import { useState, useMemo, useCallback } from 'react';
 import type { EngineHighlight } from '@/components/Board';
 
 // Helper function to format time in MM:SS format
@@ -26,6 +28,15 @@ const formatClockTime = (timeMs: number): string => {
 };
 
 export default function Home() {
+  const { notifications, showMessage, dismissNotification } = useNotification();
+
+  const handleError = useCallback(
+    (error: string) => {
+      showMessage('error', error);
+    },
+    [showMessage]
+  );
+
   const {
     resetGame,
     loadFen,
@@ -43,12 +54,14 @@ export default function Home() {
     timeControl,
     setTimeControl,
     isTimerRunning,
-  } = useGame();
+  } = useGame({ onError: handleError });
 
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
-  const { isAnalyzing, analysis, currentDepth } = useEngine();
+  const { isAnalyzing, analysis, currentDepth } = useEngine({
+    onError: handleError,
+  });
   const [isEnginePanelVisible, setIsEnginePanelVisible] = useState(false);
   const [isEvalBarVisible, setIsEvalBarVisible] = useState(false);
   const [engineDisplayMode, setEngineDisplayMode] = useState<
@@ -76,6 +89,10 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
+      <NotificationContainer
+        notifications={notifications}
+        onDismiss={dismissNotification}
+      />
       <div className="z-10 w-full" style={{ maxWidth: '1260px', margin: '0 auto' }}>
         <h1 className="text-4xl font-bold text-center mb-4 text-gray-100">
           🐱 Purrfect Chess
@@ -562,7 +579,12 @@ export default function Home() {
                     <button
                       onClick={async () => {
                         const pgn = getPgn();
-                        await navigator.clipboard.writeText(pgn);
+                        try {
+                          await navigator.clipboard.writeText(pgn);
+                          showMessage('success', 'PGN copied to clipboard!');
+                        } catch (error) {
+                          showMessage('error', 'Unable to copy PGN.');
+                        }
                       }}
                       className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
                       style={{
@@ -579,11 +601,11 @@ export default function Home() {
                       onClick={() => {
                         const pgnText = prompt('Enter PGN:');
                         if (pgnText) {
-                          try {
-                            loadPgn(pgnText);
-                          } catch (error) {
-                            alert('Invalid PGN format');
+                          const result = loadPgn(pgnText);
+                          if (result) {
+                            showMessage('success', 'PGN loaded successfully.');
                           }
+                          // Error message is handled by useGame onError callback
                         }
                       }}
                       className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
@@ -602,7 +624,12 @@ export default function Home() {
                     <button
                       onClick={async () => {
                         const fen = getFen();
-                        await navigator.clipboard.writeText(fen);
+                        try {
+                          await navigator.clipboard.writeText(fen);
+                          showMessage('success', 'FEN copied to clipboard!');
+                        } catch (error) {
+                          showMessage('error', 'Unable to copy FEN.');
+                        }
                       }}
                       className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
                       style={{
@@ -619,7 +646,11 @@ export default function Home() {
                       onClick={() => {
                         const fenText = prompt('Enter FEN:');
                         if (fenText) {
-                          loadFen(fenText);
+                          const result = loadFen(fenText);
+                          if (result) {
+                            showMessage('success', 'FEN loaded successfully.');
+                          }
+                          // Error message is handled by useGame onError callback
                         }
                       }}
                       className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
