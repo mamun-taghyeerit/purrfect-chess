@@ -25,24 +25,33 @@ This branch contains the initial Next.js 14 migration skeleton for Purrfect Ches
 ✅ Stockfish worker scaffold - stub implementation  
 ✅ Static assets copied to public/
 
-**Phase 2: Core Migration (TODO)**
+**Phase 2: Core Migration (IN PROGRESS)**
 
-- [ ] Port board rendering logic from `src/board.ts`
-- [ ] Implement drag-and-drop functionality
-- [ ] Add square highlighting and legal move indicators
-- [ ] Integrate piece/square theme customization
-- [ ] Port time control logic from `src/game.ts`
-- [ ] Implement Stockfish UCI communication
+✅ Port board rendering logic from `src/board.ts`
+✅ Implement drag-and-drop functionality
+✅ Implement click-to-select and click-to-move interaction
+✅ Add square highlighting for legal moves and last move
+✅ Replace Unicode pieces with PNG images from `/public/assets/`
+✅ Create GameControls component (Reset, FEN/PGN import/export)
+✅ Create MoveHistory component with algebraic notation
+✅ Port time control logic from `src/game.ts`
+✅ Create Clock component with time display for both players
+✅ Create TimeControlSelector with preset options
+✅ Implement timer logic with increment support
+✅ Add timeout detection and game over handling
+- [ ] Integrate piece/square theme customization (appearance sliders)
+- [ ] Implement Stockfish UCI communication in worker
+- [ ] Complete useEngine hook with real analysis
 - [ ] Add engine analysis display panel
-- [ ] Port UI controls (game reset, FEN/PGN import/export)
+- [ ] Integrate arrow drawing for move annotations
 
 **Phase 3: Advanced Features (TODO)**
 
 - [ ] Move review and annotations
-- [ ] Arrow drawing on board
+- [ ] Arrow drawing on board (right-click drag)
 - [ ] Hidden "gmmamun" Easter egg panel
 - [ ] Evaluation bar
-- [ ] Move history display
+- [ ] Engine move highlighting on board
 - [ ] Complete feature parity with vanilla app
 
 ## Directory Structure
@@ -146,38 +155,104 @@ The main homepage that renders the chess board. This is the entry point for the 
 
 ### `components/Board.tsx`
 
-A placeholder React component for the chess board. This will eventually replace the logic from `src/board.ts`. Currently shows:
+React component for the chess board with full piece movement functionality. Features:
 
 - 8x8 grid with alternating square colors
-- Unicode chess pieces based on starting position
-- Click handlers (not yet functional)
+- Piece images from `/public/assets/` (CC BY 4.0)
+- Click-to-select and click-to-move interaction
+- Drag-and-drop piece movement with HTML5 drag API
+- Legal move highlighting with green circles
+- Selected piece highlighting with blue ring
+- Last move highlighting with yellow background overlay
+- Integration with useGame hook for move validation
 
-**Integration TODO:**
+**Completed Integration:**
 
-- Port square rendering from `src/board.ts`
-- Add piece images from `/public/assets/`
-- Implement drag-and-drop with `onDragStart`, `onDrop`
-- Add legal move highlighting
-- Support custom themes (piece opacity, square colors)
-- Integrate arrow drawing layer
+✅ Port square rendering from `src/board.ts`
+✅ Add piece images from `/public/assets/`
+✅ Implement drag-and-drop with `onDragStart`, `onDrop`
+✅ Add legal move highlighting
+✅ Add last move highlighting
+✅ Integrate with useGame hook for chess logic
+
+**TODO:**
+
+- Support custom themes (piece opacity, square colors) via appearance sliders
+- Integrate arrow drawing layer for move annotations
+- Add engine move highlighting overlays
+
+### `components/GameControls.tsx`
+
+Control panel component for game operations. Features:
+
+- Reset game button
+- FEN import with input dialog
+- FEN export (copies to clipboard)
+- PGN export (copies to clipboard)
+
+**Status:** ✅ Complete
+
+### `components/MoveHistory.tsx`
+
+Display component for game move history. Features:
+
+- Shows moves in algebraic notation (SAN)
+- Groups moves by pairs (White & Black)
+- Scrollable container with fixed height
+- Empty state when no moves have been made
+
+**Status:** ✅ Complete
+
+### `components/Clock.tsx`
+
+Chess clock component for both players. Features:
+
+- Display remaining time in MM:SS format
+- Highlight active player's clock with blue ring
+- Visual distinction between black and white clocks
+- Real-time updates (100ms interval)
+
+**Status:** ✅ Complete
+
+### `components/TimeControlSelector.tsx`
+
+Time control preset selector. Features:
+
+- 8 preset options (1+0, 3+0, 3+2, 5+0, 5+1, 10+0, 15+10, 30+0)
+- Visual indication of selected preset
+- Grid layout for compact display
+- Disabled state when game has started
+
+**Status:** ✅ Complete
 
 ### `hooks/useGame.ts`
 
 Custom React hook wrapping `chess.js` for game state management. Provides:
 
 - Current position and FEN
-- Move validation and execution
+- Move validation and execution with chess.js
 - Game status (check, checkmate, stalemate)
 - FEN/PGN import/export
-- Move history
+- Move history with verbose details
+- Time control management with configurable presets
+- Clock management with increment support (100ms tick interval)
+- Timeout detection and game over handling
+- Timer starts on first move
+- Timer cleanup on unmount
 
-**Integration TODO:**
+**Completed Integration:**
 
-- Port time control logic from `src/game.ts`
-- Add clock management with increment
-- Implement move annotations
-- Add game over handlers
-- Support position reset and takeback
+✅ Port time control logic from `src/game.ts`
+✅ Add clock management with increment
+✅ Implement timeout detection
+✅ Support position reset and FEN/PGN operations
+✅ Add move history tracking with verbose details
+
+**TODO:**
+
+- Add move annotations (brilliant, blunder, etc.)
+- Implement takeback/undo functionality
+- Add position evaluation integration
 
 ### `hooks/useEngine.ts`
 
@@ -220,36 +295,54 @@ The migration follows an incremental strategy to minimize risk:
 
 | Vanilla TS Module | Next.js Equivalent     | Status                    |
 | ----------------- | ---------------------- | ------------------------- |
-| `src/main.ts`     | `app/page.tsx`         | ✅ Structure created      |
-| `src/board.ts`    | `components/Board.tsx` | 🟡 Placeholder only       |
-| `src/game.ts`     | `hooks/useGame.ts`     | 🟡 Partial implementation |
+| `src/main.ts`     | `app/page.tsx`         | ✅ Complete               |
+| `src/board.ts`    | `components/Board.tsx` | ✅ Core features complete |
+| `src/game.ts`     | `hooks/useGame.ts`     | ✅ Core features complete |
 | `src/engine.ts`   | `hooks/useEngine.ts`   | 🟡 Stub only              |
-| `src/ui.ts`       | Multiple components    | ⭕ Not started            |
+| `src/ui.ts`       | Multiple components    | ✅ Mostly complete        |
 | `src/types.ts`    | Type imports           | ✅ Reusable as-is         |
 
 ### Next Steps for Contributors
 
-1. **Board Rendering**: Port the board rendering logic from `src/board.ts` to `components/Board.tsx`
-   - Use piece images from `/public/assets/` instead of Unicode symbols
-   - Implement square click and drag handlers
-   - Add support for custom themes
+**Immediate priorities for completing Phase 2:**
 
-2. **Engine Integration**: Complete the Stockfish worker and hook
-   - Load and communicate with Stockfish binary
-   - Parse UCI protocol messages
-   - Update board with engine suggestions
+1. **Engine Integration** (HIGH PRIORITY): Complete the Stockfish worker and hook
+   - Load and communicate with Stockfish binary from `/public/libs/`
+   - Implement UCI protocol (uci, isready, position, go, stop commands)
+   - Parse UCI info lines using logic from `src/engine/uci-parser.ts`
+   - Update `hooks/useEngine.ts` to provide real analysis
+   - Create `components/EnginePanel.tsx` to display analysis results
 
-3. **UI Components**: Create React components for controls
-   - Time control selector
-   - Game reset button
-   - FEN/PGN import/export
-   - Move history panel
-   - Engine analysis panel (hidden "gmmamun" feature)
+2. **Appearance Customization** (MEDIUM PRIORITY): Add theme controls
+   - Port appearance sliders from `src/ui.ts`
+   - Create `components/AppearanceControls.tsx`
+   - Add piece opacity, hue, saturation, brightness controls
+   - Support light/dark square customization
+   - Support white/black piece customization
 
-4. **Testing**: Add test coverage for new components
-   - Unit tests for hooks
+3. **Arrow Drawing System** (MEDIUM PRIORITY): Port from `src/board.ts`
+   - Add SVG overlay layer to Board component
+   - Implement right-click drag to create arrows
+   - Support multiple arrows with different colors
+   - Port arrow drawing logic from `src/board.ts` (lines 25-36)
+
+**Phase 3 priorities:**
+
+4. **Easter Egg Feature** (LOW PRIORITY): "gmmamun" hidden panel
+   - Port logic from `src/ui/easter-egg.ts`
+   - Create hidden engine panel component
+   - Trigger on text selection + "gmmamun" typing
+
+5. **Move Annotations** (LOW PRIORITY): Quality indicators
+   - Add move quality analysis (brilliant, good, inaccuracy, etc.)
+   - Use icons from `/public/assets/`
+   - Integrate with engine evaluation
+
+6. **Testing & Polish** (ONGOING):
+   - Add React component tests
    - Integration tests for board interactions
    - E2E tests for complete game flow
+   - Performance optimization
 
 ## Original Vanilla App
 
@@ -292,15 +385,27 @@ content: [
 
 This ensures styles work in both versions during the transition.
 
-## Known Limitations (Skeleton Phase)
+## Known Limitations (Current Phase)
 
-- ✋ Board is a static placeholder with no piece movement
 - ✋ Stockfish worker is a stub with no actual engine integration
-- ✋ Time controls not yet implemented
-- ✋ No UI controls (reset, FEN/PGN, etc.)
-- ✋ No move history or annotations
+- ✋ No appearance customization sliders (piece/square themes)
+- ✋ No arrow drawing or move annotations
 - ✋ No "gmmamun" Easter egg panel
-- ✋ No arrow drawing or analysis overlays
+- ✋ No engine move highlighting or analysis overlays
+- ✋ No evaluation bar
+
+**Completed features:**
+
+✅ Board rendering with piece images
+✅ Click-to-select and click-to-move interaction
+✅ Drag-and-drop piece movement
+✅ Legal move highlighting (green circles)
+✅ Last move highlighting (yellow overlay)
+✅ Time controls with increment support
+✅ Chess clock display
+✅ Game controls (Reset, FEN/PGN import/export)
+✅ Move history display
+✅ Game status detection (check, checkmate, stalemate, timeout)
 
 These will be addressed in subsequent PRs as part of the incremental migration.
 
