@@ -20,6 +20,7 @@ export default function Home() {
     loadFen,
     getFen,
     getPgn,
+    loadPgn,
     history,
     isGameOver,
     checkmate,
@@ -127,7 +128,8 @@ export default function Home() {
                   <h3 className="text-lg font-semibold">Appearance</h3>
                   <button
                     onClick={() => {
-                      /* Reset all appearance */
+                      // Reset handled by individual group reset buttons in AppearanceControls
+                      window.location.reload();
                     }}
                     className="px-3 py-1.5 text-sm border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors inline-flex items-center gap-1.5"
                     title="Reset all appearance settings"
@@ -234,7 +236,8 @@ export default function Home() {
               </button>
               <button
                 onClick={() => {
-                  /* Move review logic */
+                  // TODO: Implement move review functionality
+                  alert('Move review feature coming soon!');
                 }}
                 className="px-3 py-1.5 text-sm rounded-full border border-gray-600 hover:bg-gray-700 text-white transition-colors flex items-center gap-2"
               >
@@ -325,7 +328,8 @@ export default function Home() {
                   <h3 className="text-lg font-semibold">Appearance</h3>
                   <button
                     onClick={() => {
-                      /* Reset all appearance */
+                      // Reset handled by individual group reset buttons in AppearanceControls
+                      window.location.reload();
                     }}
                     className="px-3 py-1.5 text-sm border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors inline-flex items-center gap-1.5"
                     title="Reset all appearance settings"
@@ -360,7 +364,11 @@ export default function Home() {
                       onClick={() => {
                         const pgnText = prompt('Enter PGN:');
                         if (pgnText) {
-                          /* Load PGN logic */
+                          try {
+                            loadPgn(pgnText);
+                          } catch (error) {
+                            alert('Invalid PGN format');
+                          }
                         }
                       }}
                       className="flex-1 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
