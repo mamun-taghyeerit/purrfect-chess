@@ -1,80 +1,119 @@
 /**
- * Stockfish Web Worker Scaffold
+ * Stockfish Web Worker
  *
- * This worker will eventually replace the engine integration from src/engine.ts
+ * Integrates Stockfish 17.1 (lite-single WASM variant) for engine analysis.
+ * Uses the chess.com maintained stockfish binaries loaded from /public/libs/
  *
- * Integration points from vanilla app:
- * - src/engine.ts: Stockfish worker integration
- * - src/engine/uci-parser.ts: UCI protocol parsing
- * - public/libs/stockfish.js: Stockfish binary
- * - public/libs/stockfish.wasm: Stockfish WebAssembly module
+ * Stockfish Details:
+ * - Version: 17.1 (hash: 03e3232)
+ * - Variant: Lite Single-threaded WASM
+ * - Size: ~7MB WASM + ~21KB JS wrapper
+ * - Threading: Single-threaded (no SharedArrayBuffer required)
+ * - CORS: Does not require special CORS headers
+ * - Strength: Weaker than full version but suitable for browser-based analysis
+ * - NNUE: Smaller neural network evaluation
  *
- * TODO for future PRs:
- * 1. Load Stockfish from /public/libs/stockfish.js
- * 2. Implement UCI protocol communication
- * 3. Parse engine analysis (info lines, bestmove)
- * 4. Support multi-PV analysis (showing top 3 moves)
- * 5. Add depth control and analysis stopping
- * 6. Implement proper error handling
- * 7. Port UCI parsing logic from src/engine/uci-parser.ts
+ * This variant was chosen for:
+ * 1. No CORS header requirements (works in all deployment scenarios)
+ * 2. Reasonable file size (~7MB vs ~75MB for full version)
+ * 3. Full WASM support (faster than asm.js fallback)
+ * 4. Single-threaded (simpler threading model, better compatibility)
  *
- * Current status: STUB - Not functional yet
- * This is a placeholder to establish the worker structure.
+ * Key features:
+ * - UCI protocol implementation
+ * - Multi-PV analysis support
+ * - Depth-based and time-based analysis
+ * - Real-time analysis updates
  */
+
+import { parseInfoLine, parseBestMove } from '@/lib/uci-parser';
+import type { UciInfoResult } from '@/lib/uci-parser';
 
 // @ts-ignore - Worker context
 const ctx: Worker = self as any;
 
 let stockfishEngine: Worker | null = null;
 let isReady = false;
+let isAnalyzing = false;
 
 /**
- * Initialize Stockfish engine
+ * Initialize Stockfish engine from public/libs/
  */
 function initStockfish() {
   try {
-    // TODO: Load the actual Stockfish worker from /public/libs/stockfish.js
-    // For now, this is a stub that will be implemented in future PRs
-    console.log('[Stockfish Worker] Initializing engine...');
+    console.log('[Stockfish Worker] Initializing Stockfish 17.1 (lite-single WASM)...');
 
-    // Placeholder for loading Stockfish
-    // stockfishEngine = new Worker('/libs/stockfish.js');
+    // Load the stockfish worker from public/libs/
+    // Using lite-single variant: single-threaded WASM, ~7MB, no CORS required
+    stockfishEngine = new Worker('/libs/stockfish-lite-single.js');
 
-    // stockfishEngine.onmessage = (event) => {
-    //   handleStockfishMessage(event.data);
-    // };
+    // Set up message handler
+    stockfishEngine.onmessage = (event: MessageEvent) => {
+      handleStockfishMessage(event.data);
+    };
+
+    stockfishEngine.onerror = (error: ErrorEvent) => {
+      console.error('[Stockfish Worker] Engine error:', error);
+      ctx.postMessage({
+        type: 'error',
+        error: 'Stockfish engine error: ' + error.message,
+      });
+    };
 
     // Send UCI init command
-    // sendCommand('uci');
-
-    isReady = false; // Will be set to true when we receive 'uciok'
+    sendCommand('uci');
   } catch (error) {
     console.error('[Stockfish Worker] Failed to initialize:', error);
-    ctx.postMessage({ type: 'error', error: 'Failed to initialize Stockfish' });
+    ctx.postMessage({
+      type: 'error',
+      error: 'Failed to initialize Stockfish: ' + (error as Error).message,
+    });
   }
 }
 
 /**
  * Handle messages from Stockfish engine
  */
-function handleStockfishMessage(message: string) {
-  console.log('[Stockfish Worker] Engine message:', message);
+function handleStockfishMessage(message: string | { data?: string }) {
+  // Handle both string messages and object messages
+  const trimmed = typeof message === 'string' ? message.trim() : (message.data || '').trim();
+  
+  if (!trimmed) return;
 
-  if (message === 'uciok') {
-    isReady = true;
-    ctx.postMessage({ type: 'ready' });
+  // Log raw UCI messages for debugging (commented out for production)
+  // console.log('[Stockfish Worker] UCI:', trimmed);
+
+  if (trimmed === 'uciok') {
+    // Engine initialized, send isready
+    sendCommand('isready');
     return;
   }
 
-  if (message.startsWith('info')) {
-    // TODO: Parse UCI info lines using logic from src/engine/uci-parser.ts
-    ctx.postMessage({ type: 'info', data: message });
+  if (trimmed === 'readyok') {
+    if (!isReady) {
+      isReady = true;
+      console.log('[Stockfish Worker] Engine ready (Stockfish 17.1 lite-single WASM)');
+      ctx.postMessage({ type: 'ready' });
+    }
     return;
   }
 
-  if (message.startsWith('bestmove')) {
-    // TODO: Parse bestmove and send to main thread
-    ctx.postMessage({ type: 'bestmove', data: message });
+  if (trimmed.startsWith('info')) {
+    // Parse and forward info lines
+    const parsed = parseInfoLine(trimmed);
+    if (parsed) {
+      ctx.postMessage({ type: 'info', data: parsed });
+    }
+    return;
+  }
+
+  if (trimmed.startsWith('bestmove')) {
+    // Parse and forward bestmove
+    const parsed = parseBestMove(trimmed);
+    if (parsed) {
+      isAnalyzing = false;
+      ctx.postMessage({ type: 'bestmove', data: parsed });
+    }
     return;
   }
 }
@@ -84,7 +123,7 @@ function handleStockfishMessage(message: string) {
  */
 function sendCommand(command: string) {
   if (stockfishEngine) {
-    console.log('[Stockfish Worker] Sending command:', command);
+    // console.log('[Stockfish Worker] Sending command:', command);
     stockfishEngine.postMessage(command);
   } else {
     console.error('[Stockfish Worker] Engine not initialized');
@@ -102,21 +141,57 @@ ctx.onmessage = (event: MessageEvent) => {
       initStockfish();
       break;
 
-    case 'analyze':
-      // TODO: Start analysis with specified depth
-      console.log('[Stockfish Worker] Starting analysis...', data);
-      // sendCommand('position fen ' + data.fen);
-      // sendCommand('go depth ' + data.depth);
+    case 'analyze': {
+      if (!isReady) {
+        ctx.postMessage({
+          type: 'error',
+          error: 'Engine not ready',
+        });
+        return;
+      }
+
+      const {
+        fen,
+        depth = 16,
+        multipv = 3,
+        movetime = null,
+      } = data;
+
+      console.log(
+        `[Stockfish Worker] Starting analysis: depth=${depth}, multipv=${multipv}`
+      );
+
+      isAnalyzing = true;
+
+      // Stop any ongoing analysis
+      sendCommand('stop');
+
+      // Small delay to ensure stop is processed
+      setTimeout(() => {
+        // Configure and start new analysis
+        sendCommand('ucinewgame');
+        sendCommand(`setoption name MultiPV value ${multipv}`);
+        sendCommand(`position fen ${fen}`);
+
+        if (movetime !== null && Number.isFinite(movetime) && movetime > 0) {
+          sendCommand(`go movetime ${movetime}`);
+        } else {
+          sendCommand(`go depth ${depth}`);
+        }
+      }, 10);
       break;
+    }
 
     case 'stop':
-      // TODO: Stop current analysis
-      console.log('[Stockfish Worker] Stopping analysis...');
-      // sendCommand('stop');
+      console.log('[Stockfish Worker] Stopping analysis');
+      if (isAnalyzing) {
+        sendCommand('stop');
+        isAnalyzing = false;
+      }
       break;
 
     case 'command':
-      // Send raw UCI command
+      // Send raw UCI command (for advanced use)
       sendCommand(data);
       break;
 

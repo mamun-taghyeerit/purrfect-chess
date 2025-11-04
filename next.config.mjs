@@ -18,18 +18,19 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
 
-  // Configure webpack to handle Web Workers
+  // Configure webpack for Web Workers and stockfish package
   webpack: (config, { isServer }) => {
-    // Add support for Web Workers
+    // Handle Web Workers in client-side builds
     if (!isServer) {
+      // Support for dynamic imports of workers
       config.output.publicPath = '/_next/';
+      
+      // Ensure proper handling of .wasm files for stockfish
+      config.experiments = {
+        ...config.experiments,
+        asyncWebAssembly: true,
+      };
     }
-
-    // Handle worker files
-    config.module.rules.push({
-      test: /\.worker\.(js|ts)$/,
-      use: { loader: 'worker-loader' },
-    });
 
     return config;
   },
