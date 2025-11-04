@@ -81,7 +81,7 @@ export class FrameBudgetMonitor {
     const max = Math.max(...this.frameTimes);
     const fps = 1000 / avg;
     
-    // Frames over 16.67ms (60fps threshold) are considered dropped
+    // Frames exceeding 16.67ms (1000ms / 60fps) are considered dropped
     const droppedFrames = this.frameTimes.filter(t => t > 16.67).length;
 
     return {

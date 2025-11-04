@@ -124,6 +124,9 @@ export default function EnginePanel({
       setThrottledAnalysis(analysis);
       setThrottledDepth(currentDepth);
       lastUpdateTimeRef.current = now;
+      
+      // Return no-op cleanup for immediate updates
+      return () => {};
     } else {
       // Schedule update for later
       const timeoutId = setTimeout(() => {
@@ -135,9 +138,6 @@ export default function EnginePanel({
       // Cleanup: cancel timeout if component unmounts or dependencies change
       return () => clearTimeout(timeoutId);
     }
-    
-    // No cleanup needed for immediate updates (no setTimeout created)
-    return undefined;
   }, [analysis, currentDepth]);
 
   const handleAnalyzeClick = () => {

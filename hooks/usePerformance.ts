@@ -68,8 +68,11 @@ export function useDragPerformance() {
       if (monitorRef.current) {
         try {
           monitorRef.current.stopDrag();
-        } catch (e) {
-          // Ignore errors on cleanup
+        } catch (error) {
+          // Log errors in development for debugging
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Error stopping drag monitor:', error);
+          }
         }
       }
     };
