@@ -50,7 +50,7 @@ echo "Installing dependencies via Yarn (using lockfile)..."
 yarn install --frozen-lockfile
 
 echo "Vendoring Stockfish binaries..."
-yarn vendor:stockfish || true
+yarn vendor:stockfish
 
 # Show versions for traceability
 echo ""

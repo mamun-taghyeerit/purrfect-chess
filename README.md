@@ -54,7 +54,7 @@ yarn install
 yarn dev        # or yarn next:dev
 ```
 
-**Note**: The `postinstall` script automatically vendors Stockfish binaries from the `stockfish` npm package to `/public/libs/`.
+**Note**: The `postinstall` script automatically vendors Stockfish binaries from the `stockfish` npm package to `public/libs/`.
 
 The app uses TypeScript, Vite, Tailwind CSS, and chess.js. Stockfish is loaded from `/public/libs/stockfish.js` and `/public/libs/stockfish.wasm`. The engine binaries are vendored instead of pulled from a package registry so the worker URL remains stable across dev/production builds and because the original prototype shipped the engine locally. You **must** run a development server (the included Vite scripts are perfect). Opening the HTML from `file://` will not work because the Worker and WASM bundle cannot load directly from disk.
 
