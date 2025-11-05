@@ -110,19 +110,20 @@ const GameStateModel = types
         return false;
       }
     },
+    stopTimer() {
+      self.isTimerRunning = false;
+      self.timerRunning = false;
+      self.lastTickTime = null;
+    },
+  }))
+  .actions((self) => ({
     resetGame() {
       self.chessInstance.reset();
       self.fen = self.chessInstance.fen();
       self.whiteTime = self.timeControl.minutes * 60 * 1000;
       self.blackTime = self.timeControl.minutes * 60 * 1000;
       self.isGameOver = false;
-      self.isTimerRunning = false;
-      // Stop timer if running
-      if (self.timerIntervalId) {
-        clearInterval(self.timerIntervalId);
-        self.timerIntervalId = null;
-        self.lastTickTime = null;
-      }
+      self.stopTimer();
     },
     tick(delta: number) {
       // Timer tick logic - must be in an action to modify model state
@@ -176,11 +177,6 @@ const GameStateModel = types
     getPgn() {
       return self.chessInstance.pgn();
     },
-    stopTimer() {
-      self.isTimerRunning = false;
-      self.timerRunning = false;
-      self.lastTickTime = null;
-    },
     afterCreate() {
       // Load FEN on creation with error handling
       if (self.fen) {
@@ -222,6 +218,24 @@ const GameStateModel = types
         self.tick(delta);
       }
     }),
+    afterCreate() {
+      // Load FEN on creation with error handling
+      if (self.fen) {
+        try {
+          self.chessInstance.load(self.fen);
+        } catch (error) {
+          console.error('[GameStore] Failed to load FEN on initialization:', error);
+          // Fall back to default position if FEN is invalid
+          self.chessInstance.reset();
+        }
+      }
+    },
+    beforeDestroy() {
+      // Clean up timer on destroy
+      self.stopTimer();
+    },
+  }))
+  .actions((self) => ({
     resetGame() {
       self.chessInstance.reset();
       self.fen = self.chessInstance.fen();
@@ -230,8 +244,6 @@ const GameStateModel = types
       self.isGameOver = false;
       self.stopTimer();
     },
-  }))
-  .actions((self) => ({
     // Enhanced actions with error handling - can now call actions from previous block
     movePieceWithValidation(from: string, to: string, promotion?: string, onError?: (msg: string) => void) {
       const success = self.movePiece(from, to, promotion);

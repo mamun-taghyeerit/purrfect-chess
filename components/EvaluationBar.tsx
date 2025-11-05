@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
 
@@ -142,17 +142,6 @@ const EvaluationBar = observer(function EvaluationBar({
         </div>
       )}
     </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders
-  return (
-    prevProps.scoreCp === nextProps.scoreCp &&
-    prevProps.mateIn === nextProps.mateIn &&
-    prevProps.isAnalyzing === nextProps.isAnalyzing &&
-    prevProps.isVisible === nextProps.isVisible &&
-    prevProps.currentDepth === nextProps.currentDepth &&
-    prevProps.maxDepth === nextProps.maxDepth &&
-    prevProps.className === nextProps.className
   );
 });
 
