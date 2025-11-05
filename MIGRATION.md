@@ -1,6 +1,10 @@
 # Next.js Migration Guide
 
-This document explains the Next.js migration skeleton and how to work with it.
+> **🎉 MIGRATION COMPLETE!** The Next.js migration has been successfully completed and the legacy Vite/HTML implementation has been removed from the develop branch. This document is preserved for historical reference and to explain the migration journey.
+> 
+> The original Vite implementation is preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch.
+
+This document explains the Next.js migration journey and final architecture.
 
 ## Related Issues
 
@@ -8,14 +12,23 @@ This migration relates to:
 
 - [Issue #31](https://github.com/purrfectsoft/purrfect-chess/issues/31) - Modernization roadmap (master issue)
 - [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) - Phase X: Functional + Visual Parity Development
+- [Issue #94](https://github.com/purrfectsoft/purrfect-chess/issues/94) - Legacy cleanup from develop branch
 
-## Overview
+## Migration Summary
 
-This branch contains the initial Next.js 14 migration skeleton for Purrfect Chess. The goal is to incrementally migrate the vanilla TypeScript/Vite application to a modern Next.js + React architecture while preserving all existing functionality.
+The migration from Vite/HTML to Next.js was completed in phases:
 
-## Current Status
+1. **Phase 1: Skeleton Setup** - Created Next.js 14 app with App Router
+2. **Phase 2: Core Migration** - Ported board, game logic, and UI components
+3. **Phase 3: Advanced Features** - Implemented engine analysis, easter eggs, and advanced UI
+4. **Phase X: Parity Validation** - Achieved 1:1 functional and visual parity
+5. **Phase 4: Cleanup** - Removed legacy code from develop branch
 
-**Phase 1: Skeleton Setup (COMPLETE)**
+The legacy Vite implementation has been preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch for historical reference.
+
+## Final Status
+
+**Phase 1: Skeleton Setup (COMPLETE ✅)**
 
 ✅ Next.js 14 with App Router  
 ✅ React 18+ integration  
@@ -28,7 +41,7 @@ This branch contains the initial Next.js 14 migration skeleton for Purrfect Ches
 ✅ Stockfish worker scaffold - stub implementation  
 ✅ Static assets copied to public/
 
-**Phase 2: Core Migration (IN PROGRESS)**
+**Phase 2: Core Migration (COMPLETE ✅)**
 
 ✅ Port board rendering logic from `src/board.ts`
 ✅ Implement drag-and-drop functionality
@@ -37,26 +50,25 @@ This branch contains the initial Next.js 14 migration skeleton for Purrfect Ches
 ✅ Replace Unicode pieces with PNG images from `/public/assets/`
 ✅ Create GameControls component (Reset, FEN/PGN import/export)
 ✅ Create MoveHistory component with algebraic notation
-✅ Port time control logic from `src/game.ts`
+✅ Port time control logic
 ✅ Create Clock component with time display for both players
 ✅ Create TimeControlSelector with preset options
 ✅ Implement timer logic with increment support
 ✅ Add timeout detection and game over handling
-
-- [ ] Integrate piece/square theme customization (appearance sliders)
-- [ ] Implement Stockfish UCI communication in worker
-- [ ] Complete useEngine hook with real analysis
-- [ ] Add engine analysis display panel
-- [ ] Integrate arrow drawing for move annotations
+✅ Integrate piece/square theme customization (appearance sliders)
+✅ Implement Stockfish UCI communication in worker
+✅ Complete useEngine hook with real analysis
+✅ Add engine analysis display panel
+✅ Integrate arrow drawing for move annotations
 
 **Phase 3: Advanced Features (COMPLETE ✅)**
 
-- ✅ Move review and annotations
-- ✅ Arrow drawing on board (right-click drag) - **NOT YET** in Next.js (Phase X task)
-- ✅ Hidden "gmmamun" Easter egg panel
-- ✅ Evaluation bar - **STUB ONLY** in Next.js (Phase X task)
-- ✅ Engine move highlighting on board - via EnginePanel multi-PV display
-- ✅ Complete feature parity with vanilla app - **MOSTLY COMPLETE**, Phase X validates exact parity
+✅ Move review and annotations
+✅ Arrow drawing on board (right-click drag)
+✅ Hidden "gmmamun" Easter egg panel
+✅ Evaluation bar with depth info
+✅ Engine move highlighting on board
+✅ Complete feature parity with legacy app
 
 **Phase X: Functional + Visual Parity Development (COMPLETE ✅)**
 
@@ -86,9 +98,17 @@ Phase X has been successfully completed! All 14 workstreams achieved functional 
 
 **Audit Documentation:** See [`docs/phase-x/phase-x-audit.md`](./docs/phase-x/phase-x-audit.md) for comprehensive parity validation results, evidence index, and QA:Eng summary.
 
-**Phase 4: Testing & Cleanup (TODO - BLOCKED BY PHASE X)**
+**Phase 4: Legacy Cleanup (COMPLETE ✅)**
 
-```
+✅ Removed legacy Vite/HTML implementation from develop
+✅ Removed legacy tests that import from `src/`
+✅ Updated package.json: removed vite dependencies, renamed scripts
+✅ Updated documentation to reference legacy branch
+✅ Preserved legacy implementation on `legacy` branch
+
+See [Issue #94](https://github.com/purrfectsoft/purrfect-chess/issues/94) for cleanup details.
+
+## Architecture Overview
 .
 ├── app/                      # Next.js App Router
 │   ├── layout.tsx           # Root layout with metadata
@@ -414,16 +434,19 @@ The migration follows an incremental strategy to minimize risk:
    - E2E tests for complete game flow
    - Performance optimization
 
-## Original Vanilla App
+## Legacy Implementation Reference
 
-The original Vite + vanilla TypeScript app is still fully functional and can be run with:
+The original Vite + vanilla TypeScript implementation has been preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch:
 
 ```bash
+# To view or run the legacy version:
+git checkout legacy
+yarn install
 yarn dev    # Vite development server
 yarn build  # Vite production build
 ```
 
-This allows for side-by-side comparison during migration.
+This branch is maintained for historical reference and comparison purposes.
 
 ## Asset Licensing
 
