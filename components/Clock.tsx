@@ -20,6 +20,17 @@ import { useRootStore } from '@/stores/store-setup';
  * - Fixed-width monospace font for stable layout
  */
 
+// Helper function to format time in MM:SS format
+const formatClockTime = (timeMs: number): string => {
+  const minutes = Math.floor(timeMs / 60000)
+    .toString()
+    .padStart(2, '0');
+  const seconds = Math.floor((timeMs % 60000) / 1000)
+    .toString()
+    .padStart(2, '0');
+  return `${minutes}:${seconds}`;
+};
+
 interface ClockProps {
   /** Which player's clock to display: 'w' for white, 'b' for black */
   player: 'w' | 'b';
@@ -27,21 +38,8 @@ interface ClockProps {
 
 const Clock = observer(function Clock({ player }: ClockProps) {
   const store = useRootStore();
-  const game = store.game;
 
-  // Helper function to format time in MM:SS format
-  const formatClockTime = (timeMs: number): string => {
-    const minutes = Math.floor(timeMs / 60000)
-      .toString()
-      .padStart(2, '0');
-    const seconds = Math.floor((timeMs % 60000) / 1000)
-      .toString()
-      .padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  };
-
-  const time = player === 'w' ? game.whiteTime : game.blackTime;
-  const isActive = game.turn === player && game.isTimerRunning;
+  const isActive = store.game.turn === player && store.game.isTimerRunning;
 
   return (
     <div
@@ -68,7 +66,7 @@ const Clock = observer(function Clock({ player }: ClockProps) {
         overflow: 'hidden'
       }}
     >
-      {formatClockTime(time)}
+      {formatClockTime(player === 'w' ? store.game.whiteTime : store.game.blackTime)}
     </div>
   );
 });

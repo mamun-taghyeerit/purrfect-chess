@@ -179,22 +179,6 @@ const GameStateModel = types
     getPgn() {
       return self.chessInstance.pgn();
     },
-    afterCreate() {
-      // Load FEN on creation with error handling
-      if (self.fen) {
-        try {
-          self.chessInstance.load(self.fen);
-        } catch (error) {
-          console.error('[GameStore] Failed to load FEN on initialization:', error);
-          // Fall back to default position if FEN is invalid
-          self.chessInstance.reset();
-        }
-      }
-    },
-    beforeDestroy() {
-      // Clean up timer on destroy
-      self.stopTimer();
-    },
   }))
   .actions((self) => ({
     // Flow-based async timer loop
