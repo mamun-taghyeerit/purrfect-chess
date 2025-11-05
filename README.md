@@ -2,33 +2,29 @@
 
 Cat-themed chess board with local Stockfish, appearance sliders, time controls, and a hidden "gmmamun" engine panel. Part of the Purrfect Universe toy projects.
 
-Built with **TypeScript** for improved type safety and developer experience.
+Built with **Next.js 14**, **React 18**, **TypeScript**, and **MobX** for improved type safety and state management.
 
 ## Project Status
 
-**Phase X Complete ✅** - The Next.js migration has achieved full functional and visual parity with the legacy Vite app, including all features (arrow drawing, evaluation bar, engine analysis, etc.). All 14 workstreams validated through comprehensive testing with 27 FEN fixtures, 10 PGN fixtures, and 366 passing tests.
+**Phase X Complete ✅** - The Next.js migration has achieved full functional and visual parity with the legacy Vite app. All 14 workstreams validated through comprehensive testing with 27 FEN fixtures, 10 PGN fixtures, and 366 passing tests.
+
+**Migration Complete ✅** - The legacy Vite/HTML implementation has been removed from the develop branch. The legacy codebase is preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch for historical reference.
 
 **Next:** Phase 4 (Testing & Cleanup) - Improve test infrastructure, add CI/CD pipeline, enhance accessibility, and prepare for production release.
 
 See [`docs/phase-x/phase-x-audit.md`](./docs/phase-x/phase-x-audit.md) for the complete Phase X audit report.
 
-## 🚀 Next.js Migration
+## Legacy Implementation
 
-**This project is being migrated to Next.js!** See [`MIGRATION.md`](./MIGRATION.md) for details about the Next.js skeleton and incremental migration strategy (relates to [Issue #31](https://github.com/purrfectsoft/purrfect-chess/issues/31)).
-
-### Running the Next.js App (New)
+The original Vite/HTML implementation has been preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch. To view or run the legacy version:
 
 ```bash
-yarn next:dev   # Next.js development server (http://localhost:3000)
+git checkout legacy
+yarn install
+yarn dev  # Runs legacy Vite dev server
 ```
 
-### Running the Original Vite App
-
-```bash
-yarn dev        # Vite development server (original app)
-```
-
-Both versions can coexist during the migration phase.
+See [`MIGRATION.md`](./MIGRATION.md) for details about the migration journey from Vite to Next.js.
 
 ---
 
@@ -56,19 +52,20 @@ This script will:
 - ✅ Install all project dependencies via `yarn install --frozen-lockfile`
 - ✅ Vendor Stockfish binaries to `public/libs/`
 
-After setup, run either app:
+After setup, run the app:
 
 ```bash
-yarn dev        # Vite dev server
-yarn next:dev   # Next.js dev server
+yarn dev   # Next.js development server (http://localhost:3000)
 ```
 
 **Available tooling:**
 
-- `yarn lint` / `yarn lint:fix` - ESLint code quality checks
+- `yarn lint` - ESLint code quality checks with Next.js rules
+- `yarn lint:fix` - Auto-fix linting issues
 - `yarn format` / `yarn format:check` - Prettier formatting
 - `yarn test` / `yarn test:watch` - Vitest test runner
-- `yarn build` / `yarn next:build` - Production builds
+- `yarn build` - Production build
+- `yarn start` - Start production server
 
 ### Manual Setup
 
@@ -76,12 +73,12 @@ If you already have the correct Node version and Yarn classic installed:
 
 ```bash
 yarn install
-yarn dev        # or yarn next:dev
+yarn dev
 ```
 
 **Note**: The `postinstall` script automatically vendors Stockfish binaries from the `stockfish` npm package to `public/libs/`.
 
-The app uses TypeScript, Vite, Tailwind CSS, and chess.js. Stockfish is loaded from `/public/libs/stockfish.js` and `/public/libs/stockfish.wasm`. The engine binaries are vendored instead of pulled from a package registry so the worker URL remains stable across dev/production builds and because the original prototype shipped the engine locally. You **must** run a development server (the included Vite scripts are perfect). Opening the HTML from `file://` will not work because the Worker and WASM bundle cannot load directly from disk.
+The app uses Next.js, React, TypeScript, Tailwind CSS, MobX, and chess.js. Stockfish is loaded from `/public/libs/stockfish-lite-single.js` and `/public/libs/stockfish-lite-single.wasm`. The engine binaries are auto-vendored instead of pulled from a package registry so the worker URL remains stable across dev/production builds.
 
 All piece and square PNGs live under `/public/assets/` and are licensed under CC BY 4.0 (see `LICENSE.md`).
 
@@ -97,33 +94,44 @@ Select the grey text inside the board column that reads `(Reserved for future us
 ├── .nvmrc
 ├── LICENSE.md
 ├── README.md
-├── index.html
 ├── package.json
+├── next.config.mjs        # Next.js configuration
 ├── postcss.config.js
-├── tsconfig.json          # TypeScript configuration
-├── public
-│   ├── assets/
-│   ├── index.html
-│   └── libs/
-├── src
-│   ├── board.ts          # Board rendering and visual updates
-│   ├── engine.ts         # Stockfish worker integration
-│   ├── game.ts           # Chess game state and logic
-│   ├── main.ts           # Application entry point
-│   ├── types.ts          # Shared TypeScript type definitions
-│   ├── styles.css
-│   ├── ui.ts             # UI controls and interactions
-│   ├── engine/
-│   │   └── uci-parser.ts
-│   ├── game/
-│   │   ├── move-validator.ts
-│   │   ├── position-utils.ts
-│   │   └── time-controls.ts
-│   └── ui/
-│       └── easter-egg.ts
-├── tests/                # Vitest test suites
 ├── tailwind.config.js
-├── vitest.config.ts
+├── tsconfig.json          # TypeScript configuration
+├── vitest.config.ts       # Vitest test configuration
+├── app/                   # Next.js App Router
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # React components
+│   ├── Board.tsx          # Chess board with drag-and-drop
+│   ├── Clock.tsx          # Chess clock display
+│   ├── EnginePanel.tsx    # Stockfish analysis panel
+│   └── ...                # Other UI components
+├── hooks/                 # React hooks
+│   ├── useEngine.ts       # Stockfish integration
+│   ├── useNotification.ts # Toast notifications
+│   └── ...                # Other custom hooks
+├── stores/                # MobX-State-Tree stores
+│   ├── root-store.ts      # State models
+│   └── store-setup.ts     # Persistent store provider
+├── lib/                   # Utility libraries
+│   ├── uci-parser.ts      # UCI protocol parser
+│   └── performance.ts     # Performance utilities
+├── workers/               # Web Workers
+│   └── stockfish.worker.ts # Stockfish engine worker
+├── public/
+│   ├── assets/            # Piece/square PNGs (CC BY 4.0)
+│   └── libs/              # Stockfish binaries (auto-vendored)
+├── tests/                 # Vitest test suites
+│   ├── components/        # Component tests
+│   ├── hooks/             # Hook tests
+│   ├── integration/       # Integration tests
+│   └── parity/            # Parity validation tests
+├── docs/                  # Documentation
+│   ├── phase-x/           # Migration audit docs
+│   └── ...                # Other documentation
 └── yarn.lock
 ```
 
@@ -131,14 +139,14 @@ Select the grey text inside the board column that reads `(Reserved for future us
 
 ### TypeScript
 
-This project uses TypeScript for type safety and improved developer experience. The TypeScript configuration is optimized for gradual typing with a relaxed mode to support the migration from JavaScript.
+This project uses TypeScript for type safety and improved developer experience across the Next.js app, React components, and custom hooks.
 
 ### Linting and Formatting
 
 ```bash
-yarn lint              # Check code for linting issues
+yarn lint              # ESLint with Next.js rules
 yarn lint:fix          # Fix auto-fixable linting issues
-yarn format            # Format all code files
+yarn format            # Format all code files with Prettier
 yarn format:check      # Check if files are formatted correctly
 ```
 
@@ -150,7 +158,7 @@ The project uses:
 ### Testing
 
 ```bash
-yarn test              # Run all tests
+yarn test              # Run all tests with Vitest
 yarn test:watch        # Run tests in watch mode
 yarn test:coverage     # Generate coverage report
 ```
@@ -160,10 +168,8 @@ See [TESTING.md](./TESTING.md) for comprehensive testing guidelines.
 ### Building
 
 ```bash
-yarn build             # Production build (Vite)
-yarn preview           # Preview production build
-yarn next:build        # Next.js production build
-yarn next:start        # Start Next.js production server
+yarn build             # Next.js production build
+yarn start             # Start Next.js production server
 ```
 
 ## Verification
@@ -174,7 +180,7 @@ To reproduce the validation checks from the Phase X audit:
 
 ```bash
 # Next.js production build (should complete with zero errors)
-yarn next:build
+yarn build
 
 # Expected output:
 # ✓ Compiled successfully
@@ -186,8 +192,8 @@ yarn next:build
 ### Lint Verification
 
 ```bash
-# ESLint code quality checks
-yarn next:lint
+# ESLint code quality checks with Next.js rules
+yarn lint
 
 # Expected warnings (non-blocking):
 # - React Hook useCallback unnecessary dependency (performance optimization)

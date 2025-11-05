@@ -1,11 +1,14 @@
 import path from 'path';
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 /// <reference types="vitest" />
 
+// Note: Using vitest/config instead of vite since we removed the Vite build tool.
+// Vitest has its own defineConfig that works without Vite dependencies.
 export default defineConfig({
-  plugins: [react()],
+  esbuild: {
+    jsx: 'automatic',
+  },
   test: {
     globals: true,
     environment: 'happy-dom',

@@ -1,17 +1,17 @@
 # Module Map - Purrfect Chess Architecture
 
-> **Status:** Phase X Complete ✅  
-> This document describes the final Next.js architecture after achieving functional and visual parity with the legacy app.  
-> **Legacy app (`src/`):** Preserved as reference implementation for Phase X validation.  
-> **Current app:** Next.js 14 + React 18 + TypeScript + MobX (see Active Architecture below).
+> **Status:** Migration Complete ✅  
+> This document describes the final Next.js architecture after achieving functional and visual parity with the legacy app and removing legacy code.  
+> **Legacy app:** Preserved on [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch for historical reference.  
+> **Current app:** Next.js 14 + React 18 + TypeScript + MobX (see architecture below).
 
 ## Overview
 
-This document maps the modularization strategy and final architecture of Purrfect Chess after completing the Next.js migration. The legacy Vite app in `src/` is preserved as a reference implementation during Phase 4, after which it will be archived.
+This document describes the final architecture of Purrfect Chess after completing the Next.js migration. The legacy Vite implementation has been removed from the develop branch and archived on the `legacy` branch.
 
-**Migration Status:** ✅ Complete. Phase X achieved full functional and visual parity.
+**Migration Status:** ✅ Complete. Phase X achieved full functional and visual parity. Legacy code removed in Phase 4.
 
-## Active Architecture (Next.js - Current)
+## Current Architecture (Next.js)
 
 The production Next.js architecture implemented during Phases 1-3 and validated in Phase X:
 
@@ -85,11 +85,11 @@ src/                      # Legacy (REFERENCE - Phase 4 removal) ⚠️
 - **Build Tool:** Next.js (was Vite - legacy still uses Vite)
 - **Testing:** Vitest + React Testing Library (was minimal testing)
 
-## Legacy Modularization (COMPLETE ✅)
+## Legacy Implementation (Archived)
 
-The legacy `src/` directory was fully modularized during earlier phases and is preserved as a reference implementation:
+The legacy Vite implementation has been removed from the develop branch and preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch.
 
-**Legacy Architecture:**
+**Legacy Architecture (Archived on `legacy` branch):**
 ```
 src/
 ├── main.ts                    # Application entry point
@@ -109,7 +109,12 @@ src/
     └── easter-egg.ts          # Easter egg detection
 ```
 
-**Note:** Legacy code will be removed in Phase 4 after final parity confirmation.
+To access the legacy implementation:
+```bash
+git checkout legacy
+yarn install
+yarn dev  # Vite development server
+```
 
 ---
 

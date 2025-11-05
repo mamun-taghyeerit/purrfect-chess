@@ -39,7 +39,6 @@
     "allowJs": true
   },
   "include": [
-    "src/**/*.ts",
     "tests/**/*.ts",
     "next-env.d.ts",
     "**/*.ts",
