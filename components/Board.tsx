@@ -1,5 +1,6 @@
 'use client';
 
+import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
 import React, {
   useState,
@@ -74,7 +75,7 @@ export interface BoardProps {
   onError?: (msg: string) => void;
 }
 
-export default function Board({
+function Board({
   engineHighlights = [],
   engineDisplayMode = 'arrows',
   flipped = false,
@@ -933,6 +934,9 @@ export default function Board({
     </div>
   );
 }
+
+// Wrap Board with observer for MobX reactivity
+export default observer(Board);
 
 /**
  * Helper function to get piece type name for accessibility
