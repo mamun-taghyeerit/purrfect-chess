@@ -1,5 +1,6 @@
 'use client';
 
+import { observer } from 'mobx-react-lite';
 import Board from '@/components/Board';
 import GameControls from '@/components/GameControls';
 import MoveHistory from '@/components/MoveHistory';
@@ -11,7 +12,7 @@ import AppearanceControls, {
 } from '@/components/AppearanceControls';
 import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
-import { useGame } from '@/hooks/useGame';
+import { useGameStore, useUIStore } from '@/hooks/useStores';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
@@ -30,7 +31,7 @@ const formatClockTime = (timeMs: number): string => {
   return `${minutes}:${seconds}`;
 };
 
-export default function Home() {
+const Home = observer(() => {
   const { notifications, showMessage, dismissNotification } = useNotification();
 
   const handleError = useCallback(
@@ -48,9 +49,7 @@ export default function Home() {
   const [pgnInput, setPgnInput] = useState('');
   const [fenInput, setFenInput] = useState('');
 
-  // State for board flip
-  const [isBoardFlipped, setIsBoardFlipped] = useState(false);
-
+  // Use MobX store for game state
   const {
     position,
     resetGame,
@@ -71,7 +70,20 @@ export default function Home() {
     timeControl,
     setTimeControl,
     isTimerRunning,
-  } = useGame({ onError: handleError });
+  } = useGameStore({ onError: handleError });
+
+  // Use MobX store for UI state
+  const {
+    isEnginePanelVisible,
+    isEvalBarVisible,
+    isBoardFlipped,
+    engineDisplayMode,
+    toggleEvalBar,
+    toggleBoardFlip,
+    setEngineDisplayMode,
+    showEnginePanel,
+    hideEnginePanel,
+  } = useUIStore();
 
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
@@ -79,19 +91,12 @@ export default function Home() {
   const { isAnalyzing, analysis, currentDepth } = useEngine({
     onError: handleError,
   });
-  const [isEnginePanelVisible, setIsEnginePanelVisible] = useState(false);
-  const [isEvalBarVisible, setIsEvalBarVisible] = useState(false);
-  const [engineDisplayMode, setEngineDisplayMode] = useState<
-    'squares' | 'arrows' | 'both' | 'none'
-  >('both');
 
   const { isReviewing, currentBadge, reviewLastMove, clearBadge } =
     useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
-    onReveal: () => {
-      setIsEnginePanelVisible(true);
-    },
+    onReveal: showEnginePanel,
   });
 
   // Convert engine analysis to highlights for Board
@@ -411,7 +416,7 @@ export default function Home() {
                 <span>Reset Game</span>
               </button>
               <button
-                onClick={() => setIsBoardFlipped(!isBoardFlipped)}
+                onClick={toggleBoardFlip}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -426,7 +431,7 @@ export default function Home() {
                 <span>Flip Board</span>
               </button>
               <button
-                onClick={() => setIsEvalBarVisible(!isEvalBarVisible)}
+                onClick={toggleEvalBar}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -568,7 +573,7 @@ export default function Home() {
             {isEnginePanelVisible && (
               <div className="w-full" style={{ maxWidth: '600px' }}>
                 <EnginePanel
-                  onClose={() => setIsEnginePanelVisible(false)}
+                  onClose={hideEnginePanel}
                   engineDisplayMode={engineDisplayMode}
                   onEngineDisplayModeChange={setEngineDisplayMode}
                   getFen={getFen}
@@ -843,4 +848,6 @@ export default function Home() {
       </div>
     </main>
   );
-}
+});
+
+export default Home;

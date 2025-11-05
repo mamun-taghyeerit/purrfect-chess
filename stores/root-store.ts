@@ -177,6 +177,11 @@ const UIStateModel = types
       'both'
     ),
   })
+  .views((self) => ({
+    get engineDisplayModeValue(): 'squares' | 'arrows' | 'both' | 'none' {
+      return self.engineDisplayMode as 'squares' | 'arrows' | 'both' | 'none';
+    },
+  }))
   .actions((self) => ({
     toggleEnginePanel() {
       self.isEnginePanelVisible = !self.isEnginePanelVisible;
