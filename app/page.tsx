@@ -303,7 +303,7 @@ const Home = observer(() => {
           {/* Center Panel: Board */}
           <div className="flex flex-col items-center gap-6 xl:flex-initial">
             {/* Board with Evaluation Bar */}
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-start">
               {/* Chess Board with Engine Overlays */}
               <Board
                 engineHighlights={engineHighlights}
@@ -313,7 +313,12 @@ const Home = observer(() => {
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
-              <div style={{ minWidth: '46px', visibility: store.ui.isEvalBarVisible ? 'visible' : 'hidden' }}>
+              <div style={{ 
+                minWidth: '46px',
+                width: '46px',
+                height: 'min(90vw, 600px)', // Match board height (board is square with this width)
+                visibility: store.ui.isEvalBarVisible ? 'visible' : 'hidden' 
+              }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
