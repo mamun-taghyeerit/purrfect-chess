@@ -70,11 +70,8 @@ export interface BoardProps {
   /** Callback when badge animation completes */
   onBadgeComplete?: () => void;
 
-  /** Game state - position, movePiece function, game instance, and history */
-  position: any;
-  movePiece: (from: string, to: string) => boolean;
-  game: any;
-  history: any[];
+  /** Error handler for illegal moves */
+  onError?: (msg: string) => void;
 }
 
 export default function Board({
@@ -83,11 +80,11 @@ export default function Board({
   flipped = false,
   moveBadge = null,
   onBadgeComplete,
-  position,
-  movePiece,
-  game,
-  history,
+  onError,
 }: BoardProps) {
+  // Access store directly for game state
+  const store = useRootStore();
+  
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [captureMoves, setCaptureMoves] = useState<string[]>([]);
@@ -119,7 +116,7 @@ export default function Board({
   const ranks = useMemo(() => flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1], [flipped]);
 
   // Get last move for highlighting
-  const lastMove = history.length > 0 ? history[history.length - 1] : null;
+  const lastMove = store.game.history.length > 0 ? store.game.history[store.game.history.length - 1] : null;
 
   // Helper to get algebraic notation for square (file, rank indices)
   const algebraicAt = useCallback(
@@ -225,7 +222,7 @@ export default function Board({
 
         const origin = points[0];
         // Check if there's a piece on the origin square (protection zone)
-        const piece = position[arrow.from];
+        const piece = store.game.position[arrow.from];
         const originHasPiece =
           piece &&
           typeof piece === 'object' &&
@@ -261,7 +258,7 @@ export default function Board({
       }
       return null;
     },
-    [userArrows, position, distancePointToSegment]
+    [userArrows, store.game.position, distancePointToSegment]
   );
 
   // Arrow manipulation functions
@@ -490,12 +487,12 @@ export default function Board({
   useEffect(() => {
     // Initialize on first render
     if (previousHistoryLength.current === undefined) {
-      previousHistoryLength.current = history.length;
+      previousHistoryLength.current = store.game.history.length;
       return;
     }
 
-    const wasReset = previousHistoryLength.current > 0 && history.length === 0;
-    const wasMove = history.length > previousHistoryLength.current;
+    const wasReset = previousHistoryLength.current > 0 && store.game.history.length === 0;
+    const wasMove = store.game.history.length > previousHistoryLength.current;
 
     if (wasReset) {
       // Clear all board UI state on reset (matching legacy clearSelection + state reset)
@@ -508,8 +505,8 @@ export default function Board({
       setCustomHighlights(new Set());
     }
 
-    previousHistoryLength.current = history.length;
-  }, [history.length, clearArrows]);
+    previousHistoryLength.current = store.game.history.length;
+  }, [store.game.history.length, clearArrows]);
 
   const handleSquareClick = useCallback(
     (square: string, event: React.MouseEvent) => {
@@ -523,7 +520,7 @@ export default function Board({
         }
       }
 
-      const piece = position[square];
+      const piece = store.game.position[square];
       const isPiece =
         piece &&
         typeof piece === 'object' &&
@@ -532,7 +529,7 @@ export default function Board({
 
       if (selectedSquare) {
         // Try to move piece
-        const success = movePiece(selectedSquare, square);
+        const success = store.game.movePieceWithValidation(selectedSquare, square, undefined, onError);
 
         // Clear selection state
         setSelectedSquare(null);
@@ -541,7 +538,7 @@ export default function Board({
 
         // If move failed and clicking on a different piece, select it instead (re-selection)
         if (!success && isPiece && square !== selectedSquare) {
-          const moves = game.moves({ square: square as any, verbose: true });
+          const moves = store.game.chessInstance.moves({ square: square as any, verbose: true });
           const { legal, captures } = categorizeMoves(moves);
           setSelectedSquare(square);
           setLegalMoves(legal);
@@ -549,7 +546,7 @@ export default function Board({
         }
       } else if (isPiece) {
         // Select piece and show legal moves
-        const moves = game.moves({ square: square as any, verbose: true });
+        const moves = store.game.chessInstance.moves({ square: square as any, verbose: true });
         const { legal, captures } = categorizeMoves(moves);
         setSelectedSquare(square);
         setLegalMoves(legal);
@@ -560,10 +557,10 @@ export default function Board({
       pointFromClient,
       findArrowHit,
       removeArrow,
-      position,
+      store.game.position,
       selectedSquare,
-      movePiece,
-      game,
+      store.game,
+      onError,
     ]
   );
 
@@ -639,7 +636,7 @@ export default function Board({
     e: React.DragEvent<HTMLImageElement>,
     square: string
   ) => {
-    const piece = position[square];
+    const piece = store.game.position[square];
     const isPiece =
       piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
 
@@ -648,7 +645,7 @@ export default function Board({
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', square);
 
-      const moves = game.moves({ square: square as any, verbose: true });
+      const moves = store.game.chessInstance.moves({ square: square as any, verbose: true });
       const { legal, captures } = categorizeMoves(moves);
 
       // Set drag state
@@ -694,7 +691,7 @@ export default function Board({
 
     if (fromSquare) {
       // Attempt move - invalid moves are rejected by movePiece, no state mutation
-      movePiece(fromSquare, targetSquare);
+      store.game.movePieceWithValidation(fromSquare, targetSquare, undefined, onError);
     }
 
     // Clear drag state
@@ -743,7 +740,7 @@ export default function Board({
             Array.from({ length: 8 }, (_, fileIndex) => {
               const square = algebraicAt(fileIndex, rankIndex);
               const isLight = (rankIndex + fileIndex) % 2 === 0;
-              const piece = position[square];
+              const piece = store.game.position[square];
               const isPiece =
                 piece &&
                 typeof piece === 'object' &&

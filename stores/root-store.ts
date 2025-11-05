@@ -25,9 +25,14 @@ const GameStateModel = types
   .volatile(() => ({
     // Chess.js instance is volatile (not serialized)
     chessInstance: new Chess(),
+    // Timer state (not persisted)
+    timerIntervalId: null as NodeJS.Timeout | null,
+    lastTickTime: null as number | null,
   }))
   .views((self) => ({
     get position() {
+      // Depend on fen for reactivity - when fen changes, position recalculates
+      const _ = self.fen; // Track fen dependency
       const board = self.chessInstance.board();
       const position: Record<string, { type: string; color: string } | null> = {};
       const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -43,6 +48,8 @@ const GameStateModel = types
       return position;
     },
     get history() {
+      // Depend on fen for reactivity
+      const _ = self.fen;
       return self.chessInstance.history({ verbose: true });
     },
     get turn() {
@@ -98,18 +105,36 @@ const GameStateModel = types
       self.blackTime = self.timeControl.minutes * 60 * 1000;
       self.isGameOver = false;
       self.isTimerRunning = false;
+      // Stop timer if running
+      if (self.timerIntervalId) {
+        clearInterval(self.timerIntervalId);
+        self.timerIntervalId = null;
+        self.lastTickTime = null;
+      }
     },
     setTimeControl(minutes: number, increment: number) {
       self.timeControl = TimeControlModel.create({ minutes, increment });
       self.whiteTime = minutes * 60 * 1000;
       self.blackTime = minutes * 60 * 1000;
       self.isTimerRunning = false;
+      // Stop timer if running
+      if (self.timerIntervalId) {
+        clearInterval(self.timerIntervalId);
+        self.timerIntervalId = null;
+        self.lastTickTime = null;
+      }
     },
     loadFen(fen: string) {
       try {
         self.chessInstance.load(fen.trim());
         self.fen = self.chessInstance.fen();
         self.isTimerRunning = false;
+        // Stop timer if running
+        if (self.timerIntervalId) {
+          clearInterval(self.timerIntervalId);
+          self.timerIntervalId = null;
+          self.lastTickTime = null;
+        }
         return true;
       } catch (error) {
         console.error('Invalid FEN:', error);
@@ -121,6 +146,12 @@ const GameStateModel = types
         self.chessInstance.loadPgn(pgn.trim());
         self.fen = self.chessInstance.fen();
         self.isTimerRunning = false;
+        // Stop timer if running
+        if (self.timerIntervalId) {
+          clearInterval(self.timerIntervalId);
+          self.timerIntervalId = null;
+          self.lastTickTime = null;
+        }
         return true;
       } catch (error) {
         console.error('Invalid PGN:', error);
@@ -132,27 +163,50 @@ const GameStateModel = types
     },
     startTimer() {
       self.isTimerRunning = true;
+      // Start the interval timer
+      if (!self.timerIntervalId) {
+        self.lastTickTime = Date.now();
+        self.timerIntervalId = setInterval(() => {
+          const now = Date.now();
+          const delta = self.lastTickTime ? now - self.lastTickTime : 0;
+          self.lastTickTime = now;
+          
+          // Inline timer tick logic
+          if (!self.isGameOver && self.isTimerRunning) {
+            if (self.turn === 'w') {
+              self.whiteTime = Math.max(0, self.whiteTime - delta);
+              if (self.whiteTime === 0) {
+                self.isGameOver = true;
+                self.isTimerRunning = false;
+                if (self.timerIntervalId) {
+                  clearInterval(self.timerIntervalId);
+                  self.timerIntervalId = null;
+                  self.lastTickTime = null;
+                }
+              }
+            } else {
+              self.blackTime = Math.max(0, self.blackTime - delta);
+              if (self.blackTime === 0) {
+                self.isGameOver = true;
+                self.isTimerRunning = false;
+                if (self.timerIntervalId) {
+                  clearInterval(self.timerIntervalId);
+                  self.timerIntervalId = null;
+                  self.lastTickTime = null;
+                }
+              }
+            }
+          }
+        }, 100);
+      }
     },
     stopTimer() {
       self.isTimerRunning = false;
-    },
-    tickTimer(delta: number) {
-      if (self.isGameOver || !self.isTimerRunning) {
-        return;
-      }
-
-      if (self.turn === 'w') {
-        self.whiteTime = Math.max(0, self.whiteTime - delta);
-        if (self.whiteTime === 0) {
-          self.isGameOver = true;
-          self.isTimerRunning = false;
-        }
-      } else {
-        self.blackTime = Math.max(0, self.blackTime - delta);
-        if (self.blackTime === 0) {
-          self.isGameOver = true;
-          self.isTimerRunning = false;
-        }
+      // Clear the interval
+      if (self.timerIntervalId) {
+        clearInterval(self.timerIntervalId);
+        self.timerIntervalId = null;
+        self.lastTickTime = null;
       }
     },
     afterCreate() {
@@ -166,6 +220,52 @@ const GameStateModel = types
           self.chessInstance.reset();
         }
       }
+    },
+    beforeDestroy() {
+      // Clean up timer on destroy
+      if (self.timerIntervalId) {
+        clearInterval(self.timerIntervalId);
+      }
+    },
+  }))
+  .actions((self) => ({
+    // Enhanced actions with error handling - can now call actions from previous block
+    movePieceWithValidation(from: string, to: string, promotion?: string, onError?: (msg: string) => void) {
+      const success = self.movePiece(from, to, promotion);
+      if (!success && onError) {
+        onError('Illegal move.');
+      }
+      // Start timer on first move
+      if (success && self.history.length === 1) {
+        self.startTimer();
+      }
+      return success;
+    },
+    loadFenWithValidation(fen: string, onError?: (msg: string) => void) {
+      if (!fen || !fen.trim()) {
+        if (onError) {
+          onError('Enter a FEN string to load.');
+        }
+        return false;
+      }
+      const success = self.loadFen(fen);
+      if (!success && onError) {
+        onError('Invalid FEN string.');
+      }
+      return success;
+    },
+    loadPgnWithValidation(pgn: string, onError?: (msg: string) => void) {
+      if (!pgn || !pgn.trim()) {
+        if (onError) {
+          onError('Enter a PGN string to load.');
+        }
+        return false;
+      }
+      const success = self.loadPgn(pgn);
+      if (!success && onError) {
+        onError('Invalid PGN data.');
+      }
+      return success;
     },
   }));
 

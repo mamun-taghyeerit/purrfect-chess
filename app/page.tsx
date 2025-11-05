@@ -13,7 +13,6 @@ import AppearanceControls, {
 import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
 import { useRootStore } from '@/stores/store-setup';
-import { useGameTimer } from '@/hooks/useGameTimer';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
@@ -52,54 +51,6 @@ const Home = observer(() => {
 
   // Use MobX store - access slices directly, keep references for reactivity
   const store = useRootStore();
-  const game = store.game;
-  const ui = store.ui;
-
-  // Manage the game timer
-  useGameTimer();
-
-  // Error-handling wrappers for game actions
-  const handleMovePiece = useCallback((from: string, to: string, promotion?: string) => {
-    const success = game.movePiece(from, to, promotion);
-    if (!success) {
-      handleError('Illegal move.');
-    }
-    // Start timer on first move
-    if (success && game.history.length === 1) {
-      game.startTimer();
-    }
-    return success;
-  }, [game, handleError]);
-
-  const handleLoadFen = useCallback((fen: string) => {
-    if (!fen || !fen.trim()) {
-      handleError('Enter a FEN string to load.');
-      return false;
-    }
-    const success = game.loadFen(fen);
-    if (!success) {
-      handleError('Invalid FEN string.');
-    }
-    return success;
-  }, [game, handleError]);
-
-  const handleLoadPgn = useCallback((pgn: string) => {
-    if (!pgn || !pgn.trim()) {
-      handleError('Enter a PGN string to load.');
-      return false;
-    }
-    const success = game.loadPgn(pgn);
-    if (!success) {
-      handleError('Invalid PGN data.');
-    }
-    return success;
-  }, [game, handleError]);
-
-  const handleSetTimeControl = useCallback((timeControl: { minutes: number; increment: number }) => {
-    game.setTimeControl(timeControl.minutes, timeControl.increment);
-  }, [game]);
-
-  const getFen = useCallback(() => game.fen, [game]);
 
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
@@ -112,7 +63,7 @@ const Home = observer(() => {
     useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
-    onReveal: ui.showEnginePanel,
+    onReveal: () => store.ui.showEnginePanel(),
   });
 
   // Convert engine analysis to highlights for Board
@@ -133,21 +84,22 @@ const Home = observer(() => {
   // Show notifications for game-ending conditions
   const prevGameOverRef = useRef(false);
   useEffect(() => {
-    if (game.isGameOver && !prevGameOverRef.current) {
+    const { game } = store;
+    if (store.game.isGameOver && !prevGameOverRef.current) {
       // Game just ended
-      if (game.checkmate) {
-        const winner = game.turn === 'w' ? 'Black' : 'White';
+      if (store.game.checkmate) {
+        const winner = store.game.turn === 'w' ? 'Black' : 'White';
         showMessage('info', `Checkmate! ${winner} wins! 👑`);
-      } else if (game.stalemate) {
+      } else if (store.game.stalemate) {
         showMessage('info', 'Stalemate! The game is a draw. 🤝');
       } else {
         // Timeout
-        const winner = game.turn === 'w' ? 'Black' : 'White';
+        const winner = store.game.turn === 'w' ? 'Black' : 'White';
         showMessage('info', `Time out! ${winner} wins on time. ⏰`);
       }
     }
-    prevGameOverRef.current = game.isGameOver;
-  }, [game.isGameOver, game.checkmate, game.stalemate, game.turn, showMessage]);
+    prevGameOverRef.current = store.game.isGameOver;
+  }, [store.game.isGameOver, store.game.checkmate, store.game.stalemate, store.game.turn, showMessage, store]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
@@ -176,24 +128,24 @@ const Home = observer(() => {
             justifyContent: 'center'
           }}
         >
-          {(game.isGameOver || game.check) && (
+          {(store.game.isGameOver || store.game.check) && (
             <>
-              {game.checkmate && (
+              {store.game.checkmate && (
                 <div className="text-2xl font-bold text-red-600">
                   Checkmate! 👑
                 </div>
               )}
-              {game.stalemate && (
+              {store.game.stalemate && (
                 <div className="text-2xl font-bold text-yellow-600">
                   Stalemate! 🤝
                 </div>
               )}
-              {game.isGameOver && !game.checkmate && !game.stalemate && (
+              {store.game.isGameOver && !store.game.checkmate && !store.game.stalemate && (
                 <div className="text-2xl font-bold text-orange-600">
                   Time Out! ⏰
                 </div>
               )}
-              {game.check && !game.checkmate && (
+              {store.game.check && !store.game.checkmate && (
                 <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
               )}
             </>
@@ -223,7 +175,7 @@ const Home = observer(() => {
               {/* White's Clock Only */}
               <div
                 className={`text-center font-mono font-bold mb-5 transition-all ${
-                  game.turn === 'w' && game.isTimerRunning
+                  store.game.turn === 'w' && store.game.isTimerRunning
                     ? ''
                     : ''
                 }`}
@@ -233,11 +185,11 @@ const Home = observer(() => {
                   padding: '12px 16px',
                   borderRadius: '14px',
                   background: '#1f1f1f',
-                  border: game.turn === 'w' && game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: game.turn === 'w' && game.isTimerRunning 
+                  border: store.game.turn === 'w' && store.game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: store.game.turn === 'w' && store.game.isTimerRunning 
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: game.turn === 'w' && game.isTimerRunning ? 'translateY(-2px)' : 'none',
+                  transform: store.game.turn === 'w' && store.game.isTimerRunning ? 'translateY(-2px)' : 'none',
                   color: '#f0f0f0',
                   // Fixed width to prevent layout shift on time changes
                   minWidth: '180px',
@@ -247,7 +199,7 @@ const Home = observer(() => {
                   overflow: 'hidden'
                 }}
               >
-                {formatClockTime(game.whiteTime)}
+                {formatClockTime(store.game.whiteTime)}
               </div>
 
               {/* White Appearance Controls: Light Squares + White Pieces */}
@@ -304,9 +256,9 @@ const Home = observer(() => {
                   Time Presets
                 </h3>
                 <TimeControlSelector
-                  currentTimeControl={game.timeControl}
-                  onSelect={handleSetTimeControl}
-                  disabled={game.history.length > 0}
+                  currentTimeControl={store.game.timeControl}
+                  onSelect={(tc) => store.game.setTimeControl(tc.minutes, tc.increment)}
+                  disabled={store.game.history.length > 0}
                 />
               </div>
 
@@ -328,7 +280,7 @@ const Home = observer(() => {
                       type="number"
                       min="1"
                       max="180"
-                      defaultValue={game.timeControl.minutes}
+                      defaultValue={store.game.timeControl.minutes}
                       className="rounded-lg px-2.5 py-2"
                       style={{
                         background: '#2b2b2b',
@@ -344,7 +296,7 @@ const Home = observer(() => {
                       type="number"
                       min="0"
                       max="60"
-                      defaultValue={game.timeControl.increment}
+                      defaultValue={store.game.timeControl.increment}
                       className="rounded-lg px-2.5 py-2"
                       style={{
                         background: '#2b2b2b',
@@ -391,23 +343,20 @@ const Home = observer(() => {
               {/* Chess Board with Engine Overlays */}
               <Board
                 engineHighlights={engineHighlights}
-                engineDisplayMode={ui.engineDisplayModeValue}
-                flipped={ui.isBoardFlipped}
+                engineDisplayMode={store.ui.engineDisplayModeValue}
+                flipped={store.ui.isBoardFlipped}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
-                position={game.position}
-                movePiece={handleMovePiece}
-                game={game.chessInstance}
-                history={game.history}
+                onError={handleError}
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
-              <div style={{ minWidth: '46px', visibility: ui.isEvalBarVisible ? 'visible' : 'hidden' }}>
+              <div style={{ minWidth: '46px', visibility: store.ui.isEvalBarVisible ? 'visible' : 'hidden' }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
                   isAnalyzing={isAnalyzing}
-                  isVisible={ui.isEvalBarVisible}
+                  isVisible={store.ui.isEvalBarVisible}
                   currentDepth={currentDepth}
                   maxDepth={22}
                 />
@@ -417,7 +366,7 @@ const Home = observer(() => {
             {/* Board controls */}
             <div className="flex gap-2 flex-wrap justify-center">
               <button
-                onClick={game.resetGame}
+                onClick={store.game.resetGame}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -432,7 +381,7 @@ const Home = observer(() => {
                 <span>Reset Game</span>
               </button>
               <button
-                onClick={ui.toggleBoardFlip}
+                onClick={store.ui.toggleBoardFlip}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -447,7 +396,7 @@ const Home = observer(() => {
                 <span>Flip Board</span>
               </button>
               <button
-                onClick={ui.toggleEvalBar}
+                onClick={store.ui.toggleEvalBar}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -459,31 +408,31 @@ const Home = observer(() => {
                 onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
               >
                 <span>📊</span>
-                <span>{ui.isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
+                <span>{store.ui.isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
               </button>
               <button
                 onClick={() => {
-                  if (game.history.length === 0) {
+                  if (store.game.history.length === 0) {
                     showMessage('info', 'No move to review.');
                     return;
                   }
-                  const lastMove = game.history[game.history.length - 1];
+                  const lastMove = store.game.history[store.game.history.length - 1];
                   showMessage('info', 'Analyzing move...');
                   reviewLastMove(lastMove, (classification) => {
                     showMessage('success', `Move classified as: ${classification}`);
                   });
                 }}
-                disabled={isReviewing || game.history.length === 0}
+                disabled={isReviewing || store.game.history.length === 0}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
-                  background: isReviewing || game.history.length === 0 ? '#444' : '#555',
+                  background: isReviewing || store.game.history.length === 0 ? '#444' : '#555',
                   color: '#fff',
                   border: 'none',
-                  cursor: isReviewing || game.history.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: isReviewing || game.history.length === 0 ? 0.6 : 1,
+                  cursor: isReviewing || store.game.history.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: isReviewing || store.game.history.length === 0 ? 0.6 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  if (!isReviewing && game.history.length > 0) {
+                  if (!isReviewing && store.game.history.length > 0) {
                     e.currentTarget.style.filter = 'brightness(1.05)';
                   }
                 }}
@@ -525,7 +474,7 @@ const Home = observer(() => {
                       color: '#f3f4ff'
                     }}
                   >
-                    Purrfect Game - {game.timeControl.minutes}+{game.timeControl.increment}
+                    Purrfect Game - {store.game.timeControl.minutes}+{store.game.timeControl.increment}
                   </span>
                 </div>
                 <div 
@@ -557,7 +506,7 @@ const Home = observer(() => {
                       color: '#f3f4ff'
                     }}
                   >
-                    {game.timeControl.minutes} + {game.timeControl.increment}
+                    {store.game.timeControl.minutes} + {store.game.timeControl.increment}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
@@ -586,13 +535,13 @@ const Home = observer(() => {
             </p>
 
             {/* Engine Panel (conditionally rendered below board) */}
-            {ui.isEnginePanelVisible && (
+            {store.ui.isEnginePanelVisible && (
               <div className="w-full" style={{ maxWidth: '600px' }}>
                 <EnginePanel
-                  onClose={ui.hideEnginePanel}
-                  engineDisplayMode={ui.engineDisplayModeValue}
-                  onEngineDisplayModeChange={ui.setEngineDisplayMode}
-                  getFen={getFen}
+                  onClose={store.ui.hideEnginePanel}
+                  engineDisplayMode={store.ui.engineDisplayModeValue}
+                  onEngineDisplayModeChange={store.ui.setEngineDisplayMode}
+                  getFen={() => store.game.fen}
                 />
               </div>
             )}
@@ -626,11 +575,11 @@ const Home = observer(() => {
                   padding: '12px 16px',
                   borderRadius: '14px',
                   background: '#1f1f1f',
-                  border: game.turn === 'b' && game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: game.turn === 'b' && game.isTimerRunning 
+                  border: store.game.turn === 'b' && store.game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: store.game.turn === 'b' && store.game.isTimerRunning 
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: game.turn === 'b' && game.isTimerRunning ? 'translateY(-2px)' : 'none',
+                  transform: store.game.turn === 'b' && store.game.isTimerRunning ? 'translateY(-2px)' : 'none',
                   color: '#f0f0f0',
                   // Fixed width to prevent layout shift on time changes
                   minWidth: '180px',
@@ -640,7 +589,7 @@ const Home = observer(() => {
                   overflow: 'hidden'
                 }}
               >
-                {formatClockTime(game.blackTime)}
+                {formatClockTime(store.game.blackTime)}
               </div>
 
               {/* Black Appearance Controls: Dark Squares + Black Pieces */}
@@ -696,7 +645,7 @@ const Home = observer(() => {
                 >
                   Moves
                 </h3>
-                <MoveHistory history={game.history} />
+                <MoveHistory history={store.game.history} />
                 
                 <div className="mt-4 flex flex-col gap-2">
                   {/* PGN Section */}
@@ -704,7 +653,7 @@ const Home = observer(() => {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          const pgn = game.getPgn();
+                          const pgn = store.game.getPgn();
                           try {
                             await navigator.clipboard.writeText(pgn);
                             showMessage('success', 'PGN copied to clipboard!');
@@ -726,12 +675,11 @@ const Home = observer(() => {
                       <button
                         onClick={() => {
                           if (pgnInput.trim()) {
-                            const result = handleLoadPgn(pgnInput);
+                            const result = store.game.loadPgnWithValidation(pgnInput, handleError);
                             if (result) {
                               showMessage('success', 'PGN loaded successfully.');
                               setPgnInput(''); // Clear input after successful load
                             }
-                            // Error message is handled by useGame onError callback
                           } else {
                             showMessage('info', 'Enter a PGN in the text box below.');
                           }
@@ -752,7 +700,7 @@ const Home = observer(() => {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={4}
                       placeholder="Current PGN (or type to load)"
-                      value={pgnInput !== '' ? pgnInput : game.getPgn()}
+                      value={pgnInput !== '' ? pgnInput : store.game.getPgn()}
                       onChange={(e) => setPgnInput(e.target.value)}
                       onFocus={(e) => {
                         // Select all on focus for easy editing
@@ -777,7 +725,7 @@ const Home = observer(() => {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          const fen = game.fen;
+                          const fen = store.game.fen;
                           try {
                             await navigator.clipboard.writeText(fen);
                             showMessage('success', 'FEN copied to clipboard!');
@@ -799,12 +747,11 @@ const Home = observer(() => {
                       <button
                         onClick={() => {
                           if (fenInput.trim()) {
-                            const result = handleLoadFen(fenInput);
+                            const result = store.game.loadFenWithValidation(fenInput, handleError);
                             if (result) {
                               showMessage('success', 'FEN loaded successfully.');
                               setFenInput(''); // Clear input after successful load
                             }
-                            // Error message is handled by useGame onError callback
                           } else {
                             showMessage('info', 'Enter a FEN in the text box below.');
                           }
@@ -825,7 +772,7 @@ const Home = observer(() => {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={2}
                       placeholder="Current FEN (or type to load)"
-                      value={fenInput !== '' ? fenInput : game.fen}
+                      value={fenInput !== '' ? fenInput : store.game.fen}
                       onChange={(e) => setFenInput(e.target.value)}
                       onFocus={(e) => {
                         // Select all on focus for easy editing
