@@ -46,13 +46,50 @@ app/
 
 ### Store Structure
 
-The root store has three slices:
+The root store has four slices:
 
 1. **game**: Chess game state (position, history, time controls, etc.) - **PERSISTED**
 2. **ui**: Transient UI state (panel visibility, board flip, display modes) - **NOT PERSISTED**
 3. **settings**: User preferences (default time controls, engine depth) - **PERSISTED**
+4. **engine**: Engine analysis state (analysis lines, depth, status) - **NOT PERSISTED**
 
 ### Key Patterns and Best Practices
+
+#### ⚠️ CRITICAL: Never Create Isolated Hook Instances with State
+
+**NEVER** call stateful hooks (hooks with `useState`, `useRef`, etc.) in multiple components if they need to share state. Each hook invocation creates a NEW isolated instance.
+
+```tsx
+// ❌ WRONG: Each component gets its own isolated engine state
+function EnginePanel() {
+  const { analysis } = useEngine(); // Instance 1
+  return <div>{analysis.length} lines</div>;
+}
+
+function Board() {
+  const { analysis } = useEngine(); // Instance 2 - ISOLATED!
+  return <div>{/* Won't see EnginePanel's analysis! */}</div>;
+}
+
+// ✅ CORRECT: Share state via root store
+function EnginePanel() {
+  const store = useRootStore();
+  const engine = store.engine; // Shared global state
+  useEngine(); // Initialize worker (hook manages lifecycle)
+  return <div>{engine.analysis.length} lines</div>;
+}
+
+function Board() {
+  const store = useRootStore();
+  const engine = store.engine; // Same shared state!
+  return <div>{engine.engineHighlights.map(...)}</div>;
+}
+```
+
+**Rule of Thumb:**
+- Stateful hooks should be called in ONE place (or use global store)
+- Pass data down via props OR access shared store
+- Use MobX store slices for cross-component state sharing
 
 #### ✅ DO: Use useRootStore Directly
 

@@ -20,7 +20,7 @@ export const [RootStoreProvider, useRootStore] = createPersistentStore(
   RootStoreModel,
   defaultStorage,
   createDefaultSnapshot(),
-  // Exclude transient UI state from persistence
+  // Exclude transient UI and engine state from persistence
   // These values will replace what's in storage on hydration (always reset to defaults)
   {
     ui: {
@@ -28,6 +28,13 @@ export const [RootStoreProvider, useRootStore] = createPersistentStore(
       isEvalBarVisible: false,
       isBoardFlipped: false,
       engineDisplayMode: 'both' as const,
+    },
+    engine: {
+      isEngineReady: false,
+      isAnalyzing: false,
+      analysis: [],
+      currentDepth: 0,
+      currentFen: '',
     },
   },
   {

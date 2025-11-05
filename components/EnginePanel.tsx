@@ -1,7 +1,7 @@
 'use client';
 
-import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
-import { useState, memo, useRef, useEffect } from 'react';
+import { useEngine } from '@/hooks/useEngine';
+import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
 
@@ -12,21 +12,17 @@ import { useRootStore } from '@/stores/store-setup';
  * Shows top engine lines with evaluations and principal variations
  * Matches legacy appearance from src/ui.ts
  * 
- * Performance Optimizations:
- * - Throttled updates to prevent drag jank (max 4 updates/sec during analysis)
- * - Memoized EngineLine components to prevent unnecessary re-renders
- * - Debounced analysis display to reduce DOM thrashing
- * - Uses MobX observer for direct store access
+ * Uses MobX observer for efficient reactivity - MobX automatically optimizes
+ * re-renders via proxies, no manual throttling needed
  */
 
 interface EngineLineProps {
-  analysis: EngineAnalysis;
-  index: number;
+  multipv: number;
 }
 
 /**
- * Memoized EngineLine component to prevent unnecessary re-renders
- * Only re-renders when analysis data actually changes
+ * EngineLine component - accesses store directly for late binding
+ * This ensures single source of truth and proper MobX observable tracking
  */
 
 // Lineage colors matching legacy (blue, green, purple/pink) - memoized outside component
@@ -36,7 +32,16 @@ const LINEAGE_COLORS = [
   { bg: 'rgba(244, 114, 182, 0.15)', border: 'rgba(244, 114, 182, 0.6)' }, // pink for #3
 ];
 
-const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps) {
+const EngineLine = observer(function EngineLine({ multipv }: EngineLineProps) {
+  // Access store as late as possible - single source of truth
+  const store = useRootStore();
+  const engine = store.engine;
+  
+  // Find the analysis line for this multipv
+  const analysis = engine.analysis.find(a => a.multipv === multipv);
+  
+  if (!analysis) return null;
+  
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
       return score > 0 ? `+M${score}` : `-M${Math.abs(score)}`;
@@ -51,6 +56,8 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
     return score > 0 ? '#10b981' : '#ef4444';
   };
 
+  // multipv is 1-based, array index is 0-based
+  const index = multipv - 1;
   const colors = LINEAGE_COLORS[index] || { bg: 'rgba(100, 100, 100, 0.1)', border: 'rgba(100, 100, 100, 0.4)' };
 
   return (
@@ -63,7 +70,7 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
       }}
     >
       <div className="flex items-center justify-between text-xs uppercase tracking-wider" style={{ color: '#c8c8c8' }}>
-        <span>#{index + 1}</span>
+        <span>#{multipv}</span>
         <span>depth {analysis.depth}</span>
       </div>
       <div className="flex items-center gap-2">
@@ -77,77 +84,33 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
           {analysis.san}
         </span>
       </div>
-      {analysis.pvSan.length > 0 && (
+      {analysis.hasPvSan && (
         <div className="text-sm" style={{ color: '#8f8f8f' }}>
-          {analysis.pvSan.slice(0, 8).join(' ')}
-          {analysis.pvSan.length > 8 && '...'}
+          {analysis.pvSanPreview}
         </div>
       )}
     </div>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders when analysis hasn't changed
-  return (
-    prevProps.analysis.multipv === nextProps.analysis.multipv &&
-    prevProps.analysis.depth === nextProps.analysis.depth &&
-    prevProps.analysis.score === nextProps.analysis.score &&
-    prevProps.analysis.scoreType === nextProps.analysis.scoreType &&
-    prevProps.analysis.san === nextProps.analysis.san &&
-    prevProps.index === nextProps.index
-  );
 });
 
 /**
- * EnginePanel component with throttled updates to prevent drag jank
- * Limits analysis updates to max 4 times per second (every 250ms)
+ * EnginePanel component - uses MobX observer for automatic optimization
+ * No manual throttling needed - MobX handles this via proxies
  */
 const EnginePanel = observer(function EnginePanel() {
   const store = useRootStore();
   const ui = store.ui;
   const game = store.game;
+  const engine = store.engine;
 
   const {
     isEngineReady,
     isAnalyzing,
-    analysis,
-    currentDepth,
     startAnalysis,
     stopAnalysis,
   } = useEngine();
 
   const [depth, setDepth] = useState(18);
-  
-  // Throttled analysis state to prevent drag jank
-  const [throttledAnalysis, setThrottledAnalysis] = useState(analysis);
-  const [throttledDepth, setThrottledDepth] = useState(currentDepth);
-  const lastUpdateTimeRef = useRef<number>(0);
-  const UPDATE_THROTTLE_MS = 250; // Max 4 updates per second
-
-  // Throttle analysis updates to prevent drag jank
-  useEffect(() => {
-    const now = Date.now();
-    const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
-
-    if (timeSinceLastUpdate >= UPDATE_THROTTLE_MS) {
-      // Update immediately if enough time has passed
-      setThrottledAnalysis(analysis);
-      setThrottledDepth(currentDepth);
-      lastUpdateTimeRef.current = now;
-      
-      // Return no-op cleanup for immediate updates
-      return () => {};
-    } else {
-      // Schedule update for later
-      const timeoutId = setTimeout(() => {
-        setThrottledAnalysis(analysis);
-        setThrottledDepth(currentDepth);
-        lastUpdateTimeRef.current = Date.now();
-      }, UPDATE_THROTTLE_MS - timeSinceLastUpdate);
-
-      // Cleanup: cancel timeout if component unmounts or dependencies change
-      return () => clearTimeout(timeoutId);
-    }
-  }, [analysis, currentDepth]);
 
   const handleAnalyzeClick = () => {
     const fen = game.fen;
@@ -318,7 +281,7 @@ const EnginePanel = observer(function EnginePanel() {
         {isAnalyzing && (
           <div className="flex items-center gap-2" style={{ color: '#60a5fa' }}>
             <div className="animate-pulse h-2 w-2 bg-blue-500 rounded-full" />
-            Analyzing... (depth {throttledDepth})
+            Analyzing... (depth {engine.currentDepth})
           </div>
         )}
       </div>
@@ -331,7 +294,7 @@ const EnginePanel = observer(function EnginePanel() {
           border: '1px solid #444',
         }}
       >
-        {throttledAnalysis.length === 0 ? (
+        {engine.analysis.length === 0 ? (
           <div className="p-4 text-center text-sm" style={{ color: '#999' }}>
             {isAnalyzing
               ? 'Computing best moves...'
@@ -341,8 +304,8 @@ const EnginePanel = observer(function EnginePanel() {
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
-            {throttledAnalysis.map((line, index) => (
-              <EngineLine key={line.multipv} analysis={line} index={index} />
+            {engine.analysis.map((line) => (
+              <EngineLine key={line.multipv} multipv={line.multipv} />
             ))}
           </div>
         )}

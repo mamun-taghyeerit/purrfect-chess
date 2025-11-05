@@ -346,6 +346,130 @@ const SettingsModel = types
   }));
 
 /**
+ * Engine Analysis Model
+ * Represents a single multi-PV analysis line
+ */
+const EngineAnalysisModel = types.model('EngineAnalysis', {
+  multipv: types.number,
+  depth: types.number,
+  score: types.number,
+  scoreType: types.enumeration('ScoreType', ['cp', 'mate']),
+  bestMove: types.string,
+  san: types.string,
+  pv: types.array(types.string),
+  pvSan: types.array(types.string),
+})
+.views((self) => ({
+  /**
+   * Get pvSan as a plain JavaScript array
+   * This avoids MST observable tracking issues when accessing the array in components
+   */
+  get pvSanArray(): string[] {
+    return self.pvSan.slice();
+  },
+  /**
+   * Get pv as a plain JavaScript array
+   */
+  get pvArray(): string[] {
+    return self.pv.slice();
+  },
+  /**
+   * Get first 8 moves of pvSan for display
+   */
+  get pvSanPreview(): string {
+    const moves = self.pvSan.slice(0, 8);
+    const preview = moves.join(' ');
+    return self.pvSan.length > 8 ? `${preview}...` : preview;
+  },
+  /**
+   * Check if pvSan has moves
+   */
+  get hasPvSan(): boolean {
+    return self.pvSan.length > 0;
+  },
+}));
+
+/**
+ * Engine State Model
+ * Manages Stockfish engine state and analysis results
+ * 
+ * This is a shared global state accessed by all useEngine() hook invocations
+ */
+const EngineStateModel = types
+  .model('EngineState', {
+    isEngineReady: types.optional(types.boolean, false),
+    isAnalyzing: types.optional(types.boolean, false),
+    analysis: types.array(EngineAnalysisModel),
+    currentDepth: types.optional(types.number, 0),
+    currentFen: types.optional(types.string, ''),
+  })
+  .views((self) => ({
+    get engineHighlights() {
+      // Derive engine highlights from analysis for Board component
+      return self.analysis
+        .filter((line) => line.bestMove && line.bestMove.length >= 4)
+        .map((line, index) => ({
+          from: line.bestMove.slice(0, 2),
+          to: line.bestMove.slice(2, 4),
+          rank: index + 1, // 1-based rank (1 = best move)
+        }));
+    },
+    get bestEvaluation() {
+      // Get best evaluation for EvaluationBar (from first PV line)
+      return self.analysis.length > 0 ? self.analysis[0] : null;
+    },
+  }))
+  .actions((self) => ({
+    setEngineReady(ready: boolean) {
+      self.isEngineReady = ready;
+    },
+    setAnalyzing(analyzing: boolean) {
+      self.isAnalyzing = analyzing;
+    },
+    setAnalysis(analysis: typeof self.analysis) {
+      self.analysis.replace(analysis);
+    },
+    setCurrentDepth(depth: number) {
+      self.currentDepth = depth;
+    },
+    setCurrentFen(fen: string) {
+      self.currentFen = fen;
+    },
+    clearAnalysis() {
+      self.analysis.clear();
+      self.currentDepth = 0;
+    },
+    updateAnalysisLine(line: {
+      multipv: number;
+      depth: number;
+      score: number;
+      scoreType: 'cp' | 'mate';
+      bestMove: string;
+      san: string;
+      pv: string[];
+      pvSan: string[];
+    }) {
+      // Find existing line or add new one
+      const existingIndex = self.analysis.findIndex(
+        (a) => a.multipv === line.multipv
+      );
+      
+      if (existingIndex >= 0) {
+        // Update existing line
+        self.analysis[existingIndex] = line as any;
+      } else {
+        // Add new line
+        self.analysis.push(line as any);
+      }
+      
+      // Sort by multipv to maintain order
+      self.analysis.replace(
+        self.analysis.slice().sort((a, b) => a.multipv - b.multipv)
+      );
+    },
+  }));
+
+/**
  * Root Store Model
  * Combines all store slices
  */
@@ -354,6 +478,7 @@ const RootStoreModel = types
     game: GameStateModel,
     ui: UIStateModel,
     settings: SettingsModel,
+    engine: EngineStateModel,
   })
   .actions((self) => ({
     hydrateStore() {
@@ -387,9 +512,17 @@ export const createDefaultSnapshot = () => ({
     defaultTimeIncrement: 0,
     defaultEngineDepth: 22,
   },
+  engine: {
+    isEngineReady: false,
+    isAnalyzing: false,
+    analysis: [],
+    currentDepth: 0,
+    currentFen: '',
+  },
 });
 
 export type RootStore = Instance<typeof RootStoreModel>;
 export type RootStoreSnapshot = SnapshotIn<typeof RootStoreModel>;
+export type EngineAnalysis = Instance<typeof EngineAnalysisModel>;
 
 export default RootStoreModel;
