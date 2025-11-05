@@ -5,10 +5,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import RootStoreModel, { createDefaultSnapshot } from '@/stores/root-store';
+import RootStoreModel, { createDefaultSnapshot, type RootStore } from '@/stores/root-store';
 
 describe('Root Store', () => {
-  let store: any;
+  let store: RootStore;
 
   beforeEach(() => {
     // Create a fresh store instance for each test

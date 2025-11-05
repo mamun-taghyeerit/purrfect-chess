@@ -36,10 +36,16 @@ export const [RootStoreProvider, useRootStore] = createPersistentStore(
       // Call the store's hydration action
       storeInstance.hydrateStore();
       
-      // Expose store in development for debugging
-      if (process.env.NODE_ENV === 'development') {
-        Object.assign(window, { __rootStoreInstance: storeInstance });
-        console.log('[Store] Root store available at window.__rootStoreInstance');
+      // Expose store in development for debugging (non-production only)
+      // Note: This is safe in development as it's only for debugging purposes
+      // and the store is read-only from the console
+      if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+        Object.defineProperty(window, '__rootStoreInstance', {
+          value: storeInstance,
+          writable: false,
+          configurable: true,
+        });
+        console.log('[Store] Root store available at window.__rootStoreInstance (read-only)');
       }
     },
   }

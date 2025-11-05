@@ -29,7 +29,7 @@ const GameStateModel = types
   .views((self) => ({
     get position() {
       const board = self.chessInstance.board();
-      const position: Record<string, any> = {};
+      const position: Record<string, { type: string; color: string } | null> = {};
       const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
       board.forEach((row, rankIndex) => {
@@ -156,9 +156,15 @@ const GameStateModel = types
       }
     },
     afterCreate() {
-      // Load FEN on creation
+      // Load FEN on creation with error handling
       if (self.fen) {
-        self.chessInstance.load(self.fen);
+        try {
+          self.chessInstance.load(self.fen);
+        } catch (error) {
+          console.error('[GameStore] Failed to load FEN on initialization:', error);
+          // Fall back to default position if FEN is invalid
+          self.chessInstance.reset();
+        }
       }
     },
   }));
