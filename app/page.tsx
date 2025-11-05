@@ -49,41 +49,9 @@ const Home = observer(() => {
   const [pgnInput, setPgnInput] = useState('');
   const [fenInput, setFenInput] = useState('');
 
-  // Use MobX store for game state
-  const {
-    position,
-    resetGame,
-    loadFen,
-    getFen,
-    getPgn,
-    loadPgn,
-    movePiece,
-    game,
-    history,
-    isGameOver,
-    checkmate,
-    stalemate,
-    check,
-    whiteTime,
-    blackTime,
-    turn,
-    timeControl,
-    setTimeControl,
-    isTimerRunning,
-  } = useGameStore({ onError: handleError });
-
-  // Use MobX store for UI state
-  const {
-    isEnginePanelVisible,
-    isEvalBarVisible,
-    isBoardFlipped,
-    engineDisplayMode,
-    toggleEvalBar,
-    toggleBoardFlip,
-    setEngineDisplayMode,
-    showEnginePanel,
-    hideEnginePanel,
-  } = useUIStore();
+  // Use MobX stores - keep references, don't destructure for proper reactivity
+  const gameStore = useGameStore({ onError: handleError });
+  const uiStore = useUIStore();
 
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
@@ -96,7 +64,7 @@ const Home = observer(() => {
     useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
-    onReveal: showEnginePanel,
+    onReveal: uiStore.showEnginePanel,
   });
 
   // Convert engine analysis to highlights for Board
@@ -117,21 +85,21 @@ const Home = observer(() => {
   // Show notifications for game-ending conditions
   const prevGameOverRef = useRef(false);
   useEffect(() => {
-    if (isGameOver && !prevGameOverRef.current) {
+    if (gameStore.store.isGameOver && !prevGameOverRef.current) {
       // Game just ended
-      if (checkmate) {
-        const winner = turn === 'w' ? 'Black' : 'White';
+      if (gameStore.store.checkmate) {
+        const winner = gameStore.store.turn === 'w' ? 'Black' : 'White';
         showMessage('info', `Checkmate! ${winner} wins! 👑`);
-      } else if (stalemate) {
+      } else if (gameStore.store.stalemate) {
         showMessage('info', 'Stalemate! The game is a draw. 🤝');
       } else {
         // Timeout
-        const winner = turn === 'w' ? 'Black' : 'White';
+        const winner = gameStore.store.turn === 'w' ? 'Black' : 'White';
         showMessage('info', `Time out! ${winner} wins on time. ⏰`);
       }
     }
-    prevGameOverRef.current = isGameOver;
-  }, [isGameOver, checkmate, stalemate, turn, showMessage]);
+    prevGameOverRef.current = gameStore.store.isGameOver;
+  }, [gameStore.store.isGameOver, gameStore.store.checkmate, gameStore.store.stalemate, gameStore.store.turn, showMessage]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
@@ -160,24 +128,24 @@ const Home = observer(() => {
             justifyContent: 'center'
           }}
         >
-          {(isGameOver || check) && (
+          {(gameStore.store.isGameOver || gameStore.store.check) && (
             <>
-              {checkmate && (
+              {gameStore.store.checkmate && (
                 <div className="text-2xl font-bold text-red-600">
                   Checkmate! 👑
                 </div>
               )}
-              {stalemate && (
+              {gameStore.store.stalemate && (
                 <div className="text-2xl font-bold text-yellow-600">
                   Stalemate! 🤝
                 </div>
               )}
-              {isGameOver && !checkmate && !stalemate && (
+              {gameStore.store.isGameOver && !gameStore.store.checkmate && !gameStore.store.stalemate && (
                 <div className="text-2xl font-bold text-orange-600">
                   Time Out! ⏰
                 </div>
               )}
-              {check && !checkmate && (
+              {gameStore.store.check && !gameStore.store.checkmate && (
                 <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
               )}
             </>
@@ -207,7 +175,7 @@ const Home = observer(() => {
               {/* White's Clock Only */}
               <div
                 className={`text-center font-mono font-bold mb-5 transition-all ${
-                  turn === 'w' && isTimerRunning
+                  gameStore.store.turn === 'w' && gameStore.store.isTimerRunning
                     ? ''
                     : ''
                 }`}
@@ -217,11 +185,11 @@ const Home = observer(() => {
                   padding: '12px 16px',
                   borderRadius: '14px',
                   background: '#1f1f1f',
-                  border: turn === 'w' && isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: turn === 'w' && isTimerRunning 
+                  border: gameStore.store.turn === 'w' && gameStore.store.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: gameStore.store.turn === 'w' && gameStore.store.isTimerRunning 
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: turn === 'w' && isTimerRunning ? 'translateY(-2px)' : 'none',
+                  transform: gameStore.store.turn === 'w' && gameStore.store.isTimerRunning ? 'translateY(-2px)' : 'none',
                   color: '#f0f0f0',
                   // Fixed width to prevent layout shift on time changes
                   minWidth: '180px',
@@ -231,7 +199,7 @@ const Home = observer(() => {
                   overflow: 'hidden'
                 }}
               >
-                {formatClockTime(whiteTime)}
+                {formatClockTime(gameStore.store.whiteTime)}
               </div>
 
               {/* White Appearance Controls: Light Squares + White Pieces */}
@@ -288,9 +256,9 @@ const Home = observer(() => {
                   Time Presets
                 </h3>
                 <TimeControlSelector
-                  currentTimeControl={timeControl}
-                  onSelect={setTimeControl}
-                  disabled={history.length > 0}
+                  currentTimeControl={gameStore.store.timeControl}
+                  onSelect={gameStore.setTimeControl}
+                  disabled={gameStore.store.history.length > 0}
                 />
               </div>
 
@@ -312,7 +280,7 @@ const Home = observer(() => {
                       type="number"
                       min="1"
                       max="180"
-                      defaultValue={timeControl.minutes}
+                      defaultValue={gameStore.store.timeControl.minutes}
                       className="rounded-lg px-2.5 py-2"
                       style={{
                         background: '#2b2b2b',
@@ -328,7 +296,7 @@ const Home = observer(() => {
                       type="number"
                       min="0"
                       max="60"
-                      defaultValue={timeControl.increment}
+                      defaultValue={gameStore.store.timeControl.increment}
                       className="rounded-lg px-2.5 py-2"
                       style={{
                         background: '#2b2b2b',
@@ -375,23 +343,23 @@ const Home = observer(() => {
               {/* Chess Board with Engine Overlays */}
               <Board
                 engineHighlights={engineHighlights}
-                engineDisplayMode={engineDisplayMode}
-                flipped={isBoardFlipped}
+                engineDisplayMode={uiStore.engineDisplayModeValue}
+                flipped={uiStore.isBoardFlipped}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
-                position={position}
-                movePiece={movePiece}
-                game={game}
-                history={history}
+                position={gameStore.store.position}
+                movePiece={gameStore.movePiece}
+                game={gameStore.store.chessInstance}
+                history={gameStore.store.history}
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
-              <div style={{ minWidth: '46px', visibility: isEvalBarVisible ? 'visible' : 'hidden' }}>
+              <div style={{ minWidth: '46px', visibility: uiStore.isEvalBarVisible ? 'visible' : 'hidden' }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
                   isAnalyzing={isAnalyzing}
-                  isVisible={isEvalBarVisible}
+                  isVisible={uiStore.isEvalBarVisible}
                   currentDepth={currentDepth}
                   maxDepth={22}
                 />
@@ -401,7 +369,7 @@ const Home = observer(() => {
             {/* Board controls */}
             <div className="flex gap-2 flex-wrap justify-center">
               <button
-                onClick={resetGame}
+                onClick={gameStore.resetGame}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -416,7 +384,7 @@ const Home = observer(() => {
                 <span>Reset Game</span>
               </button>
               <button
-                onClick={toggleBoardFlip}
+                onClick={uiStore.toggleBoardFlip}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -431,7 +399,7 @@ const Home = observer(() => {
                 <span>Flip Board</span>
               </button>
               <button
-                onClick={toggleEvalBar}
+                onClick={uiStore.toggleEvalBar}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -443,31 +411,31 @@ const Home = observer(() => {
                 onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
               >
                 <span>📊</span>
-                <span>{isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
+                <span>{uiStore.isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
               </button>
               <button
                 onClick={() => {
-                  if (history.length === 0) {
+                  if (gameStore.store.history.length === 0) {
                     showMessage('info', 'No move to review.');
                     return;
                   }
-                  const lastMove = history[history.length - 1];
+                  const lastMove = gameStore.store.history[gameStore.store.history.length - 1];
                   showMessage('info', 'Analyzing move...');
                   reviewLastMove(lastMove, (classification) => {
                     showMessage('success', `Move classified as: ${classification}`);
                   });
                 }}
-                disabled={isReviewing || history.length === 0}
+                disabled={isReviewing || gameStore.store.history.length === 0}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
-                  background: isReviewing || history.length === 0 ? '#444' : '#555',
+                  background: isReviewing || gameStore.store.history.length === 0 ? '#444' : '#555',
                   color: '#fff',
                   border: 'none',
-                  cursor: isReviewing || history.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: isReviewing || history.length === 0 ? 0.6 : 1,
+                  cursor: isReviewing || gameStore.store.history.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: isReviewing || gameStore.store.history.length === 0 ? 0.6 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  if (!isReviewing && history.length > 0) {
+                  if (!isReviewing && gameStore.store.history.length > 0) {
                     e.currentTarget.style.filter = 'brightness(1.05)';
                   }
                 }}
@@ -509,7 +477,7 @@ const Home = observer(() => {
                       color: '#f3f4ff'
                     }}
                   >
-                    Purrfect Game - {timeControl.minutes}+{timeControl.increment}
+                    Purrfect Game - {gameStore.store.timeControl.minutes}+{gameStore.store.timeControl.increment}
                   </span>
                 </div>
                 <div 
@@ -541,7 +509,7 @@ const Home = observer(() => {
                       color: '#f3f4ff'
                     }}
                   >
-                    {timeControl.minutes} + {timeControl.increment}
+                    {gameStore.store.timeControl.minutes} + {gameStore.store.timeControl.increment}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
@@ -570,13 +538,13 @@ const Home = observer(() => {
             </p>
 
             {/* Engine Panel (conditionally rendered below board) */}
-            {isEnginePanelVisible && (
+            {uiStore.isEnginePanelVisible && (
               <div className="w-full" style={{ maxWidth: '600px' }}>
                 <EnginePanel
-                  onClose={hideEnginePanel}
-                  engineDisplayMode={engineDisplayMode}
-                  onEngineDisplayModeChange={setEngineDisplayMode}
-                  getFen={getFen}
+                  onClose={uiStore.hideEnginePanel}
+                  engineDisplayMode={uiStore.engineDisplayModeValue}
+                  onEngineDisplayModeChange={uiStore.setEngineDisplayMode}
+                  getFen={gameStore.getFen}
                 />
               </div>
             )}
@@ -610,11 +578,11 @@ const Home = observer(() => {
                   padding: '12px 16px',
                   borderRadius: '14px',
                   background: '#1f1f1f',
-                  border: turn === 'b' && isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: turn === 'b' && isTimerRunning 
+                  border: gameStore.store.turn === 'b' && gameStore.store.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: gameStore.store.turn === 'b' && gameStore.store.isTimerRunning 
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: turn === 'b' && isTimerRunning ? 'translateY(-2px)' : 'none',
+                  transform: gameStore.store.turn === 'b' && gameStore.store.isTimerRunning ? 'translateY(-2px)' : 'none',
                   color: '#f0f0f0',
                   // Fixed width to prevent layout shift on time changes
                   minWidth: '180px',
@@ -624,7 +592,7 @@ const Home = observer(() => {
                   overflow: 'hidden'
                 }}
               >
-                {formatClockTime(blackTime)}
+                {formatClockTime(gameStore.store.blackTime)}
               </div>
 
               {/* Black Appearance Controls: Dark Squares + Black Pieces */}
@@ -680,7 +648,7 @@ const Home = observer(() => {
                 >
                   Moves
                 </h3>
-                <MoveHistory history={history} />
+                <MoveHistory history={gameStore.store.history} />
                 
                 <div className="mt-4 flex flex-col gap-2">
                   {/* PGN Section */}
@@ -688,7 +656,7 @@ const Home = observer(() => {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          const pgn = getPgn();
+                          const pgn = gameStore.getPgn();
                           try {
                             await navigator.clipboard.writeText(pgn);
                             showMessage('success', 'PGN copied to clipboard!');
@@ -710,7 +678,7 @@ const Home = observer(() => {
                       <button
                         onClick={() => {
                           if (pgnInput.trim()) {
-                            const result = loadPgn(pgnInput);
+                            const result = gameStore.loadPgn(pgnInput);
                             if (result) {
                               showMessage('success', 'PGN loaded successfully.');
                               setPgnInput(''); // Clear input after successful load
@@ -736,7 +704,7 @@ const Home = observer(() => {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={4}
                       placeholder="Current PGN (or type to load)"
-                      value={pgnInput !== '' ? pgnInput : getPgn()}
+                      value={pgnInput !== '' ? pgnInput : gameStore.getPgn()}
                       onChange={(e) => setPgnInput(e.target.value)}
                       onFocus={(e) => {
                         // Select all on focus for easy editing
@@ -761,7 +729,7 @@ const Home = observer(() => {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          const fen = getFen();
+                          const fen = gameStore.getFen();
                           try {
                             await navigator.clipboard.writeText(fen);
                             showMessage('success', 'FEN copied to clipboard!');
@@ -783,7 +751,7 @@ const Home = observer(() => {
                       <button
                         onClick={() => {
                           if (fenInput.trim()) {
-                            const result = loadFen(fenInput);
+                            const result = gameStore.loadFen(fenInput);
                             if (result) {
                               showMessage('success', 'FEN loaded successfully.');
                               setFenInput(''); // Clear input after successful load
@@ -809,7 +777,7 @@ const Home = observer(() => {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={2}
                       placeholder="Current FEN (or type to load)"
-                      value={fenInput !== '' ? fenInput : getFen()}
+                      value={fenInput !== '' ? fenInput : gameStore.getFen()}
                       onChange={(e) => setFenInput(e.target.value)}
                       onFocus={(e) => {
                         // Select all on focus for easy editing

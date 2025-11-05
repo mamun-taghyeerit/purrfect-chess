@@ -6,10 +6,13 @@ import { useRootStore } from '@/stores/store-setup';
 /**
  * Hook to access game state from the MobX store
  * 
- * This hook provides the same API as the old useGame hook for backward compatibility,
- * but now powered by MobX State Tree for better state management.
+ * This hook provides access to game state powered by MobX State Tree.
  * 
- * Usage: Use this hook in components wrapped with observer() from mobx-react-lite
+ * IMPORTANT: For MobX reactivity to work properly, destructure properties
+ * as late as possible (preferably in JSX), not at the hook call site.
+ * 
+ * Good: const gameStore = useGameStore(); return <div>{gameStore.position}</div>
+ * Bad:  const { position } = useGameStore(); return <div>{position}</div>
  */
 export function useGameStore(options: { onError?: (error: string) => void } = {}) {
   const store = useRootStore();
@@ -95,71 +98,43 @@ export function useGameStore(options: { onError?: (error: string) => void } = {}
     store.game.setTimeControl(timeControl.minutes, timeControl.increment);
   };
 
+  // Return the store reference directly for MobX reactivity
+  // Access properties in JSX for proper observation
   return {
-    // Game state
-    position: store.game.position,
-    fen: store.game.fen,
-    history: store.game.history,
-    isGameOver: store.game.isGameOver,
-    turn: store.game.turn,
-    check: store.game.check,
-    checkmate: store.game.checkmate,
-    stalemate: store.game.stalemate,
-    threefoldRepetition: store.game.threefoldRepetition,
-    insufficientMaterial: store.game.insufficientMaterial,
-    draw: store.game.draw,
-    whiteTime: store.game.whiteTime,
-    blackTime: store.game.blackTime,
-    timeControl: store.game.timeControl,
-    isTimerRunning: store.game.isTimerRunning,
+    // Direct store reference for reactive access
+    store: store.game,
     
-    // Game actions
+    // Enhanced actions with error handling
     movePiece,
-    resetGame: store.game.resetGame,
     loadFen,
-    getFen: () => store.game.fen,
-    getPgn: store.game.getPgn,
     loadPgn,
     setTimeControl,
     
-    // Expose the chess instance for advanced usage
-    game: store.game.chessInstance,
+    // Convenience getters that don't break reactivity
+    getFen: () => store.game.fen,
+    getPgn: store.game.getPgn,
+    resetGame: store.game.resetGame,
   };
 }
 
 /**
  * Hook to access UI state from the MobX store
+ * 
+ * Returns the UI store directly for proper MobX reactivity.
+ * Access properties in JSX for observation.
  */
 export function useUIStore() {
   const store = useRootStore();
-  
-  return {
-    isEnginePanelVisible: store.ui.isEnginePanelVisible,
-    isEvalBarVisible: store.ui.isEvalBarVisible,
-    isBoardFlipped: store.ui.isBoardFlipped,
-    engineDisplayMode: store.ui.engineDisplayModeValue,
-    
-    toggleEnginePanel: store.ui.toggleEnginePanel,
-    showEnginePanel: store.ui.showEnginePanel,
-    hideEnginePanel: store.ui.hideEnginePanel,
-    toggleEvalBar: store.ui.toggleEvalBar,
-    toggleBoardFlip: store.ui.toggleBoardFlip,
-    setEngineDisplayMode: store.ui.setEngineDisplayMode,
-  };
+  return store.ui;
 }
 
 /**
  * Hook to access settings from the MobX store
+ * 
+ * Returns the settings store directly for proper MobX reactivity.
+ * Access properties in JSX for observation.
  */
 export function useSettingsStore() {
   const store = useRootStore();
-  
-  return {
-    defaultTimeMinutes: store.settings.defaultTimeMinutes,
-    defaultTimeIncrement: store.settings.defaultTimeIncrement,
-    defaultEngineDepth: store.settings.defaultEngineDepth,
-    
-    setDefaultTime: store.settings.setDefaultTime,
-    setDefaultEngineDepth: store.settings.setDefaultEngineDepth,
-  };
+  return store.settings;
 }
