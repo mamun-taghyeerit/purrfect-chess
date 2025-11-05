@@ -28,6 +28,11 @@
   },
   "dependencies": {
     "chess.js": "^1.0.0",
+    "localforage": "^1.10.0",
+    "mobx": "^6.15.0",
+    "mobx-react-lite": "^4.1.1",
+    "mobx-state-tree": "^7.0.2",
+    "mst-persistent-store": "^3.1.1",
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
