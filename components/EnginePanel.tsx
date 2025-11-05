@@ -26,12 +26,21 @@ interface EnginePanelProps {
   onClose?: () => void;
   engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
   onEngineDisplayModeChange?: (mode: 'squares' | 'arrows' | 'both') => void;
+  getFen: () => string;
 }
 
 /**
  * Memoized EngineLine component to prevent unnecessary re-renders
  * Only re-renders when analysis data actually changes
  */
+
+// Lineage colors matching legacy (blue, green, purple/pink) - memoized outside component
+const LINEAGE_COLORS = [
+  { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.6)' },  // blue for #1
+  { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.6)' },  // green for #2
+  { bg: 'rgba(244, 114, 182, 0.15)', border: 'rgba(244, 114, 182, 0.6)' }, // pink for #3
+];
+
 const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps) {
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
@@ -43,32 +52,38 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
   };
 
   const scoreColor = (score: number) => {
-    if (Math.abs(score) < 50) return 'text-gray-700 dark:text-gray-300';
-    return score > 0
-      ? 'text-green-600 dark:text-green-400'
-      : 'text-red-600 dark:text-red-400';
+    if (Math.abs(score) < 50) return '#c8c8c8';
+    return score > 0 ? '#10b981' : '#ef4444';
   };
 
+  const colors = LINEAGE_COLORS[index] || { bg: 'rgba(100, 100, 100, 0.1)', border: 'rgba(100, 100, 100, 0.4)' };
+
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 p-3">
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 w-6">
-          #{index + 1}
-        </span>
+    <div 
+      className="rounded-lg p-3 flex flex-col gap-1.5"
+      style={{
+        background: colors.bg,
+        border: `2px solid ${colors.border}`,
+        boxShadow: 'inset 0 2px 5px rgba(0, 0, 0, 0.45)'
+      }}
+    >
+      <div className="flex items-center justify-between text-xs uppercase tracking-wider" style={{ color: '#c8c8c8' }}>
+        <span>#{index + 1}</span>
+        <span>depth {analysis.depth}</span>
+      </div>
+      <div className="flex items-center gap-2">
         <span
-          className={`font-mono text-lg font-bold ${scoreColor(analysis.score)}`}
+          className="font-mono text-lg font-bold"
+          style={{ color: scoreColor(analysis.score) }}
         >
           {formatScore(analysis.score, analysis.scoreType)}
         </span>
-        <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+        <span className="text-base font-semibold" style={{ color: '#fff' }}>
           {analysis.san}
-        </span>
-        <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-          depth {analysis.depth}
         </span>
       </div>
       {analysis.pvSan.length > 0 && (
-        <div className="text-sm text-gray-600 dark:text-gray-400 ml-9">
+        <div className="text-sm" style={{ color: '#8f8f8f' }}>
           {analysis.pvSan.slice(0, 8).join(' ')}
           {analysis.pvSan.length > 8 && '...'}
         </div>
@@ -95,8 +110,8 @@ export default function EnginePanel({
   onClose,
   engineDisplayMode = 'arrows',
   onEngineDisplayModeChange,
+  getFen,
 }: EnginePanelProps) {
-  const { getFen } = useGame();
   const {
     isEngineReady,
     isAnalyzing,
@@ -320,7 +335,7 @@ export default function EnginePanel({
 
       {/* Analysis Lines */}
       <div
-        className="rounded-lg overflow-hidden"
+        className="rounded-lg overflow-hidden p-2.5"
         style={{
           background: '#1f1f1f',
           border: '1px solid #444',
@@ -335,7 +350,7 @@ export default function EnginePanel({
                 : 'Waiting for engine...'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-700">
+          <div className="flex flex-col gap-2.5">
             {throttledAnalysis.map((line, index) => (
               <EngineLine key={line.multipv} analysis={line} index={index} />
             ))}

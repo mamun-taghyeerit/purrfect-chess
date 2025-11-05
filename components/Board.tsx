@@ -60,13 +60,34 @@ export interface BoardProps {
 
   /** Engine overlay display mode */
   engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
+
+  /** Whether to flip the board (black perspective) */
+  flipped?: boolean;
+
+  /** Move badge to display (from move review) */
+  moveBadge?: { type: string; square: string } | null;
+
+  /** Callback when badge animation completes */
+  onBadgeComplete?: () => void;
+
+  /** Game state - position, movePiece function, game instance, and history */
+  position: any;
+  movePiece: (from: string, to: string) => boolean;
+  game: any;
+  history: any[];
 }
 
 export default function Board({
   engineHighlights = [],
   engineDisplayMode = 'arrows',
+  flipped = false,
+  moveBadge = null,
+  onBadgeComplete,
+  position,
+  movePiece,
+  game,
+  history,
 }: BoardProps) {
-  const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [captureMoves, setCaptureMoves] = useState<string[]>([]);
@@ -89,9 +110,13 @@ export default function Board({
     currentSquare: string;
   } | null>(null);
 
+  // Custom square highlights (right-click)
+  const [customHighlights, setCustomHighlights] = useState<Set<string>>(new Set());
+
   // File and rank labels for coordinates (matching legacy)
-  const files = useMemo(() => ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], []);
-  const ranks = useMemo(() => [8, 7, 6, 5, 4, 3, 2, 1], []);
+  // When flipped, reverse the arrays
+  const files = useMemo(() => flipped ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [flipped]);
+  const ranks = useMemo(() => flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1], [flipped]);
 
   // Get last move for highlighting
   const lastMove = history.length > 0 ? history[history.length - 1] : null;
@@ -100,10 +125,10 @@ export default function Board({
   const algebraicAt = useCallback(
     (fileIndex: number, rankIndex: number): string => {
       const file = files[fileIndex];
-      const rank = 8 - rankIndex;
+      const rank = ranks[rankIndex];
       return `${file}${rank}`;
     },
-    [files]
+    [files, ranks]
   );
 
   // Helper to categorize moves into non-captures and captures (single pass optimization)
@@ -355,12 +380,21 @@ export default function Board({
         Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY)
       );
 
-      // Small drags don't create arrows (matches legacy behavior)
+      // Small drags toggle square highlight (matches legacy behavior)
       if (
         dragDistance < ARROW_DRAG_THRESHOLD ||
         targetSquare === drag.fromSquare
       ) {
-        // Could trigger square context menu here if needed
+        // Toggle custom highlight on the square
+        setCustomHighlights(prev => {
+          const next = new Set(prev);
+          if (next.has(drag.fromSquare)) {
+            next.delete(drag.fromSquare);
+          } else {
+            next.add(drag.fromSquare);
+          }
+          return next;
+        });
         return;
       }
 
@@ -467,9 +501,11 @@ export default function Board({
       // Clear all board UI state on reset (matching legacy clearSelection + state reset)
       clearDragState();
       clearArrows();
+      setCustomHighlights(new Set());
     } else if (wasMove) {
-      // Clear arrows when a new move is made (matching legacy behavior)
+      // Clear arrows and highlights when a new move is made (matching legacy behavior)
       clearArrows();
+      setCustomHighlights(new Set());
     }
 
     previousHistoryLength.current = history.length;
@@ -772,6 +808,11 @@ export default function Board({
                 squareClasses += ` engine-move-${engineHighlightRank}`;
               }
 
+              // Add custom highlight class if applicable (right-click highlight)
+              if (customHighlights.has(square)) {
+                squareClasses += ' user-highlight';
+              }
+
               // Build ARIA label for the square
               let ariaLabel: string;
               if (isPiece) {
@@ -845,6 +886,52 @@ export default function Board({
           }
           previewArrow={previewArrow}
         />
+
+        {/* Move Badge - Positioned at target square */}
+        {moveBadge && (() => {
+          // Calculate badge position at top-right of target square
+          const badgeSquare = parseSquare(moveBadge.square);
+          if (!badgeSquare) return null;
+
+          const center = squareCenter(moveBadge.square);
+          if (!center) return null;
+
+          // Position at top-right corner of square
+          // Each square is 12.5% of board width/height
+          const squareSize = 12.5; // percentage
+          const offsetX = squareSize * 0.4; // 40% to the right
+          const offsetY = -squareSize * 0.4; // 40% up
+
+          return (
+            <img
+              src={`/assets/${moveBadge.type}.png`}
+              alt={moveBadge.type}
+              className="move-badge"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                // Only attempt fallback once to prevent infinite loop
+                if (!target.dataset.fallbackAttempted && !target.src.endsWith('/good.png')) {
+                  target.dataset.fallbackAttempted = 'true';
+                  target.src = '/assets/good.png';
+                } else if (target.dataset.fallbackAttempted) {
+                  // Hide badge if even fallback fails
+                  target.style.display = 'none';
+                }
+              }}
+              style={{
+                position: 'absolute',
+                left: `calc(${center.x * 100}% + ${offsetX}%)`,
+                top: `calc(${center.y * 100}% + ${offsetY}%)`,
+                transform: 'translate(-50%, -50%)',
+                width: '24px',
+                height: '24px',
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))',
+                pointerEvents: 'none',
+                zIndex: 1000,
+              }}
+            />
+          );
+        })()}
       </div>
     </div>
   );

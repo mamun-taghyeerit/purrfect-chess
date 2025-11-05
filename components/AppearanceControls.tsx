@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 
 /**
  * Appearance Controls Component
@@ -195,10 +195,15 @@ interface AppearanceControlsProps {
   showGlobalReset?: boolean;
 }
 
-export default function AppearanceControls({
+export interface AppearanceControlsHandle {
+  /** Reset the appearance settings for the configured groups */
+  reset: () => void;
+}
+
+const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceControlsProps>(function AppearanceControls({
   groups,
   showGlobalReset,
-}: AppearanceControlsProps = {}) {
+}, ref) {
   const [appearance, setAppearance] =
     useState<AppearanceState>(appearanceDefaults);
 
@@ -272,6 +277,26 @@ export default function AppearanceControls({
   const handleGlobalReset = () => {
     setAppearance({ ...appearanceDefaults });
   };
+
+  // Public reset method for filtered groups
+  const handleFilteredReset = useCallback(() => {
+    if (groups) {
+      setAppearance((prev) => {
+        const newState = { ...prev };
+        groups.forEach((groupKey) => {
+          newState[groupKey] = { ...appearanceDefaults[groupKey] } as any;
+        });
+        return newState;
+      });
+    } else {
+      setAppearance({ ...appearanceDefaults });
+    }
+  }, [groups]);
+
+  // Expose reset method via ref
+  useImperativeHandle(ref, () => ({
+    reset: handleFilteredReset,
+  }), [handleFilteredReset]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -384,4 +409,6 @@ export default function AppearanceControls({
       ))}
     </div>
   );
-}
+});
+
+export default AppearanceControls;

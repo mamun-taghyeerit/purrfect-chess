@@ -161,6 +161,64 @@ yarn preview                # Preview production build
 - Test piece movement and game rules
 - Check appearance sliders and customization options
 
+### Debugging and State Management ⚠️ CRITICAL
+
+**NEVER assume code is correct just by reading it. Always verify with actual testing and debug logging.**
+
+When features aren't working as expected:
+
+1. **Add Debug Logging FIRST**
+   - Use `console.log()` to verify state values at key points
+   - Log props being passed to components
+   - Log hook return values
+   - Example: `console.log('[Component] state:', state, 'props:', props)`
+
+2. **Check for State Isolation Issues**
+   - **CRITICAL**: In React, each component that calls a custom hook gets its OWN instance
+   - Example: If `useGame()` is called in 3 components, there are 3 separate game instances
+   - **Solution**: Share state via props or context, don't call stateful hooks in multiple places
+   - **Rule**: Hooks with `useState` should typically be called in ONE parent component, then passed down
+
+3. **Verify Data Flow**
+   - Check that parent state updates trigger child re-renders
+   - Verify props are being passed correctly
+   - Ensure callbacks are updating the right state
+
+4. **Use Browser DevTools**
+   - React DevTools to inspect component props and state
+   - Network tab to verify API calls
+   - Console to see error messages and logs
+
+5. **Test Don't Assume**
+   - Run the app and manually test the feature
+   - Use Playwright for automated visual testing when appropriate
+   - Take screenshots to verify UI changes
+   - **NEVER** say "the code looks correct" without actually running it
+
+**Example of Critical Mistake to Avoid:**
+```typescript
+// ❌ WRONG: Multiple components creating isolated state
+function ParentComponent() {
+  const gameState = useGame(); // Instance 1
+  return <ChildComponent />;
+}
+
+function ChildComponent() {
+  const gameState = useGame(); // Instance 2 - ISOLATED from parent!
+  // Changes here won't reflect in parent
+}
+
+// ✅ CORRECT: Single source of truth
+function ParentComponent() {
+  const gameState = useGame(); // Single instance
+  return <ChildComponent gameState={gameState} />;
+}
+
+function ChildComponent({ gameState }) {
+  // Uses shared state from parent
+}
+```
+
 ## Common Tasks
 
 ### Adding New Features

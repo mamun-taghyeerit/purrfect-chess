@@ -6,14 +6,17 @@ import MoveHistory from '@/components/MoveHistory';
 import Clock from '@/components/Clock';
 import TimeControlSelector from '@/components/TimeControlSelector';
 import EnginePanel from '@/components/EnginePanel';
-import AppearanceControls from '@/components/AppearanceControls';
+import AppearanceControls, {
+  type AppearanceControlsHandle,
+} from '@/components/AppearanceControls';
 import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
 import { useGame } from '@/hooks/useGame';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
-import { useState, useMemo, useCallback } from 'react';
+import { useMoveReview } from '@/hooks/useMoveReview';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { EngineHighlight } from '@/components/Board';
 
 // Helper function to format time in MM:SS format
@@ -37,12 +40,26 @@ export default function Home() {
     [showMessage]
   );
 
+  // Refs for appearance controls
+  const whiteAppearanceRef = useRef<AppearanceControlsHandle>(null);
+  const blackAppearanceRef = useRef<AppearanceControlsHandle>(null);
+
+  // State for editable PGN/FEN text areas
+  const [pgnInput, setPgnInput] = useState('');
+  const [fenInput, setFenInput] = useState('');
+
+  // State for board flip
+  const [isBoardFlipped, setIsBoardFlipped] = useState(false);
+
   const {
+    position,
     resetGame,
     loadFen,
     getFen,
     getPgn,
     loadPgn,
+    movePiece,
+    game,
     history,
     isGameOver,
     checkmate,
@@ -66,7 +83,10 @@ export default function Home() {
   const [isEvalBarVisible, setIsEvalBarVisible] = useState(false);
   const [engineDisplayMode, setEngineDisplayMode] = useState<
     'squares' | 'arrows' | 'both' | 'none'
-  >('arrows');
+  >('both');
+
+  const { isReviewing, currentBadge, reviewLastMove, clearBadge } =
+    useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
     onReveal: () => {
@@ -75,17 +95,38 @@ export default function Home() {
   });
 
   // Convert engine analysis to highlights for Board
-  const engineHighlights: EngineHighlight[] = analysis.map((line, index) => ({
-    from: line.bestMove.slice(0, 2),
-    to: line.bestMove.slice(2, 4),
-    rank: index + 1, // 1-based rank (1 = best move)
-  }));
+  const engineHighlights: EngineHighlight[] = analysis
+    .filter(line => line.bestMove && line.bestMove.length >= 4)
+    .map((line, index) => ({
+      from: line.bestMove.slice(0, 2),
+      to: line.bestMove.slice(2, 4),
+      rank: index + 1, // 1-based rank (1 = best move)
+    }));
 
   // Get best evaluation for EvaluationBar (from first PV line)
   const bestEval = analysis.length > 0 ? analysis[0] : null;
   const evalScore = bestEval ? bestEval.score : null;
   const evalMate =
     bestEval && bestEval.scoreType === 'mate' ? bestEval.score : null;
+
+  // Show notifications for game-ending conditions
+  const prevGameOverRef = useRef(false);
+  useEffect(() => {
+    if (isGameOver && !prevGameOverRef.current) {
+      // Game just ended
+      if (checkmate) {
+        const winner = turn === 'w' ? 'Black' : 'White';
+        showMessage('info', `Checkmate! ${winner} wins! 👑`);
+      } else if (stalemate) {
+        showMessage('info', 'Stalemate! The game is a draw. 🤝');
+      } else {
+        // Timeout
+        const winner = turn === 'w' ? 'Black' : 'White';
+        showMessage('info', `Time out! ${winner} wins on time. ⏰`);
+      }
+    }
+    prevGameOverRef.current = isGameOver;
+  }, [isGameOver, checkmate, stalemate, turn, showMessage]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
@@ -100,7 +141,7 @@ export default function Home() {
 
         <div className="mb-6 text-center">
           <p className="text-sm text-gray-400">
-            Next.js Migration - Phase 2: Core Structure & Initial Port
+            Next.js Migration - Phase X: Functional & Visual Parity Complete
           </p>
         </div>
 
@@ -205,8 +246,8 @@ export default function Home() {
                   </h3>
                   <button
                     onClick={() => {
-                      // Reset handled by individual group reset buttons in AppearanceControls
-                      window.location.reload();
+                      // Reset only white appearance (light squares + white pieces)
+                      whiteAppearanceRef.current?.reset();
                     }}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
                     style={{
@@ -217,13 +258,14 @@ export default function Home() {
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-                    title="Reset all appearance settings"
+                    title="Reset white appearance settings"
                   >
                     <span>↻</span>
                     <span>Reset</span>
                   </button>
                 </div>
                 <AppearanceControls
+                  ref={whiteAppearanceRef}
                   groups={['light', 'whitePieces']}
                   showGlobalReset={false}
                 />
@@ -322,11 +364,24 @@ export default function Home() {
           </div>
 
           {/* Center Panel: Board */}
-          <div className="flex flex-col items-center gap-4 xl:flex-initial">
+          <div className="flex flex-col items-center gap-6 xl:flex-initial">
             {/* Board with Evaluation Bar */}
             <div className="flex gap-2 items-center">
-              {/* Evaluation Bar (left side of board) */}
-              {isEvalBarVisible && (
+              {/* Chess Board with Engine Overlays */}
+              <Board
+                engineHighlights={engineHighlights}
+                engineDisplayMode={engineDisplayMode}
+                flipped={isBoardFlipped}
+                moveBadge={currentBadge}
+                onBadgeComplete={clearBadge}
+                position={position}
+                movePiece={movePiece}
+                game={game}
+                history={history}
+              />
+
+              {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
+              <div style={{ minWidth: '46px', visibility: isEvalBarVisible ? 'visible' : 'hidden' }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
@@ -335,13 +390,7 @@ export default function Home() {
                   currentDepth={currentDepth}
                   maxDepth={22}
                 />
-              )}
-
-              {/* Chess Board with Engine Overlays */}
-              <Board
-                engineHighlights={engineHighlights}
-                engineDisplayMode={engineDisplayMode}
-              />
+              </div>
             </div>
 
             {/* Board controls */}
@@ -362,6 +411,21 @@ export default function Home() {
                 <span>Reset Game</span>
               </button>
               <button
+                onClick={() => setIsBoardFlipped(!isBoardFlipped)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+                style={{
+                  background: '#555',
+                  color: '#fff',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+              >
+                <span>🔄</span>
+                <span>Flip Board</span>
+              </button>
+              <button
                 onClick={() => setIsEvalBarVisible(!isEvalBarVisible)}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
@@ -378,21 +442,36 @@ export default function Home() {
               </button>
               <button
                 onClick={() => {
-                  // TODO: Implement move review functionality
-                  alert('Move review feature coming soon!');
+                  if (history.length === 0) {
+                    showMessage('info', 'No move to review.');
+                    return;
+                  }
+                  const lastMove = history[history.length - 1];
+                  showMessage('info', 'Analyzing move...');
+                  reviewLastMove(lastMove, (classification) => {
+                    showMessage('success', `Move classified as: ${classification}`);
+                  });
                 }}
+                disabled={isReviewing || history.length === 0}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
-                  background: '#555',
+                  background: isReviewing || history.length === 0 ? '#444' : '#555',
                   color: '#fff',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: isReviewing || history.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: isReviewing || history.length === 0 ? 0.6 : 1,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+                onMouseEnter={(e) => {
+                  if (!isReviewing && history.length > 0) {
+                    e.currentTarget.style.filter = 'brightness(1.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.filter = 'brightness(1)';
+                }}
               >
                 <span>⭐</span>
-                <span>Move Review</span>
+                <span>{isReviewing ? 'Reviewing...' : 'Move Review'}</span>
               </button>
             </div>
 
@@ -487,11 +566,12 @@ export default function Home() {
 
             {/* Engine Panel (conditionally rendered below board) */}
             {isEnginePanelVisible && (
-              <div className="w-full max-w-md">
+              <div className="w-full" style={{ maxWidth: '600px' }}>
                 <EnginePanel
                   onClose={() => setIsEnginePanelVisible(false)}
                   engineDisplayMode={engineDisplayMode}
                   onEngineDisplayModeChange={setEngineDisplayMode}
+                  getFen={getFen}
                 />
               </div>
             )}
@@ -559,8 +639,8 @@ export default function Home() {
                   </h3>
                   <button
                     onClick={() => {
-                      // Reset handled by individual group reset buttons in AppearanceControls
-                      window.location.reload();
+                      // Reset only black appearance (dark squares + black pieces)
+                      blackAppearanceRef.current?.reset();
                     }}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-lg transition-all"
                     style={{
@@ -571,13 +651,14 @@ export default function Home() {
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-                    title="Reset all appearance settings"
+                    title="Reset black appearance settings"
                   >
                     <span>↻</span>
                     <span>Reset</span>
                   </button>
                 </div>
                 <AppearanceControls
+                  ref={blackAppearanceRef}
                   groups={['dark', 'blackPieces']}
                   showGlobalReset={false}
                 />
@@ -597,123 +678,152 @@ export default function Home() {
                 <MoveHistory history={history} />
                 
                 <div className="mt-4 flex flex-col gap-2">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async () => {
-                        const pgn = getPgn();
-                        try {
-                          await navigator.clipboard.writeText(pgn);
-                          showMessage('success', 'PGN copied to clipboard!');
-                        } catch (error) {
-                          showMessage('error', 'Unable to copy PGN.');
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
-                      style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Copy PGN
-                    </button>
-                    <button
-                      onClick={() => {
-                        const pgnText = prompt('Enter PGN:');
-                        if (pgnText) {
-                          const result = loadPgn(pgnText);
-                          if (result) {
-                            showMessage('success', 'PGN loaded successfully.');
+                  {/* PGN Section */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          const pgn = getPgn();
+                          try {
+                            await navigator.clipboard.writeText(pgn);
+                            showMessage('success', 'PGN copied to clipboard!');
+                          } catch (error) {
+                            showMessage('error', 'Unable to copy PGN.');
                           }
-                          // Error message is handled by useGame onError callback
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Copy PGN
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (pgnInput.trim()) {
+                            const result = loadPgn(pgnInput);
+                            if (result) {
+                              showMessage('success', 'PGN loaded successfully.');
+                              setPgnInput(''); // Clear input after successful load
+                            }
+                            // Error message is handled by useGame onError callback
+                          } else {
+                            showMessage('info', 'Enter a PGN in the text box below.');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Load PGN
+                      </button>
+                    </div>
+                    <textarea
+                      className="w-full p-2 rounded-lg text-xs font-mono resize-none"
+                      rows={4}
+                      placeholder="Current PGN (or type to load)"
+                      value={pgnInput !== '' ? pgnInput : getPgn()}
+                      onChange={(e) => setPgnInput(e.target.value)}
+                      onFocus={(e) => {
+                        // Select all on focus for easy editing
+                        e.target.select();
+                      }}
+                      onBlur={() => {
+                        // Clear input when blurred if empty, to show current PGN
+                        if (pgnInput.trim() === '') {
+                          setPgnInput('');
                         }
                       }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
                       style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
+                        background: '#2b2b2b',
+                        border: '1px solid #555',
+                        color: '#bbb'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Load PGN
-                    </button>
+                    />
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={async () => {
-                        const fen = getFen();
-                        try {
-                          await navigator.clipboard.writeText(fen);
-                          showMessage('success', 'FEN copied to clipboard!');
-                        } catch (error) {
-                          showMessage('error', 'Unable to copy FEN.');
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
-                      style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Copy FEN
-                    </button>
-                    <button
-                      onClick={() => {
-                        const fenText = prompt('Enter FEN:');
-                        if (fenText) {
-                          const result = loadFen(fenText);
-                          if (result) {
-                            showMessage('success', 'FEN loaded successfully.');
+
+                  {/* FEN Section */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          const fen = getFen();
+                          try {
+                            await navigator.clipboard.writeText(fen);
+                            showMessage('success', 'FEN copied to clipboard!');
+                          } catch (error) {
+                            showMessage('error', 'Unable to copy FEN.');
                           }
-                          // Error message is handled by useGame onError callback
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Copy FEN
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (fenInput.trim()) {
+                            const result = loadFen(fenInput);
+                            if (result) {
+                              showMessage('success', 'FEN loaded successfully.');
+                              setFenInput(''); // Clear input after successful load
+                            }
+                            // Error message is handled by useGame onError callback
+                          } else {
+                            showMessage('info', 'Enter a FEN in the text box below.');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
+                        style={{
+                          background: '#555',
+                          color: '#fff',
+                          border: 'none'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
+                      >
+                        Load FEN
+                      </button>
+                    </div>
+                    <textarea
+                      className="w-full p-2 rounded-lg text-xs font-mono resize-none"
+                      rows={2}
+                      placeholder="Current FEN (or type to load)"
+                      value={fenInput !== '' ? fenInput : getFen()}
+                      onChange={(e) => setFenInput(e.target.value)}
+                      onFocus={(e) => {
+                        // Select all on focus for easy editing
+                        e.target.select();
+                      }}
+                      onBlur={() => {
+                        // Clear input when blurred if empty, to show current FEN
+                        if (fenInput.trim() === '') {
+                          setFenInput('');
                         }
                       }}
-                      className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
                       style={{
-                        background: '#555',
-                        color: '#fff',
-                        border: 'none'
+                        background: '#2b2b2b',
+                        border: '1px solid #555',
+                        color: '#bbb'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = '#555')}
-                    >
-                      Load FEN
-                    </button>
+                    />
                   </div>
                 </div>
-
-                {/* PGN and FEN text areas (matching legacy) */}
-                <textarea
-                  className="w-full mt-3 p-2 rounded-lg text-xs font-mono resize-none"
-                  rows={4}
-                  placeholder="PGN will appear here"
-                  value={getPgn()}
-                  readOnly
-                  style={{
-                    background: '#2b2b2b',
-                    border: '1px solid #555',
-                    color: '#bbb'
-                  }}
-                />
-                <textarea
-                  className="w-full mt-2 p-2 rounded-lg text-xs font-mono resize-none"
-                  rows={2}
-                  placeholder="FEN will appear here"
-                  value={getFen()}
-                  readOnly
-                  style={{
-                    background: '#2b2b2b',
-                    border: '1px solid #555',
-                    color: '#bbb'
-                  }}
-                />
               </div>
             </div>
           </div>
@@ -723,10 +833,10 @@ export default function Home() {
           <p>
             <strong>Migration Progress:</strong> Board rendering ✓, Piece
             movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine
-            analysis ✓, Appearance ✓
+            analysis ✓, Appearance ✓, All parity fixes ✓
           </p>
           <p className="mt-2">
-            <strong>Phase 3:</strong> Complete! Try selecting the text above and
+            <strong>Phase X:</strong> Functional & Visual Parity Complete! Try selecting the text above and
             typing a secret code...
           </p>
         </div>

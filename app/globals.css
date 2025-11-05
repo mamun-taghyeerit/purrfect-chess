@@ -433,3 +433,22 @@ body {
 .board-arrow.engine-arrow-3 {
   stroke: rgba(244, 114, 182, 0.95); /* Pink - third best */
 }
+
+/* ========================================
+   Move Badge Styles
+   ======================================== */
+
+.move-badge {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.move-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
