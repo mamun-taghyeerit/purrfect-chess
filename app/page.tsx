@@ -305,7 +305,13 @@ const Home = observer(() => {
             <div className="flex gap-2 items-start">
               {/* Chess Board with Engine Overlays */}
               <Board
-                engineHighlights={engineHighlights}
+                engineHighlights={
+                  // Only show highlights if eval bar or engine panel is visible
+                  // Clear highlights when both are hidden to prevent stale overlays
+                  store.ui.isEvalBarVisible || store.ui.isEnginePanelVisible
+                    ? engineHighlights
+                    : []
+                }
                 showEvalBarOverlay={store.ui.isEvalBarVisible && !store.ui.isEnginePanelVisible}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}

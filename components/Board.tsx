@@ -758,8 +758,9 @@ function Board({
 
               // Check for engine highlights (multi-PV squares)
               // Only apply if engineDisplayMode includes squares
+              // IMPORTANT: Do NOT show square highlights for eval bar overlay (arrows only)
               const showEngineSquares =
-                engineDisplayMode === 'both' || engineDisplayMode === 'squares';
+                !showEvalBarOverlay && (engineDisplayMode === 'both' || engineDisplayMode === 'squares');
               let engineHighlightRank: number | null = null;
 
               if (showEngineSquares && engineHighlights.length > 0) {
