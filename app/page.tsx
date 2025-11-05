@@ -345,17 +345,17 @@ const Home = observer(() => {
 
             {/* Board status info (depth display) */}
             <div className="board-status-info">
-              {/* Eval bar depth info - shown when eval bar is visible and analyzing */}
-              {store.ui.isEvalBarVisible && isAnalyzing && currentDepth > 0 && (
+              {/* Eval bar depth info - shown when eval bar is visible (always visible when bar is open) */}
+              {store.ui.isEvalBarVisible && currentDepth > 0 && (
                 <div className="eval-bar-depth-info">
-                  (current depth: <span>{currentDepth}</span> | max depth: <span>22</span>)
+                  (current depth: <span>{currentDepth}</span> | max depth: <span>{store.settings.defaultEngineDepth}</span>)
                 </div>
               )}
               
               {/* Move review status - shown when reviewing */}
               {isReviewing && reviewStatus && (
                 <div className="move-review-status">
-                  ({reviewStatus})
+                  (analyzing move... depth: <span>{reviewStatus.depth}</span> | time: <span>{Math.ceil(reviewStatus.remainingTime / 1000)}s</span>)
                 </div>
               )}
             </div>
