@@ -14,6 +14,7 @@ import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
 import { useRootStore } from '@/stores/store-setup';
 import { useEngine } from '@/hooks/useEngine';
+import { useAutoEvaluation } from '@/hooks/useAutoEvaluation';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
 import { useMoveReview } from '@/hooks/useMoveReview';
@@ -46,8 +47,16 @@ const Home = observer(() => {
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
   // Initialize engine (hook manages worker lifecycle)
-  const { isAnalyzing, currentDepth } = useEngine({
+  const { isEngineReady, isAnalyzing, currentDepth, startAnalysis, stopAnalysis } = useEngine({
     onError: handleError,
+  });
+
+  // Auto-start engine analysis when eval bar is visible
+  useAutoEvaluation({
+    startAnalysis,
+    stopAnalysis,
+    isEngineReady,
+    depth: 15, // Use depth 15 for auto-evaluation (lighter than full analysis)
   });
 
   const { isReviewing, currentBadge, reviewStatus, reviewLastMove, clearBadge } =
@@ -293,17 +302,29 @@ const Home = observer(() => {
           {/* Center Panel: Board */}
           <div className="flex flex-col items-center gap-6 xl:flex-initial">
             {/* Board with Evaluation Bar */}
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-start">
               {/* Chess Board with Engine Overlays */}
               <Board
-                engineHighlights={engineHighlights}
+                engineHighlights={
+                  // Only show highlights if eval bar or engine panel is visible
+                  // Clear highlights when both are hidden to prevent stale overlays
+                  store.ui.isEvalBarVisible || store.ui.isEnginePanelVisible
+                    ? engineHighlights
+                    : []
+                }
+                showEvalBarOverlay={store.ui.isEvalBarVisible && !store.ui.isEnginePanelVisible}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
                 onError={handleError}
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
-              <div style={{ minWidth: '46px', visibility: store.ui.isEvalBarVisible ? 'visible' : 'hidden' }}>
+              <div style={{ 
+                minWidth: '46px',
+                width: '46px',
+                height: 'min(90vw, 600px)', // Match board height (board is square with this width)
+                visibility: store.ui.isEvalBarVisible ? 'visible' : 'hidden' 
+              }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
@@ -321,6 +342,23 @@ const Home = observer(() => {
               isReviewing={isReviewing}
               reviewStatus={reviewStatus}
             />
+
+            {/* Board status info (depth display) */}
+            <div className="board-status-info">
+              {/* Eval bar depth info - shown when eval bar is visible (always visible when bar is open) */}
+              {store.ui.isEvalBarVisible && currentDepth > 0 && (
+                <div className="eval-bar-depth-info">
+                  (current depth: <span>{currentDepth}</span> | max depth: <span>{store.settings.defaultEngineDepth}</span>)
+                </div>
+              )}
+              
+              {/* Move review status - shown when reviewing */}
+              {isReviewing && reviewStatus && (
+                <div className="move-review-status">
+                  (analyzing move... depth: <span>{reviewStatus.depth}</span> | time: <span>{Math.ceil(reviewStatus.remainingTime / 1000)}s</span>)
+                </div>
+              )}
+            </div>
 
             {/* Match Card */}
             <div 
