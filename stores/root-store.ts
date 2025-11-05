@@ -2,6 +2,11 @@ import { types, Instance, SnapshotIn, flow } from 'mobx-state-tree';
 import { Chess } from 'chess.js';
 
 /**
+ * Promisified delay function for use in MST flows
+ */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
  * Time Control Model
  */
 const TimeControlModel = types.model('TimeControl', {
@@ -26,7 +31,7 @@ const GameStateModel = types
     // Chess.js instance is volatile (not serialized)
     chessInstance: new Chess(),
     // Timer state (not persisted)
-    timerIntervalId: null as NodeJS.Timeout | null,
+    timerRunning: false, // Track if timer loop is running
     lastTickTime: null as number | null,
   }))
   .views((self) => ({
@@ -105,44 +110,38 @@ const GameStateModel = types
         return false;
       }
     },
+    stopTimer() {
+      self.isTimerRunning = false;
+      self.timerRunning = false;
+      self.lastTickTime = null;
+    },
+  }))
+  .actions((self) => ({
     resetGame() {
       self.chessInstance.reset();
       self.fen = self.chessInstance.fen();
       self.whiteTime = self.timeControl.minutes * 60 * 1000;
       self.blackTime = self.timeControl.minutes * 60 * 1000;
       self.isGameOver = false;
-      self.isTimerRunning = false;
-      // Stop timer if running
-      if (self.timerIntervalId) {
-        clearInterval(self.timerIntervalId);
-        self.timerIntervalId = null;
-        self.lastTickTime = null;
-      }
+      self.stopTimer();
     },
     tick(delta: number) {
       // Timer tick logic - must be in an action to modify model state
+      // Update lastTickTime here (inside action)
+      self.lastTickTime = Date.now();
+      
       if (!self.isGameOver && self.isTimerRunning) {
         if (self.turn === 'w') {
           self.whiteTime = Math.max(0, self.whiteTime - delta);
           if (self.whiteTime === 0) {
             self.isGameOver = true;
-            self.isTimerRunning = false;
-            if (self.timerIntervalId) {
-              clearInterval(self.timerIntervalId);
-              self.timerIntervalId = null;
-              self.lastTickTime = null;
-            }
+            self.stopTimer();
           }
         } else {
           self.blackTime = Math.max(0, self.blackTime - delta);
           if (self.blackTime === 0) {
             self.isGameOver = true;
-            self.isTimerRunning = false;
-            if (self.timerIntervalId) {
-              clearInterval(self.timerIntervalId);
-              self.timerIntervalId = null;
-              self.lastTickTime = null;
-            }
+            self.stopTimer();
           }
         }
       }
@@ -151,25 +150,13 @@ const GameStateModel = types
       self.timeControl = TimeControlModel.create({ minutes, increment });
       self.whiteTime = minutes * 60 * 1000;
       self.blackTime = minutes * 60 * 1000;
-      self.isTimerRunning = false;
-      // Stop timer if running
-      if (self.timerIntervalId) {
-        clearInterval(self.timerIntervalId);
-        self.timerIntervalId = null;
-        self.lastTickTime = null;
-      }
+      self.stopTimer();
     },
     loadFen(fen: string) {
       try {
         self.chessInstance.load(fen.trim());
         self.fen = self.chessInstance.fen();
-        self.isTimerRunning = false;
-        // Stop timer if running
-        if (self.timerIntervalId) {
-          clearInterval(self.timerIntervalId);
-          self.timerIntervalId = null;
-          self.lastTickTime = null;
-        }
+        self.stopTimer();
         return true;
       } catch (error) {
         console.error('Invalid FEN:', error);
@@ -180,13 +167,7 @@ const GameStateModel = types
       try {
         self.chessInstance.loadPgn(pgn.trim());
         self.fen = self.chessInstance.fen();
-        self.isTimerRunning = false;
-        // Stop timer if running
-        if (self.timerIntervalId) {
-          clearInterval(self.timerIntervalId);
-          self.timerIntervalId = null;
-          self.lastTickTime = null;
-        }
+        self.stopTimer();
         return true;
       } catch (error) {
         console.error('Invalid PGN:', error);
@@ -195,30 +176,6 @@ const GameStateModel = types
     },
     getPgn() {
       return self.chessInstance.pgn();
-    },
-    startTimer() {
-      self.isTimerRunning = true;
-      // Start the interval timer
-      if (!self.timerIntervalId) {
-        self.lastTickTime = Date.now();
-        self.timerIntervalId = setInterval(() => {
-          const now = Date.now();
-          const delta = self.lastTickTime ? now - self.lastTickTime : 0;
-          self.lastTickTime = now;
-          
-          // Call the tick action to update timer state
-          self.tick(delta);
-        }, 100);
-      }
-    },
-    stopTimer() {
-      self.isTimerRunning = false;
-      // Clear the interval
-      if (self.timerIntervalId) {
-        clearInterval(self.timerIntervalId);
-        self.timerIntervalId = null;
-        self.lastTickTime = null;
-      }
     },
     afterCreate() {
       // Load FEN on creation with error handling
@@ -234,12 +191,59 @@ const GameStateModel = types
     },
     beforeDestroy() {
       // Clean up timer on destroy
-      if (self.timerIntervalId) {
-        clearInterval(self.timerIntervalId);
-      }
+      self.stopTimer();
     },
   }))
   .actions((self) => ({
+    // Flow-based async timer loop
+    startTimer: flow(function* () {
+      if (self.timerRunning) {
+        return; // Already running
+      }
+      
+      self.isTimerRunning = true;
+      self.timerRunning = true;
+      self.lastTickTime = Date.now();
+      
+      // Timer loop using generator/flow
+      while (self.timerRunning && !self.isGameOver) {
+        yield delay(100); // Wait 100ms
+        
+        if (!self.timerRunning || self.isGameOver) {
+          break;
+        }
+        
+        const now = Date.now();
+        const delta = self.lastTickTime ? now - self.lastTickTime : 0;
+        self.tick(delta);
+      }
+    }),
+    afterCreate() {
+      // Load FEN on creation with error handling
+      if (self.fen) {
+        try {
+          self.chessInstance.load(self.fen);
+        } catch (error) {
+          console.error('[GameStore] Failed to load FEN on initialization:', error);
+          // Fall back to default position if FEN is invalid
+          self.chessInstance.reset();
+        }
+      }
+    },
+    beforeDestroy() {
+      // Clean up timer on destroy
+      self.stopTimer();
+    },
+  }))
+  .actions((self) => ({
+    resetGame() {
+      self.chessInstance.reset();
+      self.fen = self.chessInstance.fen();
+      self.whiteTime = self.timeControl.minutes * 60 * 1000;
+      self.blackTime = self.timeControl.minutes * 60 * 1000;
+      self.isGameOver = false;
+      self.stopTimer();
+    },
     // Enhanced actions with error handling - can now call actions from previous block
     movePieceWithValidation(from: string, to: string, promotion?: string, onError?: (msg: string) => void) {
       const success = self.movePiece(from, to, promotion);

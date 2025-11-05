@@ -126,7 +126,7 @@ describe('Root Store', () => {
     it('should decrement time on tick', () => {
       const initialTime = store.game.whiteTime;
       store.game.startTimer();
-      store.game.tickTimer(1000); // Tick 1 second
+      store.game.tick(1000); // Tick 1 second
       
       expect(store.game.whiteTime).toBe(initialTime - 1000);
     });
@@ -138,7 +138,7 @@ describe('Root Store', () => {
       
       store.game.startTimer(); // Must start timer
       const initialBlackTime = store.game.blackTime;
-      store.game.tickTimer(1000);
+      store.game.tick(1000);
       
       expect(store.game.blackTime).toBe(initialBlackTime - 1000);
     });

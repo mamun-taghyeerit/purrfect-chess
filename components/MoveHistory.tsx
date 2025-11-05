@@ -1,6 +1,8 @@
 'use client';
 
-import React, { memo } from 'react';
+import React from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 import type { Move } from '@/lib/types';
 
 /**
@@ -12,15 +14,14 @@ import type { Move } from '@/lib/types';
  * - Grouped by move number (White & Black)
  * 
  * Performance Optimizations:
- * - Memoized to prevent unnecessary re-renders
- * - Only re-renders when move history actually changes
+ * - Uses MobX observer for fine-grained reactivity
+ * - Only re-renders when store.game.history changes
  */
 
-interface MoveHistoryProps {
-  history: Move[];
-}
+const MoveHistory = observer(function MoveHistory() {
+  const store = useRootStore();
+  const history = store.game.history;
 
-const MoveHistory = memo(function MoveHistory({ history }: MoveHistoryProps) {
   // Group moves by pairs (white and black)
   const movePairs: Array<{ white: Move | null; black: Move | null }> = [];
   for (let i = 0; i < history.length; i += 2) {
@@ -59,19 +60,6 @@ const MoveHistory = memo(function MoveHistory({ history }: MoveHistoryProps) {
       </div>
     </div>
   );
-}, (prevProps, nextProps) => {
-  // Only re-render if history length or last move changed
-  if (prevProps.history.length !== nextProps.history.length) {
-    return false;
-  }
-  if (prevProps.history.length > 0 && nextProps.history.length > 0) {
-    const prevLastMove = prevProps.history[prevProps.history.length - 1];
-    const nextLastMove = nextProps.history[nextProps.history.length - 1];
-    if (prevLastMove.san !== nextLastMove.san) {
-      return false;
-    }
-  }
-  return true;
 });
 
 export default MoveHistory;

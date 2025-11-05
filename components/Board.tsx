@@ -34,9 +34,9 @@ import ArrowOverlay, {
  * - Orientation: A1 always bottom-left for white (default view)
  * 
  * Performance Optimizations:
+ * - Uses MobX observer for fine-grained reactivity
  * - Memoized callbacks and computations
  * - Optimized re-render triggers via useCallback/useMemo
- * - Note: Not using React.memo due to complex internal state from useGame hook
  */
 
 // Constants
@@ -59,12 +59,6 @@ export interface BoardProps {
   /** Engine analysis highlights (multi-PV moves) */
   engineHighlights?: EngineHighlight[];
 
-  /** Engine overlay display mode */
-  engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
-
-  /** Whether to flip the board (black perspective) */
-  flipped?: boolean;
-
   /** Move badge to display (from move review) */
   moveBadge?: { type: string; square: string } | null;
 
@@ -77,14 +71,17 @@ export interface BoardProps {
 
 function Board({
   engineHighlights = [],
-  engineDisplayMode = 'arrows',
-  flipped = false,
   moveBadge = null,
   onBadgeComplete,
   onError,
 }: BoardProps) {
-  // Access store directly for game state
+  // Access store directly for game state and UI state
   const store = useRootStore();
+  const ui = store.ui;
+  
+  // Get UI state from store
+  const flipped = ui.isBoardFlipped;
+  const engineDisplayMode = ui.engineDisplayModeValue;
   
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);

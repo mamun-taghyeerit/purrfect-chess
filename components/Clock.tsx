@@ -1,6 +1,8 @@
 'use client';
 
-import React, { memo } from 'react';
+import React from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 
 /**
  * Clock Component - Display chess clock for both players
@@ -13,23 +15,15 @@ import React, { memo } from 'react';
  * - Fixed-width layout to prevent layout shift on time changes
  * 
  * Performance Optimizations:
- * - Memoized to prevent unnecessary re-renders
+ * - Uses MobX observer for fine-grained reactivity
+ * - Only re-renders when accessed store properties change
  * - Fixed-width monospace font for stable layout
  */
 
-interface ClockProps {
-  whiteTime: number; // milliseconds
-  blackTime: number; // milliseconds
-  activeColor: 'w' | 'b';
-  isRunning: boolean;
-}
+const Clock = observer(function Clock() {
+  const store = useRootStore();
+  const game = store.game;
 
-const Clock = memo(function Clock({
-  whiteTime,
-  blackTime,
-  activeColor,
-  isRunning,
-}: ClockProps) {
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -42,41 +36,27 @@ const Clock = memo(function Clock({
       {/* Black's Clock */}
       <div
         className={`p-4 rounded-lg text-center font-mono text-2xl font-bold transition-all ${
-          activeColor === 'b' && isRunning
+          game.turn === 'b' && game.isTimerRunning
             ? 'bg-gray-800 text-white ring-4 ring-blue-500'
             : 'bg-gray-200 text-gray-800'
         }`}
       >
         <div className="text-sm font-normal mb-1">Black</div>
-        <div>{formatTime(blackTime)}</div>
+        <div>{formatTime(game.blackTime)}</div>
       </div>
 
       {/* White's Clock */}
       <div
         className={`p-4 rounded-lg text-center font-mono text-2xl font-bold transition-all ${
-          activeColor === 'w' && isRunning
+          game.turn === 'w' && game.isTimerRunning
             ? 'bg-gray-100 text-gray-800 ring-4 ring-blue-500'
             : 'bg-gray-200 text-gray-600'
         }`}
       >
         <div className="text-sm font-normal mb-1">White</div>
-        <div>{formatTime(whiteTime)}</div>
+        <div>{formatTime(game.whiteTime)}</div>
       </div>
     </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders
-  // Only re-render if time changes by more than 1 second or state changes
-  const prevWhiteSec = Math.floor(prevProps.whiteTime / 1000);
-  const nextWhiteSec = Math.floor(nextProps.whiteTime / 1000);
-  const prevBlackSec = Math.floor(prevProps.blackTime / 1000);
-  const nextBlackSec = Math.floor(nextProps.blackTime / 1000);
-  
-  return (
-    prevWhiteSec === nextWhiteSec &&
-    prevBlackSec === nextBlackSec &&
-    prevProps.activeColor === nextProps.activeColor &&
-    prevProps.isRunning === nextProps.isRunning
   );
 });
 
