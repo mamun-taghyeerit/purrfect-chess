@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
- * Move Review Hook - Simplified stub implementation
+ * Move Review Hook - Enhanced with status tracking
  * 
  * This is a stub implementation that randomly classifies moves.
  * The actual move quality detection logic will be refined later.
@@ -11,7 +11,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
  * Features:
  * - Random classification from 11 available types
  * - Badge display with animation
- * - Status tracking
+ * - Status tracking with time and depth updates (matching legacy)
+ * - Status update interval (100ms)
  */
 
 export type MoveClassification =
@@ -39,6 +40,12 @@ export interface LastMove {
   color: 'w' | 'b';
 }
 
+export interface ReviewStatus {
+  remainingTime: number;
+  totalTime: number;
+  depth: number;
+}
+
 const MOVE_TYPES: MoveClassification[] = [
   'forced',
   'great',
@@ -54,14 +61,27 @@ const MOVE_TYPES: MoveClassification[] = [
 ];
 
 const BADGE_DISPLAY_TIME = 4000; // 4 seconds
+const MOVE_REVIEW_ANALYSIS_TIME = 5000; // 5 seconds per position (matching legacy)
+const MOVE_REVIEW_UPDATE_INTERVAL = 100; // Update UI every 100ms (matching legacy)
 
 export function useMoveReview() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [currentBadge, setCurrentBadge] = useState<MoveBadge | null>(null);
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
+  
   const timeoutRefs = useRef<{
     analysis?: NodeJS.Timeout;
     badge?: NodeJS.Timeout;
+    statusInterval?: NodeJS.Timeout;
   }>({});
+  
+  const statusDataRef = useRef<{
+    startTime: number;
+    currentDepth: number;
+  }>({
+    startTime: 0,
+    currentDepth: 0,
+  });
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -72,7 +92,24 @@ export function useMoveReview() {
       if (timeoutRefs.current.badge) {
         clearTimeout(timeoutRefs.current.badge);
       }
+      if (timeoutRefs.current.statusInterval) {
+        clearInterval(timeoutRefs.current.statusInterval);
+      }
     };
+  }, []);
+
+  /**
+   * Update status display (matching legacy updateMoveReviewStatus)
+   */
+  const updateStatus = useCallback(() => {
+    const elapsed = Date.now() - statusDataRef.current.startTime;
+    const remaining = Math.max(0, MOVE_REVIEW_ANALYSIS_TIME - elapsed);
+    
+    setReviewStatus({
+      remainingTime: remaining,
+      totalTime: MOVE_REVIEW_ANALYSIS_TIME,
+      depth: statusDataRef.current.currentDepth,
+    });
   }, []);
 
   /**
@@ -94,9 +131,36 @@ export function useMoveReview() {
     if (timeoutRefs.current.badge) {
       clearTimeout(timeoutRefs.current.badge);
     }
+    if (timeoutRefs.current.statusInterval) {
+      clearInterval(timeoutRefs.current.statusInterval);
+    }
 
-    // Simulate analysis delay
+    // Initialize status tracking
+    statusDataRef.current.startTime = Date.now();
+    statusDataRef.current.currentDepth = 0;
+
+    // Start status update interval
+    updateStatus(); // Update immediately
+    timeoutRefs.current.statusInterval = setInterval(() => {
+      // Simulate depth increasing over time
+      statusDataRef.current.currentDepth = Math.min(
+        22,
+        Math.floor((Date.now() - statusDataRef.current.startTime) / 300)
+      );
+      updateStatus();
+    }, MOVE_REVIEW_UPDATE_INTERVAL);
+
+    // Simulate analysis delay (matching legacy)
     timeoutRefs.current.analysis = setTimeout(() => {
+      // Clear status interval
+      if (timeoutRefs.current.statusInterval) {
+        clearInterval(timeoutRefs.current.statusInterval);
+        timeoutRefs.current.statusInterval = undefined;
+      }
+
+      // Hide status
+      setReviewStatus(null);
+
       // Stub: Random classification
       const randomIndex = Math.floor(Math.random() * MOVE_TYPES.length);
       const classification = MOVE_TYPES[randomIndex];
@@ -118,8 +182,8 @@ export function useMoveReview() {
       timeoutRefs.current.badge = setTimeout(() => {
         setCurrentBadge(null);
       }, BADGE_DISPLAY_TIME);
-    }, 500);
-  }, []);
+    }, MOVE_REVIEW_ANALYSIS_TIME);
+  }, [updateStatus]);
 
   const clearBadge = useCallback(() => {
     setCurrentBadge(null);
@@ -132,6 +196,7 @@ export function useMoveReview() {
   return {
     isReviewing,
     currentBadge,
+    reviewStatus,
     reviewLastMove,
     clearBadge,
   };

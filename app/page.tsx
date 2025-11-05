@@ -50,7 +50,7 @@ const Home = observer(() => {
     onError: handleError,
   });
 
-  const { isReviewing, currentBadge, reviewLastMove, clearBadge } =
+  const { isReviewing, currentBadge, reviewStatus, reviewLastMove, clearBadge } =
     useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
@@ -319,6 +319,7 @@ const Home = observer(() => {
               onShowMessage={showMessage}
               onReviewLastMove={reviewLastMove}
               isReviewing={isReviewing}
+              reviewStatus={reviewStatus}
             />
 
             {/* Match Card */}
