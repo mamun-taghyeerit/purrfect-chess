@@ -73,6 +73,13 @@ const GameStateModel = types
     get draw() {
       return self.chessInstance.isDraw();
     },
+    /**
+     * Get legal moves for a square
+     * Returns moves in verbose format with from, to, san, etc.
+     */
+    getLegalMoves(square: string) {
+      return self.chessInstance.moves({ square: square as any, verbose: true });
+    },
   }))
   .actions((self) => ({
     movePiece(from: string, to: string, promotion?: string) {
@@ -110,6 +117,34 @@ const GameStateModel = types
         clearInterval(self.timerIntervalId);
         self.timerIntervalId = null;
         self.lastTickTime = null;
+      }
+    },
+    tick(delta: number) {
+      // Timer tick logic - must be in an action to modify model state
+      if (!self.isGameOver && self.isTimerRunning) {
+        if (self.turn === 'w') {
+          self.whiteTime = Math.max(0, self.whiteTime - delta);
+          if (self.whiteTime === 0) {
+            self.isGameOver = true;
+            self.isTimerRunning = false;
+            if (self.timerIntervalId) {
+              clearInterval(self.timerIntervalId);
+              self.timerIntervalId = null;
+              self.lastTickTime = null;
+            }
+          }
+        } else {
+          self.blackTime = Math.max(0, self.blackTime - delta);
+          if (self.blackTime === 0) {
+            self.isGameOver = true;
+            self.isTimerRunning = false;
+            if (self.timerIntervalId) {
+              clearInterval(self.timerIntervalId);
+              self.timerIntervalId = null;
+              self.lastTickTime = null;
+            }
+          }
+        }
       }
     },
     setTimeControl(minutes: number, increment: number) {
@@ -171,32 +206,8 @@ const GameStateModel = types
           const delta = self.lastTickTime ? now - self.lastTickTime : 0;
           self.lastTickTime = now;
           
-          // Inline timer tick logic
-          if (!self.isGameOver && self.isTimerRunning) {
-            if (self.turn === 'w') {
-              self.whiteTime = Math.max(0, self.whiteTime - delta);
-              if (self.whiteTime === 0) {
-                self.isGameOver = true;
-                self.isTimerRunning = false;
-                if (self.timerIntervalId) {
-                  clearInterval(self.timerIntervalId);
-                  self.timerIntervalId = null;
-                  self.lastTickTime = null;
-                }
-              }
-            } else {
-              self.blackTime = Math.max(0, self.blackTime - delta);
-              if (self.blackTime === 0) {
-                self.isGameOver = true;
-                self.isTimerRunning = false;
-                if (self.timerIntervalId) {
-                  clearInterval(self.timerIntervalId);
-                  self.timerIntervalId = null;
-                  self.lastTickTime = null;
-                }
-              }
-            }
-          }
+          // Call the tick action to update timer state
+          self.tick(delta);
         }, 100);
       }
     },

@@ -539,7 +539,7 @@ function Board({
 
         // If move failed and clicking on a different piece, select it instead (re-selection)
         if (!success && isPiece && square !== selectedSquare) {
-          const moves = store.game.chessInstance.moves({ square: square as any, verbose: true });
+          const moves = store.game.getLegalMoves(square);
           const { legal, captures } = categorizeMoves(moves);
           setSelectedSquare(square);
           setLegalMoves(legal);
@@ -547,7 +547,7 @@ function Board({
         }
       } else if (isPiece) {
         // Select piece and show legal moves
-        const moves = store.game.chessInstance.moves({ square: square as any, verbose: true });
+        const moves = store.game.getLegalMoves(square);
         const { legal, captures } = categorizeMoves(moves);
         setSelectedSquare(square);
         setLegalMoves(legal);
@@ -646,7 +646,7 @@ function Board({
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', square);
 
-      const moves = store.game.chessInstance.moves({ square: square as any, verbose: true });
+      const moves = store.game.getLegalMoves(square);
       const { legal, captures } = categorizeMoves(moves);
 
       // Set drag state
