@@ -79,7 +79,7 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
       </div>
       {analysis.pvSan.length > 0 && (
         <div className="text-sm" style={{ color: '#8f8f8f' }}>
-          {analysis.pvSan.slice(0, 8).join(' ')}
+          {Array.from(analysis.pvSan).slice(0, 8).join(' ')}
           {analysis.pvSan.length > 8 && '...'}
         </div>
       )}

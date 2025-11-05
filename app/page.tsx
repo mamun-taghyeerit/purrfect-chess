@@ -51,11 +51,13 @@ const Home = observer(() => {
 
   // Use MobX store - access slices directly, keep references for reactivity
   const store = useRootStore();
+  const engine = store.engine;
 
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
-  const { isAnalyzing, analysis, currentDepth } = useEngine({
+  // Initialize engine (hook manages worker lifecycle)
+  const { isAnalyzing, currentDepth } = useEngine({
     onError: handleError,
   });
 
@@ -66,23 +68,9 @@ const Home = observer(() => {
     onReveal: () => store.ui.showEnginePanel(),
   });
 
-  // Convert engine analysis to highlights for Board
-  const engineHighlights: EngineHighlight[] = analysis
-    .filter(line => line.bestMove && line.bestMove.length >= 4)
-    .map((line, index) => ({
-      from: line.bestMove.slice(0, 2),
-      to: line.bestMove.slice(2, 4),
-      rank: index + 1, // 1-based rank (1 = best move)
-    }));
-
-  // Debug logging for engine highlights
-  useEffect(() => {
-    console.log('[DEBUG] Engine highlights:', engineHighlights);
-    console.log('[DEBUG] Analysis:', analysis);
-  }, [engineHighlights, analysis]);
-
-  // Get best evaluation for EvaluationBar (from first PV line)
-  const bestEval = analysis.length > 0 ? analysis[0] : null;
+  // Get engine highlights and best eval from store (shared global state)
+  const engineHighlights = engine.engineHighlights;
+  const bestEval = engine.bestEvaluation;
   const evalScore = bestEval ? bestEval.score : null;
   const evalMate =
     bestEval && bestEval.scoreType === 'mate' ? bestEval.score : null;
