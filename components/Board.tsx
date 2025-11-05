@@ -34,9 +34,9 @@ import ArrowOverlay, {
  * - Orientation: A1 always bottom-left for white (default view)
  * 
  * Performance Optimizations:
+ * - Uses MobX observer for fine-grained reactivity
  * - Memoized callbacks and computations
  * - Optimized re-render triggers via useCallback/useMemo
- * - Note: Not using React.memo due to complex internal state from useGame hook
  */
 
 // Constants
