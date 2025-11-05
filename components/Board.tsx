@@ -882,53 +882,96 @@ function Board({
           previewArrow={previewArrow}
         />
 
-        {/* Move Badge - Positioned at target square */}
-        {moveBadge && (() => {
-          // Calculate badge position at top-right of target square
-          const badgeSquare = parseSquare(moveBadge.square);
-          if (!badgeSquare) return null;
-
-          const center = squareCenter(moveBadge.square);
-          if (!center) return null;
-
-          // Position at top-right corner of square
-          // Each square is 12.5% of board width/height
-          const squareSize = 12.5; // percentage
-          const offsetX = squareSize * 0.4; // 40% to the right
-          const offsetY = -squareSize * 0.4; // 40% up
-
-          return (
-            <img
-              src={`/assets/${moveBadge.type}.png`}
-              alt={moveBadge.type}
-              className="move-badge"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                // Only attempt fallback once to prevent infinite loop
-                if (!target.dataset.fallbackAttempted && !target.src.endsWith('/good.png')) {
-                  target.dataset.fallbackAttempted = 'true';
-                  target.src = '/assets/good.png';
-                } else if (target.dataset.fallbackAttempted) {
-                  // Hide badge if even fallback fails
-                  target.style.display = 'none';
-                }
-              }}
-              style={{
-                position: 'absolute',
-                left: `calc(${center.x * 100}% + ${offsetX}%)`,
-                top: `calc(${center.y * 100}% + ${offsetY}%)`,
-                transform: 'translate(-50%, -50%)',
-                width: '24px',
-                height: '24px',
-                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4))',
-                pointerEvents: 'none',
-                zIndex: 1000,
-              }}
-            />
-          );
-        })()}
+        {/* Move Badge - Animated badge from legacy implementation */}
+        {moveBadge && <MoveBadge badge={moveBadge} boardRef={boardRef} />}
       </div>
     </div>
+  );
+}
+
+/**
+ * MoveBadge Component - Animated move quality badge
+ * Ported from legacy src/main.ts displayMoveBadge() function
+ * 
+ * Handles:
+ * - Badge positioning relative to target square
+ * - CSS animation triggers
+ * - Fallback image loading
+ */
+interface MoveBadgeProps {
+  badge: { type: string; square: string };
+  boardRef: React.RefObject<HTMLDivElement>;
+}
+
+function MoveBadge({ badge, boardRef }: MoveBadgeProps) {
+  const badgeRef = useRef<HTMLImageElement>(null);
+  const [isAnimated, setIsAnimated] = useState(false);
+
+  useEffect(() => {
+    if (!badgeRef.current || !boardRef.current) return;
+
+    const badgeEl = badgeRef.current;
+    const boardEl = boardRef.current;
+
+    // Find target square element
+    const targetSquareEl = boardEl.querySelector(
+      `[data-square="${badge.square}"]`
+    ) as HTMLElement;
+
+    if (targetSquareEl) {
+      // Calculate target position relative to board container
+      const boardRect = boardEl.getBoundingClientRect();
+      const squareRect = targetSquareEl.getBoundingClientRect();
+
+      // Position at top-right corner, more towards the outer edge (matching legacy)
+      const badgeSize = 24; // Final badge size (smaller)
+      const edgeOffset = 4; // Pixels from the edge
+      const offsetX =
+        squareRect.left - boardRect.left + squareRect.width - edgeOffset;
+      const offsetY = squareRect.top - boardRect.top + edgeOffset;
+
+      // Set CSS custom properties for the target position
+      badgeEl.style.setProperty('--target-x', `${offsetX}px`);
+      badgeEl.style.setProperty('--target-y', `${offsetY}px`);
+
+      // Trigger animation after a brief delay (matching legacy)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsAnimated(true);
+        });
+      });
+    } else {
+      // No target square, just trigger animation at center
+      requestAnimationFrame(() => {
+        setIsAnimated(true);
+      });
+    }
+  }, [badge.square, boardRef]);
+
+  return (
+    <img
+      ref={badgeRef}
+      src={`/assets/${badge.type}.png`}
+      alt={badge.type}
+      className={`move-badge move-badge--${badge.type}${
+        isAnimated ? ' move-badge--animated' : ''
+      }`}
+      data-target={badge.square}
+      onError={(e) => {
+        const target = e.target as HTMLImageElement;
+        // Only attempt fallback once to prevent infinite loop
+        if (
+          !target.dataset.fallbackAttempted &&
+          !target.src.endsWith('/good.png')
+        ) {
+          target.dataset.fallbackAttempted = 'true';
+          target.src = '/assets/good.png';
+        } else if (target.dataset.fallbackAttempted) {
+          // Hide badge if even fallback fails
+          target.style.display = 'none';
+        }
+      }}
+    />
   );
 }
 

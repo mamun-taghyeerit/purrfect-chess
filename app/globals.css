@@ -435,20 +435,267 @@ body {
 }
 
 /* ========================================
-   Move Badge Styles
+   Move Badge Styles (from legacy src/styles.css)
    ======================================== */
 
-.move-badge {
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  pointer-events: none;
-  z-index: 1000;
+/* Move Review Status - displays during analysis */
+.move-review-status {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
 }
 
-.move-badge img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+.move-review-status span {
+  font-family: 'Orbitron', 'Fira Code', 'Menlo', monospace;
+  font-weight: 600;
+}
+
+/* Move Badge - animated badge that appears after move review */
+.move-badge {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Badge animations based on type - all move from center to target */
+.move-badge[data-target] {
+  --target-x: 50%;
+  --target-y: 50%;
+}
+
+.move-badge--blunder.move-badge--animated[data-target] {
+  animation: blunder-spiral 1s ease-out forwards;
+}
+
+.move-badge--mistake.move-badge--animated[data-target] {
+  animation: mistake-shake 0.7s ease-out forwards;
+}
+
+.move-badge--inaccuracy.move-badge--animated[data-target] {
+  animation: inaccuracy-fade 0.8s ease-out forwards;
+}
+
+.move-badge--brilliant.move-badge--animated[data-target] {
+  animation: brilliant-glow 1s ease-out forwards;
+}
+
+.move-badge--best.move-badge--animated[data-target] {
+  animation: best-pop 0.6s ease-out forwards;
+}
+
+.move-badge--forced.move-badge--animated[data-target] {
+  animation: forced-snap 0.4s ease-out forwards;
+}
+
+.move-badge--great.move-badge--animated[data-target] {
+  animation: great-glow 0.7s ease-out forwards;
+}
+
+.move-badge--book.move-badge--animated[data-target] {
+  animation: book-fade 0.8s ease-out forwards;
+}
+
+.move-badge--excellent.move-badge--animated[data-target],
+.move-badge--good.move-badge--animated[data-target],
+.move-badge--miss.move-badge--animated[data-target] {
+  animation: default-slide 0.7s ease-out forwards;
+}
+
+/* Fallback for badges without target */
+.move-badge--animated:not([data-target]) {
+  animation: center-fade 0.5s ease-out forwards;
+}
+
+/* Keyframe animations - all end at target position with smaller size */
+@keyframes blunder-spiral {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(180deg) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) rotate(360deg) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes mistake-shake {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    transform: translate(-50%, -50%) translateX(-10px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateX(10px);
+  }
+  70% {
+    transform: translate(-50%, -50%) translateX(-5px);
+  }
+  85% {
+    transform: translate(-50%, -50%) translateX(5px);
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) translateX(0) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes inaccuracy-fade {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes brilliant-glow {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+    filter: drop-shadow(0 0 0px rgba(255, 215, 0, 0));
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+  }
+}
+
+@keyframes best-pop {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes forced-snap {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes great-glow {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+    filter: drop-shadow(0 0 0px rgba(100, 200, 255, 0));
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+    filter: drop-shadow(0 0 15px rgba(100, 200, 255, 0.6));
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(100, 200, 255, 0.3));
+  }
+}
+
+@keyframes book-fade {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes default-slide {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) translateY(-20px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    top: var(--target-y);
+    left: var(--target-x);
+    transform: translate(-50%, -50%) translateY(0) scale(0.4);
+    opacity: 1;
+  }
+}
+
+@keyframes center-fade {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
 }

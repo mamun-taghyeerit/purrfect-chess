@@ -26,19 +26,33 @@ interface GameControlsProps {
   onReviewLastMove?: (lastMove: any, callback: (classification: string) => void) => void;
   /** Whether move review is in progress */
   isReviewing?: boolean;
+  /** Move review status info (remaining time, total time, depth) */
+  reviewStatus?: {
+    remainingTime: number;
+    totalTime: number;
+    depth: number;
+  } | null;
 }
 
 const GameControls = observer(function GameControls({ 
   onShowMessage, 
   onReviewLastMove,
-  isReviewing = false 
+  isReviewing = false,
+  reviewStatus = null
 }: GameControlsProps) {
   const store = useRootStore();
   const game = store.game;
   const ui = store.ui;
 
+  // Format remaining time for display (matching legacy)
+  const formatRemainingTime = (remainingSeconds: number, totalSeconds: number) => {
+    return `${remainingSeconds.toFixed(2)}s/${totalSeconds.toFixed(2)}`;
+  };
+
   return (
-    <div className="flex gap-2 flex-wrap justify-center">
+    <div className="flex flex-col gap-2 items-center">
+      {/* Control buttons */}
+      <div className="flex gap-2 flex-wrap justify-center">
       <button
         onClick={game.resetGame}
         className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
@@ -117,6 +131,14 @@ const GameControls = observer(function GameControls({
         <span>⭐</span>
         <span>{isReviewing ? 'Reviewing...' : 'Move Review'}</span>
       </button>
+      </div>
+
+      {/* Move Review Status - displays during analysis */}
+      {reviewStatus && (
+        <div className="move-review-status">
+          ({formatRemainingTime(reviewStatus.remainingTime / 1000, reviewStatus.totalTime / 1000)} | depth: <span>{reviewStatus.depth}</span>)
+        </div>
+      )}
     </div>
   );
 });
