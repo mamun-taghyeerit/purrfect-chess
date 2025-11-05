@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
 
@@ -10,171 +10,113 @@ import { useRootStore } from '@/stores/store-setup';
  * Ported from src/ui.ts control panel functionality
  * Features:
  * - Reset game button
- * - FEN import/export
- * - PGN import/export
+ * - Flip board button
+ * - Toggle eval bar button
+ * - Move review button
  * 
  * Performance Optimizations:
  * - Uses MobX observer for reactivity
  * - Direct store access for game operations
  */
 
-const GameControls = observer(function GameControls() {
+interface GameControlsProps {
+  /** Callback to show messages */
+  onShowMessage?: (type: 'success' | 'error' | 'info', message: string) => void;
+  /** Callback to review last move */
+  onReviewLastMove?: (lastMove: any, callback: (classification: string) => void) => void;
+  /** Whether move review is in progress */
+  isReviewing?: boolean;
+}
+
+const GameControls = observer(function GameControls({ 
+  onShowMessage, 
+  onReviewLastMove,
+  isReviewing = false 
+}: GameControlsProps) {
   const store = useRootStore();
   const game = store.game;
-
-  const [fenInput, setFenInput] = useState('');
-  const [pgnInput, setPgnInput] = useState('');
-  const [showFenInput, setShowFenInput] = useState(false);
-  const [showPgnInput, setShowPgnInput] = useState(false);
-  const [showExport, setShowExport] = useState(false);
-
-  const PGN_PLACEHOLDER = `[Event "?"]
-[Site "?"]
-
-1. e4 e5 2. Nf3 Nc6 *`;
-
-  const handleImportFen = () => {
-    if (fenInput.trim()) {
-      game.loadFen(fenInput.trim());
-      setFenInput('');
-      setShowFenInput(false);
-    }
-  };
-
-  const handleImportPgn = () => {
-    if (pgnInput.trim()) {
-      game.loadPgn(pgnInput.trim());
-      setPgnInput('');
-      setShowPgnInput(false);
-    }
-  };
-
-  const handleExportFen = () => {
-    const fen = game.fen;
-    navigator.clipboard
-      .writeText(fen)
-      .then(() => {
-        console.log('FEN copied to clipboard');
-      })
-      .catch((err) => {
-        console.error('Failed to copy FEN:', err);
-      });
-  };
-
-  const handleExportPgn = () => {
-    const pgn = game.getPgn();
-    navigator.clipboard
-      .writeText(pgn)
-      .then(() => {
-        console.log('PGN copied to clipboard');
-      })
-      .catch((err) => {
-        console.error('Failed to copy PGN:', err);
-      });
-  };
+  const ui = store.ui;
 
   return (
-    <div className="space-y-4 w-full max-w-md">
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={game.resetGame}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          🔄 Reset Game
-        </button>
-
-        <button
-          onClick={() => setShowFenInput(!showFenInput)}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          📥 Import FEN
-        </button>
-
-        <button
-          onClick={handleExportFen}
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          📤 Export FEN
-        </button>
-
-        <button
-          onClick={() => setShowPgnInput(!showPgnInput)}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          📥 Import PGN
-        </button>
-
-        <button
-          onClick={handleExportPgn}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-        >
-          📋 Export PGN
-        </button>
-      </div>
-
-      {showFenInput && (
-        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <label className="block text-sm font-medium mb-2">
-            Enter FEN string:
-          </label>
-          <input
-            type="text"
-            value={fenInput}
-            onChange={(e) => setFenInput(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 dark:bg-gray-700 dark:border-gray-600"
-            placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={handleImportFen}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Load
-            </button>
-            <button
-              onClick={() => {
-                setShowFenInput(false);
-                setFenInput('');
-              }}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showPgnInput && (
-        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-          <label className="block text-sm font-medium mb-2">
-            Enter PGN string:
-          </label>
-          <textarea
-            value={pgnInput}
-            onChange={(e) => setPgnInput(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 dark:bg-gray-700 dark:border-gray-600 font-mono text-sm"
-            placeholder={PGN_PLACEHOLDER}
-            rows={8}
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={handleImportPgn}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Load
-            </button>
-            <button
-              onClick={() => {
-                setShowPgnInput(false);
-                setPgnInput('');
-              }}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="flex gap-2 flex-wrap justify-center">
+      <button
+        onClick={game.resetGame}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+        style={{
+          background: '#555',
+          color: '#fff',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+        onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+      >
+        <span>↻</span>
+        <span>Reset Game</span>
+      </button>
+      <button
+        onClick={ui.toggleBoardFlip}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+        style={{
+          background: '#555',
+          color: '#fff',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+        onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+      >
+        <span>🔄</span>
+        <span>Flip Board</span>
+      </button>
+      <button
+        onClick={ui.toggleEvalBar}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+        style={{
+          background: '#555',
+          color: '#fff',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
+        onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+      >
+        <span>📊</span>
+        <span>{ui.isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
+      </button>
+      <button
+        onClick={() => {
+          if (game.history.length === 0) {
+            onShowMessage?.('info', 'No move to review.');
+            return;
+          }
+          const lastMove = game.history[game.history.length - 1];
+          onShowMessage?.('info', 'Analyzing move...');
+          onReviewLastMove?.(lastMove, (classification) => {
+            onShowMessage?.('success', `Move classified as: ${classification}`);
+          });
+        }}
+        disabled={isReviewing || game.history.length === 0}
+        className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
+        style={{
+          background: isReviewing || game.history.length === 0 ? '#444' : '#555',
+          color: '#fff',
+          border: 'none',
+          cursor: isReviewing || game.history.length === 0 ? 'not-allowed' : 'pointer',
+          opacity: isReviewing || game.history.length === 0 ? 0.6 : 1,
+        }}
+        onMouseEnter={(e) => {
+          if (!isReviewing && game.history.length > 0) {
+            e.currentTarget.style.filter = 'brightness(1.05)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.filter = 'brightness(1)';
+        }}
+      >
+        <span>⭐</span>
+        <span>{isReviewing ? 'Reviewing...' : 'Move Review'}</span>
+      </button>
     </div>
   );
 });

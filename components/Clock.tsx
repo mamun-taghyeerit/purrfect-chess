@@ -5,11 +5,11 @@ import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
 
 /**
- * Clock Component - Display chess clock for both players
+ * Clock Component - Display chess clock for a single player
  *
  * Ported from src/ui.ts clock display functionality
  * Features:
- * - Display remaining time for both players
+ * - Display remaining time for a player
  * - Highlight active player's clock
  * - Format time as MM:SS
  * - Fixed-width layout to prevent layout shift on time changes
@@ -20,42 +20,55 @@ import { useRootStore } from '@/stores/store-setup';
  * - Fixed-width monospace font for stable layout
  */
 
-const Clock = observer(function Clock() {
+interface ClockProps {
+  /** Which player's clock to display: 'w' for white, 'b' for black */
+  player: 'w' | 'b';
+}
+
+const Clock = observer(function Clock({ player }: ClockProps) {
   const store = useRootStore();
   const game = store.game;
 
-  const formatTime = (ms: number): string => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  // Helper function to format time in MM:SS format
+  const formatClockTime = (timeMs: number): string => {
+    const minutes = Math.floor(timeMs / 60000)
+      .toString()
+      .padStart(2, '0');
+    const seconds = Math.floor((timeMs % 60000) / 1000)
+      .toString()
+      .padStart(2, '0');
+    return `${minutes}:${seconds}`;
   };
 
-  return (
-    <div className="w-full max-w-md space-y-2">
-      {/* Black's Clock */}
-      <div
-        className={`p-4 rounded-lg text-center font-mono text-2xl font-bold transition-all ${
-          game.turn === 'b' && game.isTimerRunning
-            ? 'bg-gray-800 text-white ring-4 ring-blue-500'
-            : 'bg-gray-200 text-gray-800'
-        }`}
-      >
-        <div className="text-sm font-normal mb-1">Black</div>
-        <div>{formatTime(game.blackTime)}</div>
-      </div>
+  const time = player === 'w' ? game.whiteTime : game.blackTime;
+  const isActive = game.turn === player && game.isTimerRunning;
 
-      {/* White's Clock */}
-      <div
-        className={`p-4 rounded-lg text-center font-mono text-2xl font-bold transition-all ${
-          game.turn === 'w' && game.isTimerRunning
-            ? 'bg-gray-100 text-gray-800 ring-4 ring-blue-500'
-            : 'bg-gray-200 text-gray-600'
-        }`}
-      >
-        <div className="text-sm font-normal mb-1">White</div>
-        <div>{formatTime(game.whiteTime)}</div>
-      </div>
+  return (
+    <div
+      className={`text-center font-mono font-bold mb-5 transition-all ${
+        isActive ? '' : ''
+      }`}
+      style={{
+        fontFamily: "'Orbitron', 'Fira Code', 'Menlo', monospace",
+        fontSize: '2.6rem',
+        padding: '12px 16px',
+        borderRadius: '14px',
+        background: '#1f1f1f',
+        border: isActive ? '2px solid #9198e5' : '2px solid #555',
+        boxShadow: isActive 
+          ? '0 0 18px rgba(145, 152, 229, 0.7)' 
+          : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
+        transform: isActive ? 'translateY(-2px)' : 'none',
+        color: '#f0f0f0',
+        // Fixed width to prevent layout shift on time changes
+        minWidth: '180px',
+        width: '100%',
+        // Prevent text wrapping
+        whiteSpace: 'nowrap',
+        overflow: 'hidden'
+      }}
+    >
+      {formatClockTime(time)}
     </div>
   );
 });

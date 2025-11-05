@@ -58,6 +58,8 @@ const GameStateModel = types
       return self.chessInstance.history({ verbose: true });
     },
     get turn() {
+      // Depend on fen for reactivity - when fen changes, turn recalculates
+      const _ = self.fen; // Track fen dependency
       return self.chessInstance.turn();
     },
     get check() {

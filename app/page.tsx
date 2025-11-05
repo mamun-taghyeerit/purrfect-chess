@@ -20,17 +20,6 @@ import { useMoveReview } from '@/hooks/useMoveReview';
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { EngineHighlight } from '@/components/Board';
 
-// Helper function to format time in MM:SS format
-const formatClockTime = (timeMs: number): string => {
-  const minutes = Math.floor(timeMs / 60000)
-    .toString()
-    .padStart(2, '0');
-  const seconds = Math.floor((timeMs % 60000) / 1000)
-    .toString()
-    .padStart(2, '0');
-  return `${minutes}:${seconds}`;
-};
-
 const Home = observer(() => {
   const { notifications, showMessage, dismissNotification } = useNotification();
 
@@ -166,35 +155,8 @@ const Home = observer(() => {
                 White Controls
               </h2>
               
-              {/* White's Clock Only */}
-              <div
-                className={`text-center font-mono font-bold mb-5 transition-all ${
-                  store.game.turn === 'w' && store.game.isTimerRunning
-                    ? ''
-                    : ''
-                }`}
-                style={{
-                  fontFamily: "'Orbitron', 'Fira Code', 'Menlo', monospace",
-                  fontSize: '2.6rem',
-                  padding: '12px 16px',
-                  borderRadius: '14px',
-                  background: '#1f1f1f',
-                  border: store.game.turn === 'w' && store.game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: store.game.turn === 'w' && store.game.isTimerRunning 
-                    ? '0 0 18px rgba(145, 152, 229, 0.7)' 
-                    : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: store.game.turn === 'w' && store.game.isTimerRunning ? 'translateY(-2px)' : 'none',
-                  color: '#f0f0f0',
-                  // Fixed width to prevent layout shift on time changes
-                  minWidth: '180px',
-                  width: '100%',
-                  // Prevent text wrapping
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden'
-                }}
-              >
-                {formatClockTime(store.game.whiteTime)}
-              </div>
+              {/* White's Clock */}
+              <Clock player="w" />
 
               {/* White Appearance Controls: Light Squares + White Pieces */}
               <div className="mb-4">
@@ -353,86 +315,11 @@ const Home = observer(() => {
             </div>
 
             {/* Board controls */}
-            <div className="flex gap-2 flex-wrap justify-center">
-              <button
-                onClick={store.game.resetGame}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
-                style={{
-                  background: '#555',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-              >
-                <span>↻</span>
-                <span>Reset Game</span>
-              </button>
-              <button
-                onClick={store.ui.toggleBoardFlip}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
-                style={{
-                  background: '#555',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-              >
-                <span>🔄</span>
-                <span>Flip Board</span>
-              </button>
-              <button
-                onClick={store.ui.toggleEvalBar}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
-                style={{
-                  background: '#555',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-                onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
-              >
-                <span>📊</span>
-                <span>{store.ui.isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (store.game.history.length === 0) {
-                    showMessage('info', 'No move to review.');
-                    return;
-                  }
-                  const lastMove = store.game.history[store.game.history.length - 1];
-                  showMessage('info', 'Analyzing move...');
-                  reviewLastMove(lastMove, (classification) => {
-                    showMessage('success', `Move classified as: ${classification}`);
-                  });
-                }}
-                disabled={isReviewing || store.game.history.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
-                style={{
-                  background: isReviewing || store.game.history.length === 0 ? '#444' : '#555',
-                  color: '#fff',
-                  border: 'none',
-                  cursor: isReviewing || store.game.history.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: isReviewing || store.game.history.length === 0 ? 0.6 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!isReviewing && store.game.history.length > 0) {
-                    e.currentTarget.style.filter = 'brightness(1.05)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.filter = 'brightness(1)';
-                }}
-              >
-                <span>⭐</span>
-                <span>{isReviewing ? 'Reviewing...' : 'Move Review'}</span>
-              </button>
-            </div>
+            <GameControls 
+              onShowMessage={showMessage}
+              onReviewLastMove={reviewLastMove}
+              isReviewing={isReviewing}
+            />
 
             {/* Match Card */}
             <div 
@@ -550,31 +437,8 @@ const Home = observer(() => {
                 Black Controls
               </h2>
               
-              {/* Black's Clock Only */}
-              <div
-                className="text-center font-mono font-bold mb-5 transition-all"
-                style={{
-                  fontFamily: "'Orbitron', 'Fira Code', 'Menlo', monospace",
-                  fontSize: '2.6rem',
-                  padding: '12px 16px',
-                  borderRadius: '14px',
-                  background: '#1f1f1f',
-                  border: store.game.turn === 'b' && store.game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: store.game.turn === 'b' && store.game.isTimerRunning 
-                    ? '0 0 18px rgba(145, 152, 229, 0.7)' 
-                    : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: store.game.turn === 'b' && store.game.isTimerRunning ? 'translateY(-2px)' : 'none',
-                  color: '#f0f0f0',
-                  // Fixed width to prevent layout shift on time changes
-                  minWidth: '180px',
-                  width: '100%',
-                  // Prevent text wrapping
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden'
-                }}
-              >
-                {formatClockTime(store.game.blackTime)}
-              </div>
+              {/* Black's Clock */}
+              <Clock player="b" />
 
               {/* Black Appearance Controls: Dark Squares + Black Pieces */}
               <div className="mb-4">
