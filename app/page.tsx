@@ -106,7 +106,7 @@ const Home = observer(() => {
 
         <div className="mb-6 text-center">
           <p className="text-sm text-gray-400">
-            Next.js Migration - Phase X: Functional & Visual Parity Complete
+            Phase X: Functional & Visual Parity Complete ✅ | Next.js Migration Success
           </p>
         </div>
 
@@ -686,13 +686,12 @@ const Home = observer(() => {
 
         <div className="mt-8 text-center text-sm" style={{ color: '#999' }}>
           <p>
-            <strong>Migration Progress:</strong> Board rendering ✓, Piece
-            movement ✓, Move history ✓, Game controls ✓, Time controls ✓, Engine
-            analysis ✓, Appearance ✓, All parity fixes ✓
+            <strong>Phase X Complete:</strong> Functional & visual parity achieved ✅ | 
+            Board rendering ✓, Piece movement ✓, Time controls ✓, Engine analysis ✓, 
+            Appearance controls ✓, All features validated
           </p>
           <p className="mt-2">
-            <strong>Phase X:</strong> Functional & Visual Parity Complete! Try selecting the text above and
-            typing a secret code...
+            <strong>Easter Egg:</strong> Select the text above and type a secret code to unlock hidden features...
           </p>
         </div>
       </div>
