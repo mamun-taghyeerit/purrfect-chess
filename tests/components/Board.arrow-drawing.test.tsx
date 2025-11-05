@@ -15,60 +15,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Board from '@/components/Board';
-import * as useGameModule from '@/hooks/useGame';
-
-// Mock the useGame hook
-const mockMovePiece = vi.fn();
-const mockResetGame = vi.fn();
-const mockLoadFen = vi.fn();
-const mockGetFen = vi.fn();
-const mockGetPgn = vi.fn();
-const mockSetTimeControl = vi.fn();
-
-const createMockGameState = (overrides = {}) => ({
-  position: {
-    e2: { type: 'p', color: 'w' },
-    e7: { type: 'p', color: 'b' },
-    d2: { type: 'p', color: 'w' },
-    d7: { type: 'p', color: 'b' },
-  },
-  fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-  history: [],
-  isGameOver: false,
-  turn: 'w' as const,
-  check: false,
-  checkmate: false,
-  stalemate: false,
-  whiteTime: 300000,
-  blackTime: 300000,
-  timeControl: { minutes: 5, increment: 0 },
-  movePiece: mockMovePiece,
-  resetGame: mockResetGame,
-  loadFen: mockLoadFen,
-  getFen: mockGetFen,
-  getPgn: mockGetPgn,
-  setTimeControl: mockSetTimeControl,
-  isTimerRunning: false,
-  game: {
-    moves: vi.fn(() => []),
-    board: vi.fn(),
-    fen: vi.fn(
-      () => 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-    ),
-    history: vi.fn(() => []),
-    turn: vi.fn(() => 'w'),
-    isCheck: vi.fn(() => false),
-    isCheckmate: vi.fn(() => false),
-    isStalemate: vi.fn(() => false),
-    isGameOver: vi.fn(() => false),
-  } as any,
-  ...overrides,
-});
+import { RootStoreProvider } from '@/stores/store-setup';
 
 describe('Board Arrow Drawing', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockMovePiece.mockReturnValue(false);
 
     // Mock getBoundingClientRect for all elements
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
@@ -88,12 +39,19 @@ describe('Board Arrow Drawing', () => {
     vi.restoreAllMocks();
   });
 
+  // Helper to render Board with store provider
+  const renderBoard = () => {
+    return render(
+      <RootStoreProvider>
+        <Board />
+      </RootStoreProvider>
+    );
+  };
+
   describe('Right-click Arrow Creation', () => {
     it('should create an arrow on right-click drag', async () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
       const e4Square = container.querySelector('[data-square="e4"]');
 
@@ -124,10 +82,8 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should not create arrow for small drags (below threshold)', () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
       // Start right-click drag
@@ -152,10 +108,8 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should not create arrow when dragging to same square', () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
       // Start and end on same square without significant movement
@@ -177,10 +131,8 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should prevent context menu during right-click', () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
       const contextMenuEvent = new MouseEvent('contextmenu', {
@@ -197,10 +149,8 @@ describe('Board Arrow Drawing', () => {
 
   describe('Arrow Toggle Behavior', () => {
     it('should remove arrow when drawing duplicate', async () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
       const e4Square = container.querySelector('[data-square="e4"]');
 
@@ -240,10 +190,8 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should support multiple different arrows simultaneously', async () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
 
       // Create first arrow e2-e4
       const e2Square = container.querySelector('[data-square="e2"]');
@@ -278,10 +226,8 @@ describe('Board Arrow Drawing', () => {
 
   describe('Arrow Removal', () => {
     it('should remove arrow on left-click (hit detection)', async () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
       // Create arrow
@@ -313,7 +259,6 @@ describe('Board Arrow Drawing', () => {
 
   describe('Arrow Clearing Behavior', () => {
     it('should clear arrows when a move is made', async () => {
-      const mockState = createMockGameState({
         history: [], // Start with empty history
       });
       const gameStateSpy = vi.spyOn(useGameModule, 'useGame');
@@ -355,7 +300,6 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should clear arrows on game reset', async () => {
-      const mockState = createMockGameState({
         history: [{ from: 'e2', to: 'e4', san: 'e4', flags: 'b' }],
       });
       const gameStateSpy = vi.spyOn(useGameModule, 'useGame');
@@ -399,10 +343,8 @@ describe('Board Arrow Drawing', () => {
 
   describe('Arrow Preview', () => {
     it('should show preview arrow during drag', async () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
       // Start drag
@@ -431,10 +373,8 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should cancel drag if right mouse button is released', () => {
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
-      const { container } = render(<Board />);
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
       // Start drag
@@ -462,8 +402,6 @@ describe('Board Arrow Drawing', () => {
         { from: 'e2', to: 'e4', rank: 2 },
       ];
 
-      const mockState = createMockGameState();
-      vi.spyOn(useGameModule, 'useGame').mockReturnValue(mockState);
 
       const { container } = render(
         <Board engineHighlights={engineHighlights} engineDisplayMode="arrows" />
@@ -494,7 +432,6 @@ describe('Board Arrow Drawing', () => {
     it('should not affect engine arrows when clearing user arrows', async () => {
       const engineHighlights = [{ from: 'd2', to: 'd4', rank: 1 }];
 
-      const mockState = createMockGameState({
         history: [],
       });
       const gameStateSpy = vi.spyOn(useGameModule, 'useGame');
