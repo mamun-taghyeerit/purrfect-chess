@@ -358,7 +358,36 @@ const EngineAnalysisModel = types.model('EngineAnalysis', {
   san: types.string,
   pv: types.array(types.string),
   pvSan: types.array(types.string),
-});
+})
+.views((self) => ({
+  /**
+   * Get pvSan as a plain JavaScript array
+   * This avoids MST observable tracking issues when accessing the array in components
+   */
+  get pvSanArray(): string[] {
+    return self.pvSan.slice();
+  },
+  /**
+   * Get pv as a plain JavaScript array
+   */
+  get pvArray(): string[] {
+    return self.pv.slice();
+  },
+  /**
+   * Get first 8 moves of pvSan for display
+   */
+  get pvSanPreview(): string {
+    const moves = self.pvSan.slice(0, 8);
+    const preview = moves.join(' ');
+    return self.pvSan.length > 8 ? `${preview}...` : preview;
+  },
+  /**
+   * Check if pvSan has moves
+   */
+  get hasPvSan(): boolean {
+    return self.pvSan.length > 0;
+  },
+}));
 
 /**
  * Engine State Model
@@ -494,5 +523,6 @@ export const createDefaultSnapshot = () => ({
 
 export type RootStore = Instance<typeof RootStoreModel>;
 export type RootStoreSnapshot = SnapshotIn<typeof RootStoreModel>;
+export type EngineAnalysis = Instance<typeof EngineAnalysisModel>;
 
 export default RootStoreModel;

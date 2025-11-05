@@ -4,6 +4,7 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import type { UciInfoResult } from '@/lib/uci-parser';
 import { useRootStore } from '@/stores/store-setup';
+import type { EngineAnalysis } from '@/stores/root-store';
 
 /**
  * Custom hook for managing Stockfish chess engine
@@ -15,17 +16,6 @@ import { useRootStore } from '@/stores/store-setup';
  * Integrates with the stockfish npm package via Web Worker
  * Provides real-time analysis with multi-PV support
  */
-
-export interface EngineAnalysis {
-  multipv: number;
-  depth: number;
-  score: number;
-  scoreType: 'cp' | 'mate';
-  bestMove: string;
-  san: string;
-  pv: string[];
-  pvSan: string[];
-}
 
 interface UseEngineOptions {
   onError?: (error: string) => void;
@@ -146,7 +136,7 @@ export function useEngine(options: UseEngineOptions = {}): UseEngineReturn {
               }
             }
 
-            const analysis: EngineAnalysis = {
+            const analysis = {
               multipv: info.multipv,
               depth: info.depth || 0,
               score: normalizedScore,

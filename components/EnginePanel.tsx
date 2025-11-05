@@ -1,6 +1,7 @@
 'use client';
 
-import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
+import { useEngine } from '@/hooks/useEngine';
+import type { EngineAnalysis } from '@/stores/root-store';
 import { useState, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
@@ -53,9 +54,6 @@ const EngineLine = observer(function EngineLine({ analysis, index }: EngineLineP
 
   const colors = LINEAGE_COLORS[index] || { bg: 'rgba(100, 100, 100, 0.1)', border: 'rgba(100, 100, 100, 0.4)' };
 
-  // Convert MST array to plain array to avoid observable access issues
-  const pvSanArray = Array.from(analysis.pvSan);
-
   return (
     <div 
       className="rounded-lg p-3 flex flex-col gap-1.5"
@@ -80,10 +78,9 @@ const EngineLine = observer(function EngineLine({ analysis, index }: EngineLineP
           {analysis.san}
         </span>
       </div>
-      {pvSanArray.length > 0 && (
+      {analysis.hasPvSan && (
         <div className="text-sm" style={{ color: '#8f8f8f' }}>
-          {pvSanArray.slice(0, 8).join(' ')}
-          {pvSanArray.length > 8 && '...'}
+          {analysis.pvSanPreview}
         </div>
       )}
     </div>
