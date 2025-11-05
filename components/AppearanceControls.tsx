@@ -284,7 +284,7 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
       setAppearance((prev) => {
         const newState = { ...prev };
         groups.forEach((groupKey) => {
-          newState[groupKey] = { ...appearanceDefaults[groupKey] };
+          newState[groupKey] = { ...appearanceDefaults[groupKey] } as any;
         });
         return newState;
       });

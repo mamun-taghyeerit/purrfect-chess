@@ -26,6 +26,7 @@ interface EnginePanelProps {
   onClose?: () => void;
   engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
   onEngineDisplayModeChange?: (mode: 'squares' | 'arrows' | 'both') => void;
+  getFen: () => string;
 }
 
 /**
@@ -109,8 +110,8 @@ export default function EnginePanel({
   onClose,
   engineDisplayMode = 'arrows',
   onEngineDisplayModeChange,
+  getFen,
 }: EnginePanelProps) {
-  const { getFen } = useGame();
   const {
     isEngineReady,
     isAnalyzing,

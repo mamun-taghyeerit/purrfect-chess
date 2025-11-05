@@ -69,6 +69,12 @@ export interface BoardProps {
 
   /** Callback when badge animation completes */
   onBadgeComplete?: () => void;
+
+  /** Game state - position, movePiece function, game instance, and history */
+  position: any;
+  movePiece: (from: string, to: string) => boolean;
+  game: any;
+  history: any[];
 }
 
 export default function Board({
@@ -77,8 +83,11 @@ export default function Board({
   flipped = false,
   moveBadge = null,
   onBadgeComplete,
+  position,
+  movePiece,
+  game,
+  history,
 }: BoardProps) {
-  const { position, movePiece, game, history } = useGame();
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [captureMoves, setCaptureMoves] = useState<string[]>([]);

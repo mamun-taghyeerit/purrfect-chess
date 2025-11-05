@@ -371,6 +371,10 @@ export default function Home() {
                 flipped={isBoardFlipped}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
+                position={position}
+                movePiece={movePiece}
+                game={game}
+                history={history}
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
@@ -564,6 +568,7 @@ export default function Home() {
                   onClose={() => setIsEnginePanelVisible(false)}
                   engineDisplayMode={engineDisplayMode}
                   onEngineDisplayModeChange={setEngineDisplayMode}
+                  getFen={getFen}
                 />
               </div>
             )}
