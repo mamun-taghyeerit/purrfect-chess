@@ -1,7 +1,7 @@
 'use client';
 
 import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
-import { useState, memo, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { useRootStore } from '@/stores/store-setup';
 
@@ -14,7 +14,7 @@ import { useRootStore } from '@/stores/store-setup';
  * 
  * Performance Optimizations:
  * - Throttled updates to prevent drag jank (max 4 updates/sec during analysis)
- * - Memoized EngineLine components to prevent unnecessary re-renders
+ * - Observer components for efficient MobX reactivity
  * - Debounced analysis display to reduce DOM thrashing
  * - Uses MobX observer for direct store access
  */
@@ -25,8 +25,8 @@ interface EngineLineProps {
 }
 
 /**
- * Memoized EngineLine component to prevent unnecessary re-renders
- * Only re-renders when analysis data actually changes
+ * EngineLine component with MobX observer
+ * Efficiently tracks MST model changes and re-renders only when needed
  */
 
 // Lineage colors matching legacy (blue, green, purple/pink) - memoized outside component
@@ -36,7 +36,7 @@ const LINEAGE_COLORS = [
   { bg: 'rgba(244, 114, 182, 0.15)', border: 'rgba(244, 114, 182, 0.6)' }, // pink for #3
 ];
 
-const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps) {
+const EngineLine = observer(function EngineLine({ analysis, index }: EngineLineProps) {
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
       return score > 0 ? `+M${score}` : `-M${Math.abs(score)}`;
@@ -52,6 +52,9 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
   };
 
   const colors = LINEAGE_COLORS[index] || { bg: 'rgba(100, 100, 100, 0.1)', border: 'rgba(100, 100, 100, 0.4)' };
+
+  // Convert MST array to plain array to avoid observable access issues
+  const pvSanArray = Array.from(analysis.pvSan);
 
   return (
     <div 
@@ -77,23 +80,13 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
           {analysis.san}
         </span>
       </div>
-      {analysis.pvSan.length > 0 && (
+      {pvSanArray.length > 0 && (
         <div className="text-sm" style={{ color: '#8f8f8f' }}>
-          {Array.from(analysis.pvSan).slice(0, 8).join(' ')}
-          {analysis.pvSan.length > 8 && '...'}
+          {pvSanArray.slice(0, 8).join(' ')}
+          {pvSanArray.length > 8 && '...'}
         </div>
       )}
     </div>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders when analysis hasn't changed
-  return (
-    prevProps.analysis.multipv === nextProps.analysis.multipv &&
-    prevProps.analysis.depth === nextProps.analysis.depth &&
-    prevProps.analysis.score === nextProps.analysis.score &&
-    prevProps.analysis.scoreType === nextProps.analysis.scoreType &&
-    prevProps.analysis.san === nextProps.analysis.san &&
-    prevProps.index === nextProps.index
   );
 });
 
