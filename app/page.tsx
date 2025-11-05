@@ -359,7 +359,7 @@ export default function Home() {
           </div>
 
           {/* Center Panel: Board */}
-          <div className="flex flex-col items-center gap-4 xl:flex-initial">
+          <div className="flex flex-col items-center gap-6 xl:flex-initial">
             {/* Board with Evaluation Bar */}
             <div className="flex gap-2 items-center">
               {/* Chess Board with Engine Overlays */}
@@ -721,8 +721,18 @@ export default function Home() {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={4}
                       placeholder="Current PGN (or type to load)"
-                      value={pgnInput || getPgn()}
+                      value={pgnInput !== '' ? pgnInput : getPgn()}
                       onChange={(e) => setPgnInput(e.target.value)}
+                      onFocus={(e) => {
+                        // Select all on focus for easy editing
+                        e.target.select();
+                      }}
+                      onBlur={() => {
+                        // Clear input when blurred if empty, to show current PGN
+                        if (pgnInput.trim() === '') {
+                          setPgnInput('');
+                        }
+                      }}
                       style={{
                         background: '#2b2b2b',
                         border: '1px solid #555',
@@ -784,8 +794,18 @@ export default function Home() {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={2}
                       placeholder="Current FEN (or type to load)"
-                      value={fenInput || getFen()}
+                      value={fenInput !== '' ? fenInput : getFen()}
                       onChange={(e) => setFenInput(e.target.value)}
+                      onFocus={(e) => {
+                        // Select all on focus for easy editing
+                        e.target.select();
+                      }}
+                      onBlur={() => {
+                        // Clear input when blurred if empty, to show current FEN
+                        if (fenInput.trim() === '') {
+                          setFenInput('');
+                        }
+                      }}
                       style={{
                         background: '#2b2b2b',
                         border: '1px solid #555',

@@ -101,6 +101,9 @@ export default function Board({
     currentSquare: string;
   } | null>(null);
 
+  // Custom square highlights (right-click)
+  const [customHighlights, setCustomHighlights] = useState<Set<string>>(new Set());
+
   // File and rank labels for coordinates (matching legacy)
   // When flipped, reverse the arrays
   const files = useMemo(() => flipped ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [flipped]);
@@ -113,10 +116,10 @@ export default function Board({
   const algebraicAt = useCallback(
     (fileIndex: number, rankIndex: number): string => {
       const file = files[fileIndex];
-      const rank = 8 - rankIndex;
+      const rank = ranks[rankIndex];
       return `${file}${rank}`;
     },
-    [files]
+    [files, ranks]
   );
 
   // Helper to categorize moves into non-captures and captures (single pass optimization)
@@ -368,12 +371,21 @@ export default function Board({
         Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY)
       );
 
-      // Small drags don't create arrows (matches legacy behavior)
+      // Small drags toggle square highlight (matches legacy behavior)
       if (
         dragDistance < ARROW_DRAG_THRESHOLD ||
         targetSquare === drag.fromSquare
       ) {
-        // Could trigger square context menu here if needed
+        // Toggle custom highlight on the square
+        setCustomHighlights(prev => {
+          const next = new Set(prev);
+          if (next.has(drag.fromSquare)) {
+            next.delete(drag.fromSquare);
+          } else {
+            next.add(drag.fromSquare);
+          }
+          return next;
+        });
         return;
       }
 
@@ -480,9 +492,11 @@ export default function Board({
       // Clear all board UI state on reset (matching legacy clearSelection + state reset)
       clearDragState();
       clearArrows();
+      setCustomHighlights(new Set());
     } else if (wasMove) {
-      // Clear arrows when a new move is made (matching legacy behavior)
+      // Clear arrows and highlights when a new move is made (matching legacy behavior)
       clearArrows();
+      setCustomHighlights(new Set());
     }
 
     previousHistoryLength.current = history.length;
@@ -783,6 +797,11 @@ export default function Board({
               // Add engine highlight class if applicable
               if (engineHighlightRank !== null) {
                 squareClasses += ` engine-move-${engineHighlightRank}`;
+              }
+
+              // Add custom highlight class if applicable (right-click highlight)
+              if (customHighlights.has(square)) {
+                squareClasses += ' user-highlight';
               }
 
               // Build ARIA label for the square

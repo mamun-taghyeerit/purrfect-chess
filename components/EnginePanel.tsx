@@ -35,9 +35,9 @@ interface EnginePanelProps {
 
 // Lineage colors matching legacy (blue, green, purple/pink) - memoized outside component
 const LINEAGE_COLORS = [
-  'rgba(59, 130, 246, 0.4)',  // blue for #1
-  'rgba(16, 185, 129, 0.4)',  // green for #2
-  'rgba(244, 114, 182, 0.4)', // pink for #3
+  { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.6)' },  // blue for #1
+  { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.6)' },  // green for #2
+  { bg: 'rgba(244, 114, 182, 0.15)', border: 'rgba(244, 114, 182, 0.6)' }, // pink for #3
 ];
 
 const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps) {
@@ -55,14 +55,14 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
     return score > 0 ? '#10b981' : '#ef4444';
   };
 
-  const borderColor = LINEAGE_COLORS[index] || 'rgba(100, 100, 100, 0.4)';
+  const colors = LINEAGE_COLORS[index] || { bg: 'rgba(100, 100, 100, 0.1)', border: 'rgba(100, 100, 100, 0.4)' };
 
   return (
     <div 
       className="rounded-lg p-3 flex flex-col gap-1.5"
       style={{
-        background: '#1f1f1f',
-        border: `1px solid ${borderColor}`,
+        background: colors.bg,
+        border: `2px solid ${colors.border}`,
         boxShadow: 'inset 0 2px 5px rgba(0, 0, 0, 0.45)'
       }}
     >
