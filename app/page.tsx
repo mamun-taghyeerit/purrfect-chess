@@ -80,7 +80,7 @@ export default function Home() {
   const [isEvalBarVisible, setIsEvalBarVisible] = useState(false);
   const [engineDisplayMode, setEngineDisplayMode] = useState<
     'squares' | 'arrows' | 'both' | 'none'
-  >('arrows');
+  >('both');
 
   const { isReviewing, currentBadge, reviewLastMove, clearBadge } =
     useMoveReview();
@@ -92,11 +92,13 @@ export default function Home() {
   });
 
   // Convert engine analysis to highlights for Board
-  const engineHighlights: EngineHighlight[] = analysis.map((line, index) => ({
-    from: line.bestMove.slice(0, 2),
-    to: line.bestMove.slice(2, 4),
-    rank: index + 1, // 1-based rank (1 = best move)
-  }));
+  const engineHighlights: EngineHighlight[] = analysis
+    .filter(line => line.bestMove && line.bestMove.length >= 4)
+    .map((line, index) => ({
+      from: line.bestMove.slice(0, 2),
+      to: line.bestMove.slice(2, 4),
+      rank: index + 1, // 1-based rank (1 = best move)
+    }));
 
   // Get best evaluation for EvaluationBar (from first PV line)
   const bestEval = analysis.length > 0 ? analysis[0] : null;
