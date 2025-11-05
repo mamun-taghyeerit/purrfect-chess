@@ -72,9 +72,11 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
       const checkmatePosition =
         'r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 4';
 
-      store.game.loadFen(checkmatePosition);
+      const success = store.game.loadFen(checkmatePosition);
+      expect(success).toBe(true);
 
-      // Verify checkmate
+      // Verify checkmate (MobX computed properties should update automatically)
+      expect(store.game.fen).toBe(checkmatePosition);
       expect(store.game.checkmate).toBe(true);
       expect(store.game.isGameOver).toBe(true);
 
@@ -126,9 +128,10 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
       const store = RootStoreModel.create(createDefaultSnapshot());
 
       // Change time control
-      store.game.setTimeControl({ minutes: 10, increment: 5 });
+      store.game.setTimeControl(10, 5);
 
-      expect(store.game.timeControl).toEqual({ minutes: 10, increment: 5 });
+      expect(store.game.timeControl.minutes).toBe(10);
+      expect(store.game.timeControl.increment).toBe(5);
       expect(store.game.whiteTime).toBe(10 * 60 * 1000);
 
       // Make some moves
@@ -139,7 +142,8 @@ describe('Phase X Parity: Game Lifecycle Reset', () => {
 
       expect(store.game.whiteTime).toBe(10 * 60 * 1000);
       expect(store.game.blackTime).toBe(10 * 60 * 1000);
-      expect(store.game.timeControl).toEqual({ minutes: 10, increment: 5 });
+      expect(store.game.timeControl.minutes).toBe(10);
+      expect(store.game.timeControl.increment).toBe(5);
     });
   });
 });
