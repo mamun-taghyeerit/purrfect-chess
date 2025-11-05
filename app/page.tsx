@@ -14,6 +14,7 @@ import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
 import { useRootStore } from '@/stores/store-setup';
 import { useEngine } from '@/hooks/useEngine';
+import { useAutoEvaluation } from '@/hooks/useAutoEvaluation';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
 import { useMoveReview } from '@/hooks/useMoveReview';
@@ -46,8 +47,17 @@ const Home = observer(() => {
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
 
   // Initialize engine (hook manages worker lifecycle)
-  const { isAnalyzing, currentDepth } = useEngine({
+  const { isEngineReady, isAnalyzing, currentDepth, startAnalysis, stopAnalysis } = useEngine({
     onError: handleError,
+  });
+
+  // Auto-start engine analysis when eval bar is visible
+  useAutoEvaluation({
+    startAnalysis,
+    stopAnalysis,
+    isEngineReady,
+    isAnalyzing,
+    depth: 15, // Use depth 15 for auto-evaluation (lighter than full analysis)
   });
 
   const { isReviewing, currentBadge, reviewStatus, reviewLastMove, clearBadge } =
