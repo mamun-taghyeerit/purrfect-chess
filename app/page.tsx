@@ -75,6 +75,12 @@ const Home = observer(() => {
       rank: index + 1, // 1-based rank (1 = best move)
     }));
 
+  // Debug logging for engine highlights
+  useEffect(() => {
+    console.log('[DEBUG] Engine highlights:', engineHighlights);
+    console.log('[DEBUG] Analysis:', analysis);
+  }, [engineHighlights, analysis]);
+
   // Get best evaluation for EvaluationBar (from first PV line)
   const bestEval = analysis.length > 0 ? analysis[0] : null;
   const evalScore = bestEval ? bestEval.score : null;
