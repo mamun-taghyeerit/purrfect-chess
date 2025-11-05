@@ -99,10 +99,11 @@ Visual parity validated through:
 | Move history           | ✅ Pass       | SAN notation, scrollable |
 | Engine panel           | ✅ Pass       | Multi-PV display, depth, scores |
 | Appearance controls    | ✅ Pass       | Piece/square sliders |
-| Evaluation bar         | 📝 Stub      | Component exists but needs integration (see Follow-ups) |
+| Evaluation bar         | ✅ Pass       | Integrated with engine analysis (issue #50) |
+| Arrow drawing          | ✅ Pass       | Right-click drag drawing (issues #80, #81) |
 | Match card metadata    | ✅ Pass       | PGN headers, date formatting |
 
-**Status:** Visual parity achieved for all implemented components. Evaluation bar is stubbed (intentional - Phase 4 task).
+**Status:** Complete visual parity achieved for all components, including arrow drawing and evaluation bar integration.
 
 ---
 
@@ -132,9 +133,9 @@ Visual parity validated through:
 
 | Feature                   | Legacy | Next.js | Result |
 |---------------------------|--------|---------|--------|
-| Arrow drawing (right-drag)| ⏳ Not implemented | ⏳ Not implemented | ⚠️ Follow-up (see Open Follow-ups) |
+| Arrow drawing (right-drag)| ✅ Implemented | ✅ Implemented | ✅ Pass (issues #80, #81) |
 
-**Note:** Arrow drawing is an **intentional gap** documented in [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40). Tracked for Phase 4 implementation.
+**Note:** Arrow drawing was implemented during Phase X through issues #80 and #81, achieving full parity with the legacy implementation.
 
 ### Keyboard Navigation
 
@@ -434,46 +435,34 @@ yarn next:build
 
 ### Phase 4 Tasks
 
-The following items are **intentional gaps** documented for Phase 4 (Testing & Cleanup):
+All Phase X features have been successfully implemented. The following items are planned for Phase 4 (Testing & Cleanup):
 
-1. **Arrow Drawing System** (Priority: MEDIUM)
-   - **Issue:** [#40 - Workstream 10](https://github.com/purrfectsoft/purrfect-chess/issues/40#workstream-10)
-   - **Description:** Right-click drag to draw arrows on board (legacy feature, not yet in Next.js)
-   - **Acceptance:** SVG overlay, multi-arrow support, color selection
-   - **TODO:** Open Phase 4 issue for arrow system implementation
-
-2. **Evaluation Bar Integration** (Priority: MEDIUM)
-   - **Issue:** [#40 - Workstream 9](https://github.com/purrfectsoft/purrfect-chess/issues/40#workstream-9)
-   - **Description:** Visual bar showing position evaluation (component exists as stub)
-   - **Acceptance:** Real-time updates, mate score display, proper styling
-   - **TODO:** Wire EvaluationBar component to engine analysis
-
-3. **Test Infrastructure Improvements** (Priority: HIGH)
+1. **Test Infrastructure Improvements** (Priority: HIGH)
    - **Issue:** TODO - Create Phase 4 issue
    - **Description:** Fix drag-and-drop test failures (DOM testing library limitations)
    - **Acceptance:** All tests passing, drag tests use proper event simulation
    - **TODO:** Investigate alternative testing approach for drag events
 
-4. **CI/CD Pipeline** (Priority: HIGH)
+2. **CI/CD Pipeline** (Priority: HIGH)
    - **Issue:** TODO - Create Phase 4 issue
    - **Description:** Add comprehensive CI workflow (build, lint, test, deploy preview)
    - **Current State:** Only setup workflow exists (`.github/workflows/copilot-setup-steps.yml`)
    - **Acceptance:** Automated checks on all PRs, deploy previews, status badges
    - **TODO:** Add build/test workflow, integrate with GitHub Actions
 
-5. **Accessibility Enhancements** (Priority: MEDIUM)
+3. **Accessibility Enhancements** (Priority: MEDIUM)
    - **Issue:** TODO - Create Phase 4 issue
    - **Description:** Keyboard navigation (arrow keys), screen reader support
    - **Acceptance:** WCAG 2.1 AA compliance, axe-core audit passing
    - **TODO:** Add arrow key navigation, ARIA live regions, axe audit
 
-6. **Performance Optimizations** (Priority: LOW)
+4. **Performance Optimizations** (Priority: LOW)
    - **Issue:** TODO - Create Phase 4 issue
    - **Description:** Address ESLint warnings (useCallback, Image component)
    - **Acceptance:** Zero build warnings, improved LCP/CLS metrics
    - **TODO:** Optimize hook dependencies, migrate <img> to <Image>
 
-7. **Legacy Code Removal** (Priority: LOW)
+5. **Legacy Code Removal** (Priority: LOW)
    - **Issue:** TODO - Create Phase 4 issue
    - **Description:** Remove original `src/` directory after parity confirmation
    - **Acceptance:** Clean repository with only Next.js code, updated documentation
@@ -517,12 +506,13 @@ Phase X has successfully achieved its goal of **functional and visual parity** b
 **Phase X Status:** ✅ **COMPLETE**
 
 The Next.js app is now ready for Phase 4 (Testing & Cleanup), which will focus on:
-1. Implementing remaining features (arrow drawing, eval bar integration)
-2. Improving test infrastructure
-3. Adding CI/CD automation
-4. Enhancing accessibility
-5. Optimizing performance
-6. Removing legacy code
+1. Improving test infrastructure
+2. Adding CI/CD automation
+3. Enhancing accessibility
+4. Optimizing performance
+5. Removing legacy code
+
+All core features including arrow drawing (issues #80, #81) and evaluation bar integration (issue #50) have been successfully implemented and validated.
 
 **Recommendation:** Proceed to Phase 4 with confidence. The foundation is solid and parity is confirmed.
 
