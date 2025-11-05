@@ -8,7 +8,7 @@ Purrfect Chess is a cat-themed chess board web application with local Stockfish 
 
 - **Frontend Framework**: Next.js 14+ with React 18+ (migrating from Vanilla JavaScript)
 - **Build Tool**: Vite 5.x (legacy), Next.js (current)
-- **State Management**: MobX 6.x + MobX-State-Tree 7.x + mobx-react-lite 4.x
+- **State Management**: MobX 6.x + MobX-State-Tree 7.x + mobx-react-lite 4.x + mst-persistent-store (with localforage)
 - **Styling**: Tailwind CSS 3.x with PostCSS
 - **Chess Logic**: chess.js 1.x
 - **Chess Engine**: Stockfish 17.1 (auto-vendored from npm)
@@ -35,7 +35,7 @@ stores/
 └── store-setup.ts       # Persistent store factory with provider/hook
 
 hooks/
-└── useStores.ts         # Store access hooks (useGameStore, useUIStore, useSettingsStore)
+└── useGameTimer.ts      # Timer management hook
 
 components/
 └── Provider.tsx         # Root store provider wrapper
@@ -54,28 +54,50 @@ The root store has three slices:
 
 ### Key Patterns and Best Practices
 
+#### ✅ DO: Use useRootStore Directly
+
+Always use `useRootStore()` from `@/stores/store-setup` to access the store. Access store slices directly:
+
+```tsx
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
+
+const Home = observer(() => {
+  const store = useRootStore();
+  const game = store.game;  // Access game slice
+  const ui = store.ui;      // Access UI slice
+  
+  return (
+    <div>
+      <p>Turn: {game.turn}</p>
+      <button onClick={ui.toggleBoardFlip}>Flip</button>
+    </div>
+  );
+});
+```
+
 #### ✅ DO: Late Destructuring for Reactivity
 
-MobX tracks property access for reactivity. Destructure as late as possible (preferably in JSX):
+MobX tracks property access for reactivity. Keep store references and access properties in JSX:
 
 ```tsx
 // ✅ GOOD: Reactivity works - access properties in JSX
 const Home = observer(() => {
-  const gameStore = useGameStore();
-  const uiStore = useUIStore();
+  const store = useRootStore();
+  const game = store.game;
   
   return (
     <div>
-      <p>Turn: {gameStore.store.turn}</p>
-      <button onClick={uiStore.toggleBoardFlip}>Flip</button>
+      <p>Turn: {game.turn}</p>
+      <p>FEN: {game.fen}</p>
     </div>
   );
 });
 
 // ❌ BAD: Reactivity broken - destructured too early
 const Home = observer(() => {
-  const { store } = useGameStore();
-  const { turn } = store; // ❌ turn is no longer reactive!
+  const store = useRootStore();
+  const { turn, fen } = store.game; // ❌ Not reactive!
   
   return <div>Turn: {turn}</div>; // Won't update
 });
@@ -87,10 +109,12 @@ Always wrap components that access MobX stores with `observer()`:
 
 ```tsx
 import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 
 const MyComponent = observer(() => {
-  const gameStore = useGameStore();
-  return <div>{gameStore.store.fen}</div>;
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.fen}</div>;
 });
 
 export default MyComponent;
@@ -102,8 +126,10 @@ MobX's `observer()` provides better performance optimization than `React.memo()`
 
 ```tsx
 // ✅ GOOD: observer tracks which properties are used
-const Clock = observer(({ gameStore }) => {
-  return <div>{gameStore.store.whiteTime}</div>;
+const Clock = observer(() => {
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.whiteTime}</div>;
   // Only re-renders when whiteTime changes
 });
 
@@ -113,24 +139,29 @@ const Clock = React.memo(({ whiteTime }) => {
 }, (prev, next) => prev.whiteTime === next.whiteTime);
 ```
 
-#### ✅ DO: Keep Store References, Not Values
+#### ✅ DO: Access Store Slices Directly
 
-Return store references from hooks, not extracted values:
+Access store slices directly from `useRootStore()` - don't create wrapper hooks:
 
 ```tsx
-// ✅ GOOD: Return store reference
-export function useUIStore() {
+// ✅ GOOD: Direct access to store slices
+const MyComponent = observer(() => {
   const store = useRootStore();
-  return store.ui; // Direct reference - reactive
-}
+  const ui = store.ui;
+  const game = store.game;
+  
+  return (
+    <div>
+      <p>Flipped: {ui.isBoardFlipped}</p>
+      <p>Turn: {game.turn}</p>
+    </div>
+  );
+});
 
-// ❌ BAD: Return destructured values
+// ❌ BAD: Creating unnecessary wrapper hooks
 export function useUIStore() {
   const store = useRootStore();
-  return {
-    isVisible: store.ui.isVisible, // ❌ Not reactive
-    toggle: store.ui.toggle,
-  };
+  return store.ui;  // Unnecessary indirection
 }
 ```
 
@@ -172,13 +203,17 @@ createPersistentStore(
 
 **Problem:**
 ```tsx
-const { turn, check } = gameStore.store; // Destructured too early
+const store = useRootStore();
+const game = store.game;
+const { turn, check } = game; // Destructured too early
 return <div>{turn}</div>; // Won't update!
 ```
 
 **Solution:**
 ```tsx
-return <div>{gameStore.store.turn}</div>; // Access in JSX
+const store = useRootStore();
+const game = store.game;
+return <div>{game.turn}</div>; // Access in JSX
 ```
 
 #### ❌ Gotcha 2: Forgetting observer() Wrapper
@@ -187,16 +222,18 @@ return <div>{gameStore.store.turn}</div>; // Access in JSX
 ```tsx
 // Component doesn't re-render on store changes
 function MyComponent() {
-  const gameStore = useGameStore();
-  return <div>{gameStore.store.fen}</div>;
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.fen}</div>;
 }
 ```
 
 **Solution:**
 ```tsx
 const MyComponent = observer(() => {
-  const gameStore = useGameStore();
-  return <div>{gameStore.store.fen}</div>;
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.fen}</div>;
 });
 ```
 

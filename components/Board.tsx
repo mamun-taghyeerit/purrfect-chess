@@ -1,6 +1,6 @@
 'use client';
 
-import { useGame } from '@/hooks/useGame';
+import { useRootStore } from '@/stores/store-setup';
 import React, {
   useState,
   useEffect,
