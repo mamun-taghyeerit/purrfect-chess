@@ -1,5 +1,6 @@
 'use client';
 
+import { observer } from 'mobx-react-lite';
 import Board from '@/components/Board';
 import GameControls from '@/components/GameControls';
 import MoveHistory from '@/components/MoveHistory';
@@ -11,7 +12,7 @@ import AppearanceControls, {
 } from '@/components/AppearanceControls';
 import EvaluationBar from '@/components/EvaluationBar';
 import NotificationContainer from '@/components/NotificationContainer';
-import { useGame } from '@/hooks/useGame';
+import { useRootStore } from '@/stores/store-setup';
 import { useEngine } from '@/hooks/useEngine';
 import { useEasterEgg } from '@/hooks/useEasterEgg';
 import { useNotification } from '@/hooks/useNotification';
@@ -30,7 +31,7 @@ const formatClockTime = (timeMs: number): string => {
   return `${minutes}:${seconds}`;
 };
 
-export default function Home() {
+const Home = observer(() => {
   const { notifications, showMessage, dismissNotification } = useNotification();
 
   const handleError = useCallback(
@@ -48,30 +49,8 @@ export default function Home() {
   const [pgnInput, setPgnInput] = useState('');
   const [fenInput, setFenInput] = useState('');
 
-  // State for board flip
-  const [isBoardFlipped, setIsBoardFlipped] = useState(false);
-
-  const {
-    position,
-    resetGame,
-    loadFen,
-    getFen,
-    getPgn,
-    loadPgn,
-    movePiece,
-    game,
-    history,
-    isGameOver,
-    checkmate,
-    stalemate,
-    check,
-    whiteTime,
-    blackTime,
-    turn,
-    timeControl,
-    setTimeControl,
-    isTimerRunning,
-  } = useGame({ onError: handleError });
+  // Use MobX store - access slices directly, keep references for reactivity
+  const store = useRootStore();
 
   // Memoize the current date to prevent re-creation on every render
   const currentDate = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
@@ -79,19 +58,12 @@ export default function Home() {
   const { isAnalyzing, analysis, currentDepth } = useEngine({
     onError: handleError,
   });
-  const [isEnginePanelVisible, setIsEnginePanelVisible] = useState(false);
-  const [isEvalBarVisible, setIsEvalBarVisible] = useState(false);
-  const [engineDisplayMode, setEngineDisplayMode] = useState<
-    'squares' | 'arrows' | 'both' | 'none'
-  >('both');
 
   const { isReviewing, currentBadge, reviewLastMove, clearBadge } =
     useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
-    onReveal: () => {
-      setIsEnginePanelVisible(true);
-    },
+    onReveal: () => store.ui.showEnginePanel(),
   });
 
   // Convert engine analysis to highlights for Board
@@ -112,21 +84,22 @@ export default function Home() {
   // Show notifications for game-ending conditions
   const prevGameOverRef = useRef(false);
   useEffect(() => {
-    if (isGameOver && !prevGameOverRef.current) {
+    const { game } = store;
+    if (store.game.isGameOver && !prevGameOverRef.current) {
       // Game just ended
-      if (checkmate) {
-        const winner = turn === 'w' ? 'Black' : 'White';
+      if (store.game.checkmate) {
+        const winner = store.game.turn === 'w' ? 'Black' : 'White';
         showMessage('info', `Checkmate! ${winner} wins! 👑`);
-      } else if (stalemate) {
+      } else if (store.game.stalemate) {
         showMessage('info', 'Stalemate! The game is a draw. 🤝');
       } else {
         // Timeout
-        const winner = turn === 'w' ? 'Black' : 'White';
+        const winner = store.game.turn === 'w' ? 'Black' : 'White';
         showMessage('info', `Time out! ${winner} wins on time. ⏰`);
       }
     }
-    prevGameOverRef.current = isGameOver;
-  }, [isGameOver, checkmate, stalemate, turn, showMessage]);
+    prevGameOverRef.current = store.game.isGameOver;
+  }, [store.game.isGameOver, store.game.checkmate, store.game.stalemate, store.game.turn, showMessage, store]);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-5" style={{ backgroundColor: '#333' }}>
@@ -155,24 +128,24 @@ export default function Home() {
             justifyContent: 'center'
           }}
         >
-          {(isGameOver || check) && (
+          {(store.game.isGameOver || store.game.check) && (
             <>
-              {checkmate && (
+              {store.game.checkmate && (
                 <div className="text-2xl font-bold text-red-600">
                   Checkmate! 👑
                 </div>
               )}
-              {stalemate && (
+              {store.game.stalemate && (
                 <div className="text-2xl font-bold text-yellow-600">
                   Stalemate! 🤝
                 </div>
               )}
-              {isGameOver && !checkmate && !stalemate && (
+              {store.game.isGameOver && !store.game.checkmate && !store.game.stalemate && (
                 <div className="text-2xl font-bold text-orange-600">
                   Time Out! ⏰
                 </div>
               )}
-              {check && !checkmate && (
+              {store.game.check && !store.game.checkmate && (
                 <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
               )}
             </>
@@ -202,7 +175,7 @@ export default function Home() {
               {/* White's Clock Only */}
               <div
                 className={`text-center font-mono font-bold mb-5 transition-all ${
-                  turn === 'w' && isTimerRunning
+                  store.game.turn === 'w' && store.game.isTimerRunning
                     ? ''
                     : ''
                 }`}
@@ -212,11 +185,11 @@ export default function Home() {
                   padding: '12px 16px',
                   borderRadius: '14px',
                   background: '#1f1f1f',
-                  border: turn === 'w' && isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: turn === 'w' && isTimerRunning 
+                  border: store.game.turn === 'w' && store.game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: store.game.turn === 'w' && store.game.isTimerRunning 
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: turn === 'w' && isTimerRunning ? 'translateY(-2px)' : 'none',
+                  transform: store.game.turn === 'w' && store.game.isTimerRunning ? 'translateY(-2px)' : 'none',
                   color: '#f0f0f0',
                   // Fixed width to prevent layout shift on time changes
                   minWidth: '180px',
@@ -226,7 +199,7 @@ export default function Home() {
                   overflow: 'hidden'
                 }}
               >
-                {formatClockTime(whiteTime)}
+                {formatClockTime(store.game.whiteTime)}
               </div>
 
               {/* White Appearance Controls: Light Squares + White Pieces */}
@@ -283,9 +256,9 @@ export default function Home() {
                   Time Presets
                 </h3>
                 <TimeControlSelector
-                  currentTimeControl={timeControl}
-                  onSelect={setTimeControl}
-                  disabled={history.length > 0}
+                  currentTimeControl={store.game.timeControl}
+                  onSelect={(tc) => store.game.setTimeControl(tc.minutes, tc.increment)}
+                  disabled={store.game.history.length > 0}
                 />
               </div>
 
@@ -307,7 +280,7 @@ export default function Home() {
                       type="number"
                       min="1"
                       max="180"
-                      defaultValue={timeControl.minutes}
+                      defaultValue={store.game.timeControl.minutes}
                       className="rounded-lg px-2.5 py-2"
                       style={{
                         background: '#2b2b2b',
@@ -323,7 +296,7 @@ export default function Home() {
                       type="number"
                       min="0"
                       max="60"
-                      defaultValue={timeControl.increment}
+                      defaultValue={store.game.timeControl.increment}
                       className="rounded-lg px-2.5 py-2"
                       style={{
                         background: '#2b2b2b',
@@ -370,23 +343,20 @@ export default function Home() {
               {/* Chess Board with Engine Overlays */}
               <Board
                 engineHighlights={engineHighlights}
-                engineDisplayMode={engineDisplayMode}
-                flipped={isBoardFlipped}
+                engineDisplayMode={store.ui.engineDisplayModeValue}
+                flipped={store.ui.isBoardFlipped}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
-                position={position}
-                movePiece={movePiece}
-                game={game}
-                history={history}
+                onError={handleError}
               />
 
               {/* Evaluation Bar (right side of board) - Always rendered to prevent layout shift */}
-              <div style={{ minWidth: '46px', visibility: isEvalBarVisible ? 'visible' : 'hidden' }}>
+              <div style={{ minWidth: '46px', visibility: store.ui.isEvalBarVisible ? 'visible' : 'hidden' }}>
                 <EvaluationBar
                   scoreCp={evalScore}
                   mateIn={evalMate}
                   isAnalyzing={isAnalyzing}
-                  isVisible={isEvalBarVisible}
+                  isVisible={store.ui.isEvalBarVisible}
                   currentDepth={currentDepth}
                   maxDepth={22}
                 />
@@ -396,7 +366,7 @@ export default function Home() {
             {/* Board controls */}
             <div className="flex gap-2 flex-wrap justify-center">
               <button
-                onClick={resetGame}
+                onClick={store.game.resetGame}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -411,7 +381,7 @@ export default function Home() {
                 <span>Reset Game</span>
               </button>
               <button
-                onClick={() => setIsBoardFlipped(!isBoardFlipped)}
+                onClick={store.ui.toggleBoardFlip}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -426,7 +396,7 @@ export default function Home() {
                 <span>Flip Board</span>
               </button>
               <button
-                onClick={() => setIsEvalBarVisible(!isEvalBarVisible)}
+                onClick={store.ui.toggleEvalBar}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
                   background: '#555',
@@ -438,31 +408,31 @@ export default function Home() {
                 onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
               >
                 <span>📊</span>
-                <span>{isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
+                <span>{store.ui.isEvalBarVisible ? 'Hide' : 'Show'} Eval Bar</span>
               </button>
               <button
                 onClick={() => {
-                  if (history.length === 0) {
+                  if (store.game.history.length === 0) {
                     showMessage('info', 'No move to review.');
                     return;
                   }
-                  const lastMove = history[history.length - 1];
+                  const lastMove = store.game.history[store.game.history.length - 1];
                   showMessage('info', 'Analyzing move...');
                   reviewLastMove(lastMove, (classification) => {
                     showMessage('success', `Move classified as: ${classification}`);
                   });
                 }}
-                disabled={isReviewing || history.length === 0}
+                disabled={isReviewing || store.game.history.length === 0}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-full transition-all"
                 style={{
-                  background: isReviewing || history.length === 0 ? '#444' : '#555',
+                  background: isReviewing || store.game.history.length === 0 ? '#444' : '#555',
                   color: '#fff',
                   border: 'none',
-                  cursor: isReviewing || history.length === 0 ? 'not-allowed' : 'pointer',
-                  opacity: isReviewing || history.length === 0 ? 0.6 : 1,
+                  cursor: isReviewing || store.game.history.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: isReviewing || store.game.history.length === 0 ? 0.6 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  if (!isReviewing && history.length > 0) {
+                  if (!isReviewing && store.game.history.length > 0) {
                     e.currentTarget.style.filter = 'brightness(1.05)';
                   }
                 }}
@@ -504,7 +474,7 @@ export default function Home() {
                       color: '#f3f4ff'
                     }}
                   >
-                    Purrfect Game - {timeControl.minutes}+{timeControl.increment}
+                    Purrfect Game - {store.game.timeControl.minutes}+{store.game.timeControl.increment}
                   </span>
                 </div>
                 <div 
@@ -536,7 +506,7 @@ export default function Home() {
                       color: '#f3f4ff'
                     }}
                   >
-                    {timeControl.minutes} + {timeControl.increment}
+                    {store.game.timeControl.minutes} + {store.game.timeControl.increment}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1.5">
@@ -565,13 +535,13 @@ export default function Home() {
             </p>
 
             {/* Engine Panel (conditionally rendered below board) */}
-            {isEnginePanelVisible && (
+            {store.ui.isEnginePanelVisible && (
               <div className="w-full" style={{ maxWidth: '600px' }}>
                 <EnginePanel
-                  onClose={() => setIsEnginePanelVisible(false)}
-                  engineDisplayMode={engineDisplayMode}
-                  onEngineDisplayModeChange={setEngineDisplayMode}
-                  getFen={getFen}
+                  onClose={store.ui.hideEnginePanel}
+                  engineDisplayMode={store.ui.engineDisplayModeValue}
+                  onEngineDisplayModeChange={store.ui.setEngineDisplayMode}
+                  getFen={() => store.game.fen}
                 />
               </div>
             )}
@@ -605,11 +575,11 @@ export default function Home() {
                   padding: '12px 16px',
                   borderRadius: '14px',
                   background: '#1f1f1f',
-                  border: turn === 'b' && isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
-                  boxShadow: turn === 'b' && isTimerRunning 
+                  border: store.game.turn === 'b' && store.game.isTimerRunning ? '2px solid #9198e5' : '2px solid #555',
+                  boxShadow: store.game.turn === 'b' && store.game.isTimerRunning 
                     ? '0 0 18px rgba(145, 152, 229, 0.7)' 
                     : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
-                  transform: turn === 'b' && isTimerRunning ? 'translateY(-2px)' : 'none',
+                  transform: store.game.turn === 'b' && store.game.isTimerRunning ? 'translateY(-2px)' : 'none',
                   color: '#f0f0f0',
                   // Fixed width to prevent layout shift on time changes
                   minWidth: '180px',
@@ -619,7 +589,7 @@ export default function Home() {
                   overflow: 'hidden'
                 }}
               >
-                {formatClockTime(blackTime)}
+                {formatClockTime(store.game.blackTime)}
               </div>
 
               {/* Black Appearance Controls: Dark Squares + Black Pieces */}
@@ -675,7 +645,7 @@ export default function Home() {
                 >
                   Moves
                 </h3>
-                <MoveHistory history={history} />
+                <MoveHistory history={store.game.history} />
                 
                 <div className="mt-4 flex flex-col gap-2">
                   {/* PGN Section */}
@@ -683,7 +653,7 @@ export default function Home() {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          const pgn = getPgn();
+                          const pgn = store.game.getPgn();
                           try {
                             await navigator.clipboard.writeText(pgn);
                             showMessage('success', 'PGN copied to clipboard!');
@@ -705,12 +675,11 @@ export default function Home() {
                       <button
                         onClick={() => {
                           if (pgnInput.trim()) {
-                            const result = loadPgn(pgnInput);
+                            const result = store.game.loadPgnWithValidation(pgnInput, handleError);
                             if (result) {
                               showMessage('success', 'PGN loaded successfully.');
                               setPgnInput(''); // Clear input after successful load
                             }
-                            // Error message is handled by useGame onError callback
                           } else {
                             showMessage('info', 'Enter a PGN in the text box below.');
                           }
@@ -731,7 +700,7 @@ export default function Home() {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={4}
                       placeholder="Current PGN (or type to load)"
-                      value={pgnInput !== '' ? pgnInput : getPgn()}
+                      value={pgnInput !== '' ? pgnInput : store.game.getPgn()}
                       onChange={(e) => setPgnInput(e.target.value)}
                       onFocus={(e) => {
                         // Select all on focus for easy editing
@@ -756,7 +725,7 @@ export default function Home() {
                     <div className="flex gap-2">
                       <button
                         onClick={async () => {
-                          const fen = getFen();
+                          const fen = store.game.fen;
                           try {
                             await navigator.clipboard.writeText(fen);
                             showMessage('success', 'FEN copied to clipboard!');
@@ -778,12 +747,11 @@ export default function Home() {
                       <button
                         onClick={() => {
                           if (fenInput.trim()) {
-                            const result = loadFen(fenInput);
+                            const result = store.game.loadFenWithValidation(fenInput, handleError);
                             if (result) {
                               showMessage('success', 'FEN loaded successfully.');
                               setFenInput(''); // Clear input after successful load
                             }
-                            // Error message is handled by useGame onError callback
                           } else {
                             showMessage('info', 'Enter a FEN in the text box below.');
                           }
@@ -804,7 +772,7 @@ export default function Home() {
                       className="w-full p-2 rounded-lg text-xs font-mono resize-none"
                       rows={2}
                       placeholder="Current FEN (or type to load)"
-                      value={fenInput !== '' ? fenInput : getFen()}
+                      value={fenInput !== '' ? fenInput : store.game.fen}
                       onChange={(e) => setFenInput(e.target.value)}
                       onFocus={(e) => {
                         // Select all on focus for easy editing
@@ -843,4 +811,6 @@ export default function Home() {
       </div>
     </main>
   );
-}
+});
+
+export default Home;

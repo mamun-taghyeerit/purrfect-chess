@@ -8,11 +8,364 @@ Purrfect Chess is a cat-themed chess board web application with local Stockfish 
 
 - **Frontend Framework**: Next.js 14+ with React 18+ (migrating from Vanilla JavaScript)
 - **Build Tool**: Vite 5.x (legacy), Next.js (current)
+- **State Management**: MobX 6.x + MobX-State-Tree 7.x + mobx-react-lite 4.x + mst-persistent-store (with localforage)
 - **Styling**: Tailwind CSS 3.x with PostCSS
 - **Chess Logic**: chess.js 1.x
 - **Chess Engine**: Stockfish 17.1 (auto-vendored from npm)
 - **Package Manager**: Yarn Classic (v1.x)
 - **Node Version**: See `.nvmrc` for the required version
+
+## State Management with MobX
+
+This project uses **MobX + MobX-State-Tree (MST)** for state management with persistent storage.
+
+### Stack Components
+
+- **mobx**: Core reactivity system
+- **mobx-state-tree**: Type-safe state tree with runtime validation
+- **mobx-react-lite**: Lightweight React bindings (observer HOC)
+- **mst-persistent-store**: Persistence layer with localStorage/localforage
+- **localforage**: Browser storage abstraction (required peer dependency)
+
+### Architecture
+
+```
+stores/
+├── root-store.ts        # MST model definitions (game, ui, settings)
+└── store-setup.ts       # Persistent store factory with provider/hook
+
+hooks/
+└── useGameTimer.ts      # Timer management hook
+
+components/
+└── Provider.tsx         # Root store provider wrapper
+
+app/
+└── layout.tsx           # Provider wired in root layout
+```
+
+### Store Structure
+
+The root store has three slices:
+
+1. **game**: Chess game state (position, history, time controls, etc.) - **PERSISTED**
+2. **ui**: Transient UI state (panel visibility, board flip, display modes) - **NOT PERSISTED**
+3. **settings**: User preferences (default time controls, engine depth) - **PERSISTED**
+
+### Key Patterns and Best Practices
+
+#### ✅ DO: Use useRootStore Directly
+
+Always use `useRootStore()` from `@/stores/store-setup` to access the store. Access store slices directly:
+
+```tsx
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
+
+const Home = observer(() => {
+  const store = useRootStore();
+  const game = store.game;  // Access game slice
+  const ui = store.ui;      // Access UI slice
+  
+  return (
+    <div>
+      <p>Turn: {game.turn}</p>
+      <button onClick={ui.toggleBoardFlip}>Flip</button>
+    </div>
+  );
+});
+```
+
+#### ✅ DO: Late Destructuring for Reactivity
+
+MobX tracks property access for reactivity. Keep store references and access properties in JSX:
+
+```tsx
+// ✅ GOOD: Reactivity works - access properties in JSX
+const Home = observer(() => {
+  const store = useRootStore();
+  const game = store.game;
+  
+  return (
+    <div>
+      <p>Turn: {game.turn}</p>
+      <p>FEN: {game.fen}</p>
+    </div>
+  );
+});
+
+// ❌ BAD: Reactivity broken - destructured too early
+const Home = observer(() => {
+  const store = useRootStore();
+  const { turn, fen } = store.game; // ❌ Not reactive!
+  
+  return <div>Turn: {turn}</div>; // Won't update
+});
+```
+
+#### ✅ DO: Use observer() Wrapper
+
+Always wrap components that access MobX stores with `observer()`:
+
+```tsx
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
+
+const MyComponent = observer(() => {
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.fen}</div>;
+});
+
+export default MyComponent;
+```
+
+#### ✅ DO: Prefer observer() Over React.memo()
+
+MobX's `observer()` provides better performance optimization than `React.memo()` because it tracks exact property access:
+
+```tsx
+// ✅ GOOD: observer tracks which properties are used
+const Clock = observer(() => {
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.whiteTime}</div>;
+  // Only re-renders when whiteTime changes
+});
+
+// ❌ LESS OPTIMAL: React.memo requires manual prop comparison
+const Clock = React.memo(({ whiteTime }) => {
+  return <div>{whiteTime}</div>;
+}, (prev, next) => prev.whiteTime === next.whiteTime);
+```
+
+#### ✅ DO: Access Store Slices Directly
+
+Access store slices directly from `useRootStore()` - don't create wrapper hooks:
+
+```tsx
+// ✅ GOOD: Direct access to store slices
+const MyComponent = observer(() => {
+  const store = useRootStore();
+  const ui = store.ui;
+  const game = store.game;
+  
+  return (
+    <div>
+      <p>Flipped: {ui.isBoardFlipped}</p>
+      <p>Turn: {game.turn}</p>
+    </div>
+  );
+});
+
+// ❌ BAD: Creating unnecessary wrapper hooks
+export function useUIStore() {
+  const store = useRootStore();
+  return store.ui;  // Unnecessary indirection
+}
+```
+
+### Persistence Configuration
+
+The store uses `mst-persistent-store` with a disallow list to control what gets persisted:
+
+```typescript
+// In stores/store-setup.ts
+createPersistentStore(
+  RootStoreModel,
+  defaultStorage, // localforage for web
+  initialSnapshot,
+  {
+    // Disallow list: UI state resets to defaults on hydration
+    ui: {
+      isEnginePanelVisible: false,
+      isEvalBarVisible: false,
+      isBoardFlipped: false,
+      engineDisplayMode: 'both' as const,
+    },
+  },
+  {
+    storageKey: 'purrfect-chess-store',
+    onHydrate(storeInstance) {
+      storeInstance.hydrateStore();
+      // Expose in dev for debugging
+      if (process.env.NODE_ENV === 'development') {
+        window.__rootStoreInstance = storeInstance;
+      }
+    },
+  }
+);
+```
+
+### Common Gotchas and Solutions
+
+#### ❌ Gotcha 1: Early Destructuring Breaks Reactivity
+
+**Problem:**
+```tsx
+const store = useRootStore();
+const game = store.game;
+const { turn, check } = game; // Destructured too early
+return <div>{turn}</div>; // Won't update!
+```
+
+**Solution:**
+```tsx
+const store = useRootStore();
+const game = store.game;
+return <div>{game.turn}</div>; // Access in JSX
+```
+
+#### ❌ Gotcha 2: Forgetting observer() Wrapper
+
+**Problem:**
+```tsx
+// Component doesn't re-render on store changes
+function MyComponent() {
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.fen}</div>;
+}
+```
+
+**Solution:**
+```tsx
+const MyComponent = observer(() => {
+  const store = useRootStore();
+  const game = store.game;
+  return <div>{game.fen}</div>;
+});
+```
+
+#### ❌ Gotcha 3: MST Enumeration Type Mismatch
+
+**Problem:**
+```tsx
+// MST enumeration returns string, not union type
+const UIStateModel = types.model({
+  mode: types.enumeration(['a', 'b', 'c']),
+});
+
+// Type error: string not assignable to 'a' | 'b' | 'c'
+<Component mode={store.mode} /> 
+```
+
+**Solution:**
+```tsx
+// Add a view with explicit type cast
+const UIStateModel = types.model({
+  mode: types.enumeration(['a', 'b', 'c']),
+}).views((self) => ({
+  get modeValue(): 'a' | 'b' | 'c' {
+    return self.mode as 'a' | 'b' | 'c';
+  },
+}));
+
+// Use the view
+<Component mode={store.modeValue} />
+```
+
+#### ❌ Gotcha 4: Missing Provider Wrapper
+
+**Problem:**
+```tsx
+// Tests fail with "useRootStore must be used within RootStoreProvider"
+```
+
+**Solution:**
+```tsx
+import { RootStoreProvider } from '@/stores/store-setup';
+
+// Wrap test components
+render(
+  <RootStoreProvider>
+    <MyComponent />
+  </RootStoreProvider>
+);
+```
+
+#### ❌ Gotcha 5: Volatile State Not Serialized
+
+**Problem:**
+```tsx
+// Chess.js instance disappears on hydration
+const GameModel = types.model({
+  fen: types.string,
+  // ❌ This won't work - Chess instance isn't serializable
+  chess: types.frozen<Chess>(),
+});
+```
+
+**Solution:**
+```tsx
+const GameModel = types.model({
+  fen: types.string,
+})
+.volatile(() => ({
+  // ✅ Volatile state: not persisted, recreated on hydration
+  chessInstance: new Chess(),
+}))
+.actions((self) => ({
+  afterCreate() {
+    // Restore state from FEN
+    if (self.fen) {
+      self.chessInstance.load(self.fen);
+    }
+  },
+}));
+```
+
+### Testing with MobX Store
+
+When writing tests, wrap components with the provider:
+
+```tsx
+import { RootStoreProvider } from '@/stores/store-setup';
+import { render } from '@testing-library/react';
+
+function renderWithStore(component: React.ReactElement) {
+  return render(
+    <RootStoreProvider>
+      {component}
+    </RootStoreProvider>
+  );
+}
+
+test('component renders', () => {
+  renderWithStore(<MyComponent />);
+  // assertions...
+});
+```
+
+### Debugging
+
+In development mode, the root store is exposed on `window` for debugging:
+
+```javascript
+// In browser console
+window.__rootStoreInstance.game.fen
+window.__rootStoreInstance.ui.toggleBoardFlip()
+```
+
+### Migration from useState/useReducer
+
+When migrating React state to MobX store:
+
+1. Identify state category: game logic, transient UI, or persistent settings
+2. Add state to appropriate store slice in `stores/root-store.ts`
+3. Add actions for state mutations
+4. Update hooks in `hooks/useStores.ts` to expose store reference
+5. Update components to use `observer()` and access `store.property` in JSX
+6. Remove old `useState` / `useReducer` calls
+7. Test reactivity by verifying UI updates on state changes
+
+### Resources
+
+- [MobX Documentation](https://mobx.js.org/)
+- [MobX-State-Tree Documentation](https://mobx-state-tree.js.org/)
+- [mobx-react-lite Documentation](https://mobx-react-lite.vercel.app/)
+- [mst-persistent-store GitHub](https://github.com/kuasha420/mst-persistent-store)
+- [Reference Implementation: bookcover-craft](https://github.com/purrfectsoft/bookcover-craft)
 
 ## Automation and Smart Thinking
 
@@ -75,23 +428,36 @@ This project follows modern automation principles with a focus on **purrfection*
 ```
 .
 ├── .github/                 # GitHub configuration
+├── stores/                  # MobX-State-Tree stores
+│   ├── root-store.ts       # MST model definitions
+│   └── store-setup.ts      # Persistent store provider/hook factory
+├── hooks/                   # React hooks
+│   ├── useStores.ts        # Store access hooks
+│   ├── useGame.ts          # Legacy game hook (deprecated)
+│   ├── useEngine.ts        # Engine integration hook
+│   └── ...                 # Other hooks
+├── components/              # React components
+│   ├── Provider.tsx        # Root store provider
+│   ├── Board.tsx           # Chess board component
+│   └── ...                 # Other components
+├── app/                     # Next.js App Router
+│   ├── layout.tsx          # Root layout with providers
+│   ├── page.tsx            # Home page
+│   └── globals.css         # Global styles
 ├── public/
 │   ├── assets/             # Piece and square PNGs (CC BY 4.0)
-│   ├── index.html
-│   └── libs/               # Stockfish binaries (stockfish.js, stockfish.wasm)
-├── src/
-│   ├── board.js           # Board rendering and visual updates
-│   ├── engine.js          # Stockfish worker integration
-│   ├── game.js            # Chess game state and logic
-│   ├── main.js            # Application entry point
-│   ├── styles.css         # Global styles (Tailwind directives)
-│   └── ui.js              # UI controls and interactions
-├── index.html             # Main HTML entry point
-├── package.json           # Project dependencies
-├── postcss.config.js      # PostCSS configuration
-├── tailwind.config.js     # Tailwind CSS configuration
-└── yarn.lock              # Yarn lockfile
+│   └── libs/               # Stockfish binaries (auto-vendored)
+├── src/                     # Legacy vanilla JS code (deprecated)
+│   ├── board.js            # Legacy board rendering
+│   ├── engine.js           # Legacy Stockfish integration
+│   ├── game.js             # Legacy game state
+│   └── ...                 # Other legacy files
+├── package.json            # Project dependencies
+├── tsconfig.json           # TypeScript configuration
+└── yarn.lock               # Yarn lockfile
 ```
+
+**Note:** The `src/` directory contains legacy vanilla JavaScript code from the original implementation. New development should use the Next.js + React + MobX architecture in `app/`, `components/`, `hooks/`, and `stores/`.
 
 ## Development Workflow
 
