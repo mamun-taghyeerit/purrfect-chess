@@ -56,7 +56,6 @@ const Home = observer(() => {
     startAnalysis,
     stopAnalysis,
     isEngineReady,
-    isAnalyzing,
     depth: 15, // Use depth 15 for auto-evaluation (lighter than full analysis)
   });
 
@@ -307,6 +306,7 @@ const Home = observer(() => {
               {/* Chess Board with Engine Overlays */}
               <Board
                 engineHighlights={engineHighlights}
+                showEvalBarOverlay={store.ui.isEvalBarVisible && !store.ui.isEnginePanelVisible}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
                 onError={handleError}
@@ -336,6 +336,23 @@ const Home = observer(() => {
               isReviewing={isReviewing}
               reviewStatus={reviewStatus}
             />
+
+            {/* Board status info (depth display) */}
+            <div className="board-status-info">
+              {/* Eval bar depth info - shown when eval bar is visible and analyzing */}
+              {store.ui.isEvalBarVisible && isAnalyzing && currentDepth > 0 && (
+                <div className="eval-bar-depth-info">
+                  (current depth: <span>{currentDepth}</span> | max depth: <span>22</span>)
+                </div>
+              )}
+              
+              {/* Move review status - shown when reviewing */}
+              {isReviewing && reviewStatus && (
+                <div className="move-review-status">
+                  ({reviewStatus})
+                </div>
+              )}
+            </div>
 
             {/* Match Card */}
             <div 

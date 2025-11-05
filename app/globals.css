@@ -293,6 +293,34 @@ body {
 }
 
 /* ========================================
+   Board Status Info (Depth Display)
+   ======================================== */
+
+.board-status-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 20px;
+  margin-top: 4px;
+}
+
+.eval-bar-depth-info,
+.move-review-status {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.eval-bar-depth-info span,
+.move-review-status span {
+  font-family: 'Orbitron', 'Fira Code', 'Menlo', monospace;
+  font-weight: 600;
+}
+
+/* ========================================
    Evaluation Bar Styles (Matching Legacy)
    ======================================== */
 
@@ -420,6 +448,12 @@ body {
 
 .board-arrow {
   opacity: 0.95;
+}
+
+/* Engine arrow rank 0 - Eval bar overlay (very transparent blue) */
+.board-arrow.engine-arrow-0,
+.board-arrow.engine-arrow-eval-bar {
+  stroke: rgba(59, 130, 246, 0.25); /* Very transparent blue - eval bar hint */
 }
 
 .board-arrow.engine-arrow-1 {

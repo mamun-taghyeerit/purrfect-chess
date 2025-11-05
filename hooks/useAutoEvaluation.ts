@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { reaction } from 'mobx';
 import { useRootStore } from '@/stores/store-setup';
 
 /**
@@ -8,6 +9,8 @@ import { useRootStore } from '@/stores/store-setup';
  * 
  * Automatically starts/stops engine analysis based on eval bar visibility and position changes.
  * This ensures the eval bar works independently of the engine panel.
+ * 
+ * Uses MobX reaction to avoid re-render loops with reactive dependencies.
  * 
  * Behavior:
  * - Starts analysis when eval bar becomes visible
@@ -25,9 +28,6 @@ interface UseAutoEvaluationOptions {
   /** Whether the engine is ready */
   isEngineReady: boolean;
   
-  /** Whether analysis is currently running */
-  isAnalyzing: boolean;
-  
   /** Default depth for auto-evaluation (default: 15) */
   depth?: number;
 }
@@ -36,65 +36,84 @@ export function useAutoEvaluation({
   startAnalysis,
   stopAnalysis,
   isEngineReady,
-  isAnalyzing,
   depth = 15,
 }: UseAutoEvaluationOptions) {
   const store = useRootStore();
-  const ui = store.ui;
-  const game = store.game;
   
   // Track the last FEN that was analyzed to avoid re-analyzing the same position
   const lastAnalyzedFenRef = useRef<string>('');
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
-    // Only auto-evaluate if:
-    // 1. Engine is ready
-    // 2. Eval bar is visible OR engine panel is visible
-    const shouldAutoEvaluate = 
-      isEngineReady && (ui.isEvalBarVisible || ui.isEnginePanelVisible);
-    
-    if (!shouldAutoEvaluate) {
-      // Stop analysis if eval bar and engine panel are both hidden
-      if (isAnalyzing && !ui.isEvalBarVisible && !ui.isEnginePanelVisible) {
-        stopAnalysis();
+    // Use MobX reaction to watch for changes without causing re-render loops
+    const dispose = reaction(
+      // Track: what to observe (DO NOT track isAnalyzing here to avoid loops)
+      () => ({
+        shouldAutoEvaluate: isEngineReady && (store.ui.isEvalBarVisible || store.ui.isEnginePanelVisible),
+        currentFen: store.game.fen,
+        isEvalBarVisible: store.ui.isEvalBarVisible,
+        isEnginePanelVisible: store.ui.isEnginePanelVisible,
+      }),
+      // Effect: what to do when values change
+      ({ shouldAutoEvaluate, currentFen, isEvalBarVisible, isEnginePanelVisible }) => {
+        // Clear any pending analysis
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        
+        // Stop analysis if eval bar and engine panel are both hidden
+        if (!isEvalBarVisible && !isEnginePanelVisible) {
+          // Only stop if we were auto-analyzing (check if last FEN matches)
+          if (lastAnalyzedFenRef.current && store.engine.isAnalyzing) {
+            stopAnalysis();
+          }
+          lastAnalyzedFenRef.current = '';
+          return;
+        }
+        
+        // Only auto-evaluate if conditions are met
+        if (!shouldAutoEvaluate) {
+          return;
+        }
+        
+        // Skip if we're already analyzing this exact position
+        if (currentFen === lastAnalyzedFenRef.current) {
+          return;
+        }
+        
+        // Update last analyzed FEN
+        lastAnalyzedFenRef.current = currentFen;
+        
+        // Stop previous analysis if running
+        if (store.engine.isAnalyzing) {
+          stopAnalysis();
+        }
+        
+        // Small delay to ensure previous analysis has stopped
+        timeoutRef.current = setTimeout(() => {
+          // Multi-PV = 1 for eval bar (only need best move)
+          // Engine panel can request multi-PV = 3 separately if needed
+          startAnalysis(currentFen, depth, 1);
+          timeoutRef.current = null;
+        }, 150);
+      },
+      {
+        // Fire immediately on mount
+        fireImmediately: true,
+        // Delay to debounce rapid changes
+        delay: 100,
       }
-      return;
-    }
+    );
     
-    // Get current FEN
-    const currentFen = game.fen;
-    
-    // Skip if we're already analyzing this exact position
-    if (currentFen === lastAnalyzedFenRef.current && isAnalyzing) {
-      return;
-    }
-    
-    // Start new analysis for this position
-    lastAnalyzedFenRef.current = currentFen;
-    
-    // Stop previous analysis if running
-    if (isAnalyzing) {
-      stopAnalysis();
-    }
-    
-    // Small delay to ensure previous analysis has stopped
-    const timeoutId = setTimeout(() => {
-      // Multi-PV = 1 for eval bar (only need best move)
-      // Engine panel can request multi-PV = 3 separately if needed
-      startAnalysis(currentFen, depth, 1);
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [
-    isEngineReady,
-    ui.isEvalBarVisible,
-    ui.isEnginePanelVisible,
-    game.fen,
-    isAnalyzing,
-    startAnalysis,
-    stopAnalysis,
-    depth,
-  ]);
+    // Cleanup on unmount
+    return () => {
+      dispose();
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [startAnalysis, stopAnalysis, isEngineReady, depth, store]);
   
   return {
     // No return values needed - this hook only manages side effects

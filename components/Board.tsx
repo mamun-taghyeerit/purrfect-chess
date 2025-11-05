@@ -59,8 +59,11 @@ export interface BoardProps {
   /** Engine analysis highlights (multi-PV moves) */
   engineHighlights?: EngineHighlight[];
 
+  /** Show eval bar overlay (transparent blue arrow) instead of engine panel overlays */
+  showEvalBarOverlay?: boolean;
+
   /** Move badge to display (from move review) */
-  moveBadge?: { type: string; square: string } | null;
+  moveBadge?: { type: string; square: string} | null;
 
   /** Callback when badge animation completes */
   onBadgeComplete?: () => void;
@@ -71,6 +74,7 @@ export interface BoardProps {
 
 function Board({
   engineHighlights = [],
+  showEvalBarOverlay = false,
   moveBadge = null,
   onBadgeComplete,
   onError,
@@ -875,7 +879,9 @@ function Board({
                   .map((h) => ({
                     from: h.from!,
                     to: h.to!,
-                    rank: h.rank,
+                    // Use rank 0 for eval bar overlay (transparent blue)
+                    // Use actual rank for engine panel overlays
+                    rank: showEvalBarOverlay ? 0 : h.rank,
                   }))
               : []
           }

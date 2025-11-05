@@ -240,13 +240,18 @@ const ArrowOverlay = memo(function ArrowOverlay({
         const pathData = buildArrowPath(arrow.from, arrow.to);
         if (!pathData) return null;
 
-        // Clamp rank to 1-3
-        const rank = Math.min(Math.max(arrow.rank ?? 1, 1), 3);
+        // Rank 0 = eval bar overlay (transparent blue)
+        // Rank 1-3 = engine panel overlays (normal multi-PV colors)
+        const rank = arrow.rank ?? 1;
+        const isEvalBarArrow = rank === 0;
+        
+        // Clamp rank to 0-3 for CSS class
+        const clampedRank = Math.min(Math.max(rank, 0), 3);
 
         return (
           <path
             key={`engine-arrow-${index}`}
-            className={`board-arrow engine-arrow engine-arrow-${rank}`}
+            className={`board-arrow engine-arrow engine-arrow-${clampedRank} ${isEvalBarArrow ? 'engine-arrow-eval-bar' : ''}`}
             d={pathData}
             fill="none"
             strokeWidth={ARROW_THICKNESS}
