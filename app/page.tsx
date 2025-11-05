@@ -52,11 +52,14 @@ export default function Home() {
   const [isBoardFlipped, setIsBoardFlipped] = useState(false);
 
   const {
+    position,
     resetGame,
     loadFen,
     getFen,
     getPgn,
     loadPgn,
+    movePiece,
+    game,
     history,
     isGameOver,
     checkmate,
