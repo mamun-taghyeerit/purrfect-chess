@@ -10,7 +10,7 @@
   "scripts": {
     "setup": "bash scripts/setup-dev-env.sh",
     "lint": "next lint",
-    "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix",
+    "lint:fix": "next lint --fix",
     "dev": "next dev",
     "build": "yarn vendor:stockfish && next build",
     "start": "next start",

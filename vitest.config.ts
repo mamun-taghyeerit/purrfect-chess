@@ -3,6 +3,8 @@ import { defineConfig } from 'vitest/config';
 
 /// <reference types="vitest" />
 
+// Note: Using vitest/config instead of vite since we removed the Vite build tool.
+// Vitest has its own defineConfig that works without Vite dependencies.
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
