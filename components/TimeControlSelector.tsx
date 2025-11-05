@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 import type { TimeControl } from '@/lib/types';
 
 /**
@@ -10,11 +12,13 @@ import type { TimeControl } from '@/lib/types';
  * Features:
  * - Preset time controls (3+0, 5+1, 10+0, etc.)
  * - Visual indication of selected preset
+ * 
+ * Performance Optimizations:
+ * - Uses MobX observer for fine-grained reactivity
+ * - Direct store access for time control state and actions
  */
 
 interface TimeControlSelectorProps {
-  currentTimeControl: TimeControl;
-  onSelect: (timeControl: TimeControl) => void;
   disabled?: boolean;
 }
 
@@ -27,11 +31,16 @@ const timePresets: Array<TimeControl & { label: string }> = [
   { label: '30 + 30', minutes: 30, increment: 30 },
 ];
 
-export default function TimeControlSelector({
-  currentTimeControl,
-  onSelect,
+const TimeControlSelector = observer(function TimeControlSelector({
   disabled = false,
 }: TimeControlSelectorProps) {
+  const store = useRootStore();
+  const currentTimeControl = store.game.timeControl;
+
+  const handleSelect = (preset: TimeControl) => {
+    store.game.setTimeControl(preset.minutes, preset.increment);
+  };
+
   const isSelected = (preset: TimeControl) =>
     preset.minutes === currentTimeControl.minutes &&
     preset.increment === currentTimeControl.increment;
@@ -41,9 +50,7 @@ export default function TimeControlSelector({
       {timePresets.map((preset) => (
         <button
           key={preset.label}
-          onClick={() =>
-            onSelect({ minutes: preset.minutes, increment: preset.increment })
-          }
+          onClick={() => handleSelect(preset)}
           disabled={disabled}
           className="px-3 py-2 rounded-lg text-sm font-semibold transition-all"
           style={{
@@ -74,4 +81,6 @@ export default function TimeControlSelector({
       ))}
     </div>
   );
-}
+});
+
+export default TimeControlSelector;

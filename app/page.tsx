@@ -256,8 +256,6 @@ const Home = observer(() => {
                   Time Presets
                 </h3>
                 <TimeControlSelector
-                  currentTimeControl={store.game.timeControl}
-                  onSelect={(tc) => store.game.setTimeControl(tc.minutes, tc.increment)}
                   disabled={store.game.history.length > 0}
                 />
               </div>
@@ -343,8 +341,6 @@ const Home = observer(() => {
               {/* Chess Board with Engine Overlays */}
               <Board
                 engineHighlights={engineHighlights}
-                engineDisplayMode={store.ui.engineDisplayModeValue}
-                flipped={store.ui.isBoardFlipped}
                 moveBadge={currentBadge}
                 onBadgeComplete={clearBadge}
                 onError={handleError}
@@ -356,7 +352,6 @@ const Home = observer(() => {
                   scoreCp={evalScore}
                   mateIn={evalMate}
                   isAnalyzing={isAnalyzing}
-                  isVisible={store.ui.isEvalBarVisible}
                   currentDepth={currentDepth}
                   maxDepth={22}
                 />
@@ -537,12 +532,7 @@ const Home = observer(() => {
             {/* Engine Panel (conditionally rendered below board) */}
             {store.ui.isEnginePanelVisible && (
               <div className="w-full" style={{ maxWidth: '600px' }}>
-                <EnginePanel
-                  onClose={store.ui.hideEnginePanel}
-                  engineDisplayMode={store.ui.engineDisplayModeValue}
-                  onEngineDisplayModeChange={store.ui.setEngineDisplayMode}
-                  getFen={() => store.game.fen}
-                />
+                <EnginePanel />
               </div>
             )}
           </div>
@@ -645,7 +635,7 @@ const Home = observer(() => {
                 >
                   Moves
                 </h3>
-                <MoveHistory history={store.game.history} />
+                <MoveHistory />
                 
                 <div className="mt-4 flex flex-col gap-2">
                   {/* PGN Section */}

@@ -1,4 +1,6 @@
 import React, { memo } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 
 /**
  * EvaluationBar Component
@@ -15,7 +17,7 @@ import React, { memo } from 'react';
  * - Concealed mode (blurred backdrop when hidden)
  * 
  * Performance Optimizations:
- * - Memoized to prevent unnecessary re-renders
+ * - Uses MobX observer for fine-grained reactivity
  * - Only re-renders when score or state actually changes
  */
 
@@ -38,11 +40,6 @@ export interface EvaluationBarProps {
   isAnalyzing?: boolean;
 
   /**
-   * Whether the evaluation bar is visible (not concealed)
-   */
-  isVisible?: boolean;
-
-  /**
    * Current search depth (for display)
    */
   currentDepth?: number;
@@ -58,15 +55,17 @@ export interface EvaluationBarProps {
   className?: string;
 }
 
-const EvaluationBar = memo(function EvaluationBar({
+const EvaluationBar = observer(function EvaluationBar({
   scoreCp = null,
   mateIn = null,
   isAnalyzing = false,
-  isVisible = true,
   currentDepth = 0,
   maxDepth = 22,
   className = '',
 }: EvaluationBarProps) {
+  const store = useRootStore();
+  const isVisible = store.ui.isEvalBarVisible;
+
   // Calculate bar fill percentage based on score
   // Map -500 to +500 centipawns to 0% to 100%
   // Score is from white's perspective: positive = white advantage

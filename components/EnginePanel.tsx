@@ -2,6 +2,8 @@
 
 import { useEngine, type EngineAnalysis } from '@/hooks/useEngine';
 import { useState, memo, useRef, useEffect } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 
 /**
  * Engine Analysis Panel Component (Legacy-compatible version)
@@ -14,18 +16,12 @@ import { useState, memo, useRef, useEffect } from 'react';
  * - Throttled updates to prevent drag jank (max 4 updates/sec during analysis)
  * - Memoized EngineLine components to prevent unnecessary re-renders
  * - Debounced analysis display to reduce DOM thrashing
+ * - Uses MobX observer for direct store access
  */
 
 interface EngineLineProps {
   analysis: EngineAnalysis;
   index: number;
-}
-
-interface EnginePanelProps {
-  onClose?: () => void;
-  engineDisplayMode?: 'squares' | 'arrows' | 'both' | 'none';
-  onEngineDisplayModeChange?: (mode: 'squares' | 'arrows' | 'both') => void;
-  getFen: () => string;
 }
 
 /**
@@ -105,12 +101,11 @@ const EngineLine = memo(function EngineLine({ analysis, index }: EngineLineProps
  * EnginePanel component with throttled updates to prevent drag jank
  * Limits analysis updates to max 4 times per second (every 250ms)
  */
-export default function EnginePanel({
-  onClose,
-  engineDisplayMode = 'arrows',
-  onEngineDisplayModeChange,
-  getFen,
-}: EnginePanelProps) {
+const EnginePanel = observer(function EnginePanel() {
+  const store = useRootStore();
+  const ui = store.ui;
+  const game = store.game;
+
   const {
     isEngineReady,
     isAnalyzing,
@@ -155,7 +150,7 @@ export default function EnginePanel({
   }, [analysis, currentDepth]);
 
   const handleAnalyzeClick = () => {
-    const fen = getFen();
+    const fen = game.fen;
     if (isAnalyzing) {
       stopAnalysis();
     } else {
@@ -167,15 +162,11 @@ export default function EnginePanel({
     if (isAnalyzing) {
       stopAnalysis();
     }
-    if (onClose) {
-      onClose();
-    }
+    ui.hideEnginePanel();
   };
 
   const handleOverlayModeChange = (mode: 'squares' | 'arrows' | 'both') => {
-    if (onEngineDisplayModeChange) {
-      onEngineDisplayModeChange(mode);
-    }
+    ui.setEngineDisplayMode(mode);
   };
 
   return (
@@ -287,23 +278,23 @@ export default function EnginePanel({
               className="px-4 py-1.5 text-sm rounded-lg font-semibold transition-all min-w-[96px]"
               style={{
                 background:
-                  engineDisplayMode === mode
+                  ui.engineDisplayModeValue === mode
                     ? 'linear-gradient(135deg, #e66465, #9198e5)'
                     : '#555',
                 color: '#fff',
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow:
-                  engineDisplayMode === mode
+                  ui.engineDisplayModeValue === mode
                     ? '0 6px 18px rgba(230, 100, 101, 0.35)'
                     : 'none',
               }}
               onMouseEnter={(e) => {
-                if (engineDisplayMode !== mode)
+                if (ui.engineDisplayModeValue !== mode)
                   e.currentTarget.style.background = '#666';
               }}
               onMouseLeave={(e) => {
-                if (engineDisplayMode !== mode)
+                if (ui.engineDisplayModeValue !== mode)
                   e.currentTarget.style.background = '#555';
               }}
             >
@@ -362,4 +353,6 @@ export default function EnginePanel({
       </div>
     </div>
   );
-}
+});
+
+export default EnginePanel;
