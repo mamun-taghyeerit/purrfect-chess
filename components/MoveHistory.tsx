@@ -34,7 +34,10 @@ const MoveHistory = observer(function MoveHistory() {
   return (
     <div className="w-full max-w-md">
       <h3 className="text-lg font-bold mb-2">Move History</h3>
-      <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 max-h-96 overflow-y-auto">
+      <div 
+        className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 max-h-96 overflow-y-auto"
+        style={{ minHeight: '52px' }}
+      >
         {movePairs.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">
             No moves yet
