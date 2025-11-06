@@ -9,7 +9,7 @@
  * - Custom matchers
  */
 
-import { afterEach, expect, vi } from 'vitest';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import * as matchers from 'vitest-axe/matchers';
@@ -17,6 +17,13 @@ import React from 'react';
 
 // Extend expect with axe matchers
 expect.extend(matchers);
+
+// Clear localStorage before each test to ensure fresh store state
+beforeEach(() => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.clear();
+  }
+});
 
 // Cleanup after each test
 afterEach(() => {
