@@ -46,7 +46,7 @@ const TimeControlSelector = observer(function TimeControlSelector({
     preset.increment === currentTimeControl.increment;
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-2" style={{ minWidth: '233px' }}>
       {timePresets.map((preset) => (
         <button
           key={preset.label}
