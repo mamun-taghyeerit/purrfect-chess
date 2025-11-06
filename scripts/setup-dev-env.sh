@@ -54,7 +54,11 @@ echo "Vendoring Stockfish binaries..."
 yarn vendor:stockfish
 
 echo "Installing Playwright browsers..."
-npx playwright install --with-deps
+if ! npx playwright install --with-deps; then
+  echo "WARNING: Playwright browser installation failed." >&2
+  echo "You may need to run 'yarn playwright install' manually." >&2
+  echo "E2E tests will not work without Playwright browsers installed." >&2
+fi
 
 # Show versions for traceability
 echo ""
