@@ -12,6 +12,11 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: read
+      pull-requests: write  # For PR comments
+      actions: read         # For workflow artifacts
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,6 +121,10 @@ jobs:
   build:
     name: Build Check
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      actions: write  # For uploading artifacts
     
     steps:
       - name: Checkout code
