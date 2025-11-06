@@ -4,6 +4,9 @@ import { useEngine } from '@/hooks/useEngine';
 import { RootStoreProvider } from '@/stores/store-setup';
 import React from 'react';
 
+// Test configuration constants
+const TEST_ASYNC_WAIT_TIME = 200; // ms to wait for async state updates
+
 // Mock Web Worker
 class MockWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
@@ -12,14 +15,14 @@ class MockWorker {
   postMessage(message: any) {
     // Simulate worker responses based on message type
     if (message.type === 'init') {
-      // Respond immediately in next tick
-      Promise.resolve().then(() => {
+      // Use setTimeout to better match real Worker timing patterns
+      setTimeout(() => {
         if (this.onmessage) {
           this.onmessage(
             new MessageEvent('message', { data: { type: 'ready' } })
           );
         }
-      });
+      }, 0);
     }
   }
 
@@ -68,7 +71,7 @@ describe('useEngine hook', () => {
 
       // Give enough time for async state updates to complete
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
       });
 
       await waitFor(
@@ -101,7 +104,7 @@ describe('useEngine hook', () => {
 
       // Wait a reasonable time for initialization
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
       });
 
       // Try to start analysis - it should not throw even if engine isn't ready
@@ -121,7 +124,7 @@ describe('useEngine hook', () => {
 
       // Wait a reasonable time
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
       });
 
       // Should not throw
@@ -138,7 +141,7 @@ describe('useEngine hook', () => {
 
       // Wait a reasonable time
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
       });
 
       act(() => {
