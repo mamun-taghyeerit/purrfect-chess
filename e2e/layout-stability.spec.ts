@@ -187,8 +187,8 @@ test.describe('Layout Stability', () => {
     expect(leftPanelBefore).toBeTruthy();
     expect(rightPanelBefore).toBeTruthy();
 
-    // Toggle eval bar (find the eval bar button)
-    const evalBarButton = page.locator('button[title="Toggle evaluation bar"]');
+    // Toggle eval bar (find the eval bar button by text content)
+    const evalBarButton = page.locator('button:has-text("Show Eval Bar")');
     await evalBarButton.click();
     await page.waitForTimeout(300);
 
