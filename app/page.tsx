@@ -145,8 +145,8 @@ const Home = observer(() => {
         </div>
 
         <div className="flex flex-col xl:flex-row gap-5 items-start justify-center">
-          {/* Left Panel: White Controls */}
-          <div className="flex flex-col gap-5 xl:max-w-[320px] xl:flex-1 w-full">
+          {/* Left Panel: White Controls - Fixed width to prevent layout shift */}
+          <div className="flex flex-col gap-5 w-full xl:w-[320px] xl:flex-shrink-0">
             <div 
               className="rounded-xl p-5"
               style={{
@@ -457,8 +457,8 @@ const Home = observer(() => {
             )}
           </div>
 
-          {/* Right Panel: Black Controls */}
-          <div className="flex flex-col gap-5 xl:max-w-[320px] xl:flex-1 w-full">
+          {/* Right Panel: Black Controls - Fixed width to prevent layout shift */}
+          <div className="flex flex-col gap-5 w-full xl:w-[320px] xl:flex-shrink-0">
             <div 
               className="rounded-xl p-5"
               style={{
