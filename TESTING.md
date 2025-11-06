@@ -2,6 +2,8 @@
 
 This document provides comprehensive guidelines for testing in the Purrfect Chess Next.js application.
 
+> **📘 See Also**: [Testing Strategy](./docs/TESTING_STRATEGY.md) - Comprehensive overview of our testing approach, including automated and manual testing strategies, coverage targets, and CI/CD pipeline.
+
 ## Table of Contents
 
 - [Testing Stack](#testing-stack)
@@ -397,12 +399,40 @@ Coverage reports are generated in:
 
 **Coverage targets:**
 
-- Aim for >80% coverage on critical paths
+- Aim for >85% coverage on critical paths
 - 100% coverage is not always necessary or practical
 - Focus on high-value, user-facing code
 
+## Continuous Integration
+
+Tests run automatically on every push and pull request via GitHub Actions.
+
+**Workflow**: `.github/workflows/test.yml`
+
+**What runs**:
+- Linting (`yarn lint`)
+- All tests with coverage (`yarn test:coverage`)
+- Build verification (`yarn build`)
+
+**Coverage Reports**:
+- Uploaded to Codecov
+- Displayed in PR comments
+- Archived as artifacts for 30 days
+
+**Viewing CI Results**:
+1. Go to the repository on GitHub
+2. Navigate to the "Actions" tab
+3. Select the workflow run to view results
+
+**Local CI Simulation**:
+```bash
+# Run the same checks that CI runs
+yarn lint && yarn test:coverage && yarn build
+```
+
 ## Additional Resources
 
+- [Testing Strategy](./docs/TESTING_STRATEGY.md) - Comprehensive testing approach
 - [Vitest Documentation](https://vitest.dev/)
 - [Testing Library Best Practices](https://testing-library.com/docs/guiding-principles)
 - [Common Testing Mistakes](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
