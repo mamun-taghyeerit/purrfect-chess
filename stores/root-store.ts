@@ -159,6 +159,8 @@ const GameStateModel = types
         self.chessInstance.load(fen.trim());
         self.fen = self.chessInstance.fen();
         self.stopTimer();
+        // Update isGameOver based on the loaded position
+        self.isGameOver = self.chessInstance.isGameOver();
         return true;
       } catch (error) {
         console.error('Invalid FEN:', error);
@@ -170,6 +172,8 @@ const GameStateModel = types
         self.chessInstance.loadPgn(pgn.trim());
         self.fen = self.chessInstance.fen();
         self.stopTimer();
+        // Update isGameOver based on the loaded position
+        self.isGameOver = self.chessInstance.isGameOver();
         return true;
       } catch (error) {
         console.error('Invalid PGN:', error);
