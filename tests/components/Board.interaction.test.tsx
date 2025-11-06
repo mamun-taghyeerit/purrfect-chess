@@ -12,22 +12,37 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Board from '@/components/Board';
-import { RootStoreProvider } from '@/stores/store-setup';
+import { RootStoreProvider, useRootStore } from '@/stores/store-setup';
+import React from 'react';
 
 describe('Board Interaction Semantics', () => {
+  // Create a wrapper component that resets the store
+  const BoardWithReset = () => {
+    const store = useRootStore();
+    // Reset game state before rendering
+    React.useEffect(() => {
+      store.game.resetGame();
+    }, []);
+    return <Board />;
+  };
+  
   beforeEach(() => {
     vi.clearAllMocks();
+    // Clear localStorage to reset store state
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  // Helper to render Board with store provider
+  // Helper to render Board with store provider and reset
   const renderBoard = () => {
     return render(
       <RootStoreProvider>
-        <Board />
+        <BoardWithReset />
       </RootStoreProvider>
     );
   };
