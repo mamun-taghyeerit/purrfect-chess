@@ -18,6 +18,7 @@ This document provides comprehensive guidelines for testing in the Purrfect Ches
 
 - **Test Runner**: [Vitest](https://vitest.dev/) - Fast, modern test runner with Vite integration
 - **Testing Library**: [@testing-library/react](https://testing-library.com/react) - React component testing utilities
+- **E2E Testing**: [Playwright](https://playwright.dev/) - Browser automation and end-to-end testing
 - **DOM Environment**: [happy-dom](https://github.com/capricorn86/happy-dom) - Lightweight DOM implementation
 - **Assertions**: Vitest's built-in assertions + [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) matchers
 - **Mocking**: Vitest's built-in mocking capabilities
@@ -41,9 +42,14 @@ tests/
 │   └── time-controls.test.js
 └── ui/                           # UI utility tests (legacy)
     └── easter-egg.test.js
+
+e2e/
+└── layout-stability.spec.ts      # End-to-end browser tests
 ```
 
 ## Running Tests
+
+### Unit and Integration Tests
 
 ```bash
 # Run all tests
@@ -61,6 +67,38 @@ yarn test tests/components/AppearanceControls.test.tsx
 # Run tests matching a pattern
 yarn test AppearanceControls
 ```
+
+### End-to-End Tests
+
+End-to-end tests use [Playwright](https://playwright.dev/) to test the application in real browsers.
+
+**First-time setup:**
+
+```bash
+# Install Playwright browsers (one-time step)
+yarn playwright install
+
+# Or install with system dependencies
+yarn playwright install --with-deps
+```
+
+**Running e2e tests:**
+
+```bash
+# Run all e2e tests (headless)
+yarn test:e2e
+
+# Run e2e tests in UI mode (interactive)
+yarn test:e2e:ui
+
+# Run e2e tests in headed mode (see the browser)
+yarn test:e2e:headed
+
+# Run specific test file
+yarn playwright test e2e/layout-stability.spec.ts
+```
+
+**Note:** E2E tests require the Playwright browsers to be installed. If you encounter errors about missing browsers, run `yarn playwright install`.
 
 ## Writing Tests
 
@@ -267,6 +305,115 @@ vi.stubGlobal('Worker', MockWorker);
 
 4. **Don't suppress errors without good reason**
    - If you suppress console errors/warnings, document why
+
+## End-to-End Testing with Playwright
+
+End-to-end tests verify the entire application flow in real browsers. Use these tests to ensure critical user journeys work as expected.
+
+### Writing E2E Tests
+
+**Example: Testing page navigation**
+
+```tsx
+import { test, expect } from '@playwright/test';
+
+test('should load the home page', async ({ page }) => {
+  await page.goto('/');
+  
+  // Check for key elements
+  await expect(page.locator('h1')).toContainText('Purrfect Chess');
+  
+  // Take a screenshot for visual regression
+  await page.screenshot({ path: 'screenshots/home.png' });
+});
+```
+
+**Example: Testing user interactions**
+
+```tsx
+test('should make a chess move', async ({ page }) => {
+  await page.goto('/');
+  
+  // Wait for board to be ready
+  await page.waitForSelector('[data-testid="chess-board"]');
+  
+  // Click on a piece and then a destination square
+  await page.click('[data-square="e2"]');
+  await page.click('[data-square="e4"]');
+  
+  // Verify the move was made
+  await expect(page.locator('[data-square="e4"]')).toContainText('♙');
+});
+```
+
+### E2E Best Practices
+
+**DO ✅**
+
+1. **Test critical user journeys** - Focus on the most important user flows
+2. **Use stable selectors** - Prefer `data-testid`, `role`, or semantic selectors over CSS classes
+3. **Wait for elements** - Use `waitForSelector`, `waitForLoadState`, or auto-waiting features
+4. **Keep tests independent** - Each test should be able to run in isolation
+5. **Use page object pattern** - Abstract page interactions into reusable functions
+
+**DON'T ❌**
+
+1. **Don't test everything** - E2E tests are slower; focus on critical paths
+2. **Don't use arbitrary waits** - Use smart waiting strategies instead of `page.waitForTimeout()`
+3. **Don't couple tests** - Tests shouldn't depend on each other's execution order
+4. **Don't test API details** - E2E tests should focus on user-facing behavior
+
+### Playwright Configuration
+
+The Playwright configuration is in `playwright.config.ts`. Key settings:
+
+- **Test directory**: `./e2e`
+- **Base URL**: `http://localhost:3000`
+- **Browser**: Chromium (can add Firefox, WebKit as needed)
+- **Dev server**: Automatically starts `yarn dev` before tests
+- **Screenshots**: Captured on failure for debugging
+
+### Debugging E2E Tests
+
+```bash
+# Run tests in UI mode (interactive debugging)
+yarn test:e2e:ui
+
+# Run tests in headed mode (see the browser)
+yarn test:e2e:headed
+
+# Run a single test file
+yarn playwright test e2e/layout-stability.spec.ts
+
+# Run with debugging enabled
+yarn playwright test --debug
+```
+
+### Browser Installation
+
+Playwright requires browser binaries to be installed separately from the npm package.
+
+**Install all browsers:**
+```bash
+yarn playwright install
+```
+
+**Install with system dependencies (Linux):**
+```bash
+yarn playwright install --with-deps
+```
+
+**Install specific browser:**
+```bash
+yarn playwright install chromium
+```
+
+**Check installed browsers:**
+```bash
+yarn playwright install --list
+```
+
+The automated setup script (`scripts/setup-dev-env.sh`) handles this installation automatically.
 
 ## Common Patterns
 

@@ -6,6 +6,7 @@ set -euo pipefail
 # - Ensures correct Node (from .nvmrc) via nvm
 # - Ensures Yarn classic (v1)
 # - Installs dependencies and vendors Stockfish
+# - Installs Playwright browsers for e2e testing
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -52,14 +53,19 @@ yarn install --frozen-lockfile
 echo "Vendoring Stockfish binaries..."
 yarn vendor:stockfish
 
+echo "Installing Playwright browsers..."
+npx playwright install --with-deps
+
 # Show versions for traceability
 echo ""
 echo "Tool versions:"
 node -v
 npm -v
 yarn --version || true
+npx playwright --version || true
 
 echo ""
 echo "Setup complete. You can now run:"
-echo "  yarn dev       # Vite app"
-echo "  yarn next:dev  # Next.js app"
+echo "  yarn dev        # Next.js app (http://localhost:3000)"
+echo "  yarn test       # Unit and integration tests"
+echo "  yarn test:e2e   # End-to-end tests with Playwright"
