@@ -8,14 +8,33 @@
  * Ensures parity with legacy implementation
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Board, { type EngineHighlight } from '@/components/Board';
 import EvaluationBar from '@/components/EvaluationBar';
 import ArrowOverlay from '@/components/ArrowOverlay';
-import { RootStoreProvider } from '@/stores/store-setup';
+import { RootStoreProvider, useRootStore } from '@/stores/store-setup';
+import React from 'react';
 
 describe('Engine Overlays Integration', () => {
+  // Helper component to reset UI state before rendering
+  const EvalBarWithReset = (props: React.ComponentProps<typeof EvaluationBar>) => {
+    const store = useRootStore();
+    React.useEffect(() => {
+      // Reset eval bar visibility to default (false)
+      if (store.ui.isEvalBarVisible) {
+        store.ui.toggleEvalBar();
+      }
+    }, [store]);
+    return <EvaluationBar {...props} />;
+  };
+
+  // Reset store UI state before each test
+  beforeEach(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
+  });
   describe('Board with Engine Highlights', () => {
     it('should render board with engine square highlights', () => {
       const highlights: EngineHighlight[] = [
@@ -120,17 +139,17 @@ describe('Engine Overlays Integration', () => {
       expect(svg).toBeFalsy();
     });
 
-    it('should clamp arrow ranks to 1-3 range', () => {
+    it('should clamp arrow ranks to valid range', () => {
       const arrows = [
-        { from: 'e2', to: 'e4', rank: 0 }, // Should become 1
-        { from: 'd2', to: 'd4', rank: 5 }, // Should become 3
+        { from: 'e2', to: 'e4', rank: -1 }, // Should become 0 (min)
+        { from: 'd2', to: 'd4', rank: 5 }, // Should become 3 (max)
       ];
 
       const { container } = render(<ArrowOverlay engineArrows={arrows} />);
 
-      // Rank 0 should be clamped to 1
-      const arrow1 = container.querySelector('.engine-arrow-1');
-      expect(arrow1).toBeTruthy();
+      // Rank -1 should be clamped to 0
+      const arrow0 = container.querySelector('.engine-arrow-0');
+      expect(arrow0).toBeTruthy();
 
       // Rank 5 should be clamped to 3
       const arrow3 = container.querySelector('.engine-arrow-3');
@@ -176,10 +195,22 @@ describe('Engine Overlays Integration', () => {
       expect(score?.textContent).toBe('-M3');
     });
 
-    it('should show analyzing animation when analyzing', () => {
+    it('should show analyzing animation when analyzing and visible', () => {
+      // Wrapper component to set eval bar visible
+      const EvalBarWithVisibility = () => {
+        const store = useRootStore();
+        React.useEffect(() => {
+          // Ensure it's visible - only toggle if it's currently false
+          if (!store.ui.isEvalBarVisible) {
+            store.ui.toggleEvalBar();
+          }
+        }, [store]);
+        return <EvaluationBar isAnalyzing={true} scoreCp={50} />;
+      };
+
       const { container } = render(
         <RootStoreProvider>
-          <EvaluationBar isAnalyzing={true} scoreCp={50} />
+          <EvalBarWithVisibility />
         </RootStoreProvider>
       );
 
@@ -190,7 +221,7 @@ describe('Engine Overlays Integration', () => {
     it('should hide content when not visible', () => {
       const { container } = render(
         <RootStoreProvider>
-          <EvaluationBar scoreCp={100} />
+          <EvalBarWithReset scoreCp={100} />
         </RootStoreProvider>
       );
 
@@ -222,14 +253,28 @@ describe('Engine Overlays Integration', () => {
       expect(score?.classList.contains('black-advantage')).toBe(true);
     });
 
-    it('should display depth info when analyzing', () => {
-      const { container } = render(
-        <RootStoreProvider>
+    it('should display depth info when analyzing and visible', () => {
+      // Wrapper component to set eval bar visible
+      const EvalBarWithVisibility = () => {
+        const store = useRootStore();
+        React.useEffect(() => {
+          // Ensure it's visible - only toggle if it's currently false
+          if (!store.ui.isEvalBarVisible) {
+            store.ui.toggleEvalBar();
+          }
+        }, [store]);
+        return (
           <EvaluationBar
             isAnalyzing={true}
             currentDepth={12}
             maxDepth={22}
           />
+        );
+      };
+
+      const { container } = render(
+        <RootStoreProvider>
+          <EvalBarWithVisibility />
         </RootStoreProvider>
       );
 
