@@ -4,7 +4,7 @@ import { Chess } from 'chess.js';
 /**
  * Promisified delay function for use in MST flows
  */
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Time Control Model
@@ -20,7 +20,10 @@ const TimeControlModel = types.model('TimeControl', {
  */
 const GameStateModel = types
   .model('GameState', {
-    fen: types.optional(types.string, 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'),
+    fen: types.optional(
+      types.string,
+      'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+    ),
     whiteTime: types.number,
     blackTime: types.number,
     timeControl: TimeControlModel,
@@ -39,7 +42,8 @@ const GameStateModel = types
       // Depend on fen for reactivity - when fen changes, position recalculates
       const _ = self.fen; // Track fen dependency
       const board = self.chessInstance.board();
-      const position: Record<string, { type: string; color: string } | null> = {};
+      const position: Record<string, { type: string; color: string } | null> =
+        {};
       const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
       board.forEach((row, rankIndex) => {
@@ -91,11 +95,15 @@ const GameStateModel = types
   .actions((self) => ({
     movePiece(from: string, to: string, promotion?: string) {
       try {
-        const move = self.chessInstance.move({ from, to, promotion: promotion || 'q' });
+        const move = self.chessInstance.move({
+          from,
+          to,
+          promotion: promotion || 'q',
+        });
         if (move) {
           // Update FEN after successful move
           self.fen = self.chessInstance.fen();
-          
+
           // Add increment to the player who just moved
           const incrementMs = self.timeControl.increment * 1000;
           if (move.color === 'w') {
@@ -103,7 +111,7 @@ const GameStateModel = types
           } else {
             self.blackTime += incrementMs;
           }
-          
+
           return true;
         }
         return false;
@@ -131,7 +139,7 @@ const GameStateModel = types
       // Timer tick logic - must be in an action to modify model state
       // Update lastTickTime here (inside action)
       self.lastTickTime = Date.now();
-      
+
       if (!self.isGameOver && self.isTimerRunning) {
         if (self.turn === 'w') {
           self.whiteTime = Math.max(0, self.whiteTime - delta);
@@ -190,19 +198,19 @@ const GameStateModel = types
       if (self.timerRunning) {
         return; // Already running
       }
-      
+
       self.isTimerRunning = true;
       self.timerRunning = true;
       self.lastTickTime = Date.now();
-      
+
       // Timer loop using generator/flow
       while (self.timerRunning && !self.isGameOver) {
         yield delay(100); // Wait 100ms
-        
+
         if (!self.timerRunning || self.isGameOver) {
           break;
         }
-        
+
         const now = Date.now();
         const delta = self.lastTickTime ? now - self.lastTickTime : 0;
         self.tick(delta);
@@ -214,7 +222,10 @@ const GameStateModel = types
         try {
           self.chessInstance.load(self.fen);
         } catch (error) {
-          console.error('[GameStore] Failed to load FEN on initialization:', error);
+          console.error(
+            '[GameStore] Failed to load FEN on initialization:',
+            error
+          );
           // Fall back to default position if FEN is invalid
           self.chessInstance.reset();
         }
@@ -235,7 +246,12 @@ const GameStateModel = types
       self.stopTimer();
     },
     // Enhanced actions with error handling - can now call actions from previous block
-    movePieceWithValidation(from: string, to: string, promotion?: string, onError?: (msg: string) => void) {
+    movePieceWithValidation(
+      from: string,
+      to: string,
+      promotion?: string,
+      onError?: (msg: string) => void
+    ) {
       const success = self.movePiece(from, to, promotion);
       if (!success && onError) {
         onError('Illegal move.');
@@ -284,7 +300,12 @@ const UIStateModel = types
     isEvalBarVisible: types.optional(types.boolean, false),
     isBoardFlipped: types.optional(types.boolean, false),
     engineDisplayMode: types.optional(
-      types.enumeration('EngineDisplayMode', ['squares', 'arrows', 'both', 'none']),
+      types.enumeration('EngineDisplayMode', [
+        'squares',
+        'arrows',
+        'both',
+        'none',
+      ]),
       'both'
     ),
   })
@@ -339,50 +360,51 @@ const SettingsModel = types
  * Engine Analysis Model
  * Represents a single multi-PV analysis line
  */
-const EngineAnalysisModel = types.model('EngineAnalysis', {
-  multipv: types.number,
-  depth: types.number,
-  score: types.number,
-  scoreType: types.enumeration('ScoreType', ['cp', 'mate']),
-  bestMove: types.string,
-  san: types.string,
-  pv: types.array(types.string),
-  pvSan: types.array(types.string),
-})
-.views((self) => ({
-  /**
-   * Get pvSan as a plain JavaScript array
-   * This avoids MST observable tracking issues when accessing the array in components
-   */
-  get pvSanArray(): string[] {
-    return self.pvSan.slice();
-  },
-  /**
-   * Get pv as a plain JavaScript array
-   */
-  get pvArray(): string[] {
-    return self.pv.slice();
-  },
-  /**
-   * Get first 8 moves of pvSan for display
-   */
-  get pvSanPreview(): string {
-    const moves = self.pvSan.slice(0, 8);
-    const preview = moves.join(' ');
-    return self.pvSan.length > 8 ? `${preview}...` : preview;
-  },
-  /**
-   * Check if pvSan has moves
-   */
-  get hasPvSan(): boolean {
-    return self.pvSan.length > 0;
-  },
-}));
+const EngineAnalysisModel = types
+  .model('EngineAnalysis', {
+    multipv: types.number,
+    depth: types.number,
+    score: types.number,
+    scoreType: types.enumeration('ScoreType', ['cp', 'mate']),
+    bestMove: types.string,
+    san: types.string,
+    pv: types.array(types.string),
+    pvSan: types.array(types.string),
+  })
+  .views((self) => ({
+    /**
+     * Get pvSan as a plain JavaScript array
+     * This avoids MST observable tracking issues when accessing the array in components
+     */
+    get pvSanArray(): string[] {
+      return self.pvSan.slice();
+    },
+    /**
+     * Get pv as a plain JavaScript array
+     */
+    get pvArray(): string[] {
+      return self.pv.slice();
+    },
+    /**
+     * Get first 8 moves of pvSan for display
+     */
+    get pvSanPreview(): string {
+      const moves = self.pvSan.slice(0, 8);
+      const preview = moves.join(' ');
+      return self.pvSan.length > 8 ? `${preview}...` : preview;
+    },
+    /**
+     * Check if pvSan has moves
+     */
+    get hasPvSan(): boolean {
+      return self.pvSan.length > 0;
+    },
+  }));
 
 /**
  * Engine State Model
  * Manages Stockfish engine state and analysis results
- * 
+ *
  * This is a shared global state accessed by all useEngine() hook invocations
  */
 const EngineStateModel = types
@@ -443,7 +465,7 @@ const EngineStateModel = types
       const existingIndex = self.analysis.findIndex(
         (a) => a.multipv === line.multipv
       );
-      
+
       if (existingIndex >= 0) {
         // Update existing line
         self.analysis[existingIndex] = line as any;
@@ -451,7 +473,7 @@ const EngineStateModel = types
         // Add new line
         self.analysis.push(line as any);
       }
-      
+
       // Sort by multipv to maintain order
       self.analysis.replace(
         self.analysis.slice().sort((a, b) => a.multipv - b.multipv)

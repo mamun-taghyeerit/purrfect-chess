@@ -87,6 +87,7 @@ function Board() {
 ```
 
 **Rule of Thumb:**
+
 - Stateful hooks should be called in ONE place (or use global store)
 - Pass data down via props OR access shared store
 - Use MobX store slices for cross-component state sharing
@@ -101,9 +102,9 @@ import { useRootStore } from '@/stores/store-setup';
 
 const Home = observer(() => {
   const store = useRootStore();
-  const game = store.game;  // Access game slice
-  const ui = store.ui;      // Access UI slice
-  
+  const game = store.game; // Access game slice
+  const ui = store.ui; // Access UI slice
+
   return (
     <div>
       <p>Turn: {game.turn}</p>
@@ -122,7 +123,7 @@ MobX tracks property access for reactivity. Keep store references and access pro
 const Home = observer(() => {
   const store = useRootStore();
   const game = store.game;
-  
+
   return (
     <div>
       <p>Turn: {game.turn}</p>
@@ -135,7 +136,7 @@ const Home = observer(() => {
 const Home = observer(() => {
   const store = useRootStore();
   const { turn, fen } = store.game; // ❌ Not reactive!
-  
+
   return <div>Turn: {turn}</div>; // Won't update
 });
 ```
@@ -171,9 +172,12 @@ const Clock = observer(() => {
 });
 
 // ❌ LESS OPTIMAL: React.memo requires manual prop comparison
-const Clock = React.memo(({ whiteTime }) => {
-  return <div>{whiteTime}</div>;
-}, (prev, next) => prev.whiteTime === next.whiteTime);
+const Clock = React.memo(
+  ({ whiteTime }) => {
+    return <div>{whiteTime}</div>;
+  },
+  (prev, next) => prev.whiteTime === next.whiteTime
+);
 ```
 
 #### ✅ DO: Access Store Slices Directly
@@ -186,7 +190,7 @@ const MyComponent = observer(() => {
   const store = useRootStore();
   const ui = store.ui;
   const game = store.game;
-  
+
   return (
     <div>
       <p>Flipped: {ui.isBoardFlipped}</p>
@@ -198,7 +202,7 @@ const MyComponent = observer(() => {
 // ❌ BAD: Creating unnecessary wrapper hooks
 export function useUIStore() {
   const store = useRootStore();
-  return store.ui;  // Unnecessary indirection
+  return store.ui; // Unnecessary indirection
 }
 ```
 
@@ -239,6 +243,7 @@ createPersistentStore(
 #### ❌ Gotcha 1: Early Destructuring Breaks Reactivity
 
 **Problem:**
+
 ```tsx
 const store = useRootStore();
 const game = store.game;
@@ -247,6 +252,7 @@ return <div>{turn}</div>; // Won't update!
 ```
 
 **Solution:**
+
 ```tsx
 const store = useRootStore();
 const game = store.game;
@@ -256,6 +262,7 @@ return <div>{game.turn}</div>; // Access in JSX
 #### ❌ Gotcha 2: Forgetting observer() Wrapper
 
 **Problem:**
+
 ```tsx
 // Component doesn't re-render on store changes
 function MyComponent() {
@@ -266,6 +273,7 @@ function MyComponent() {
 ```
 
 **Solution:**
+
 ```tsx
 const MyComponent = observer(() => {
   const store = useRootStore();
@@ -277,6 +285,7 @@ const MyComponent = observer(() => {
 #### ❌ Gotcha 3: MST Enumeration Type Mismatch
 
 **Problem:**
+
 ```tsx
 // MST enumeration returns string, not union type
 const UIStateModel = types.model({
@@ -284,32 +293,37 @@ const UIStateModel = types.model({
 });
 
 // Type error: string not assignable to 'a' | 'b' | 'c'
-<Component mode={store.mode} /> 
+<Component mode={store.mode} />;
 ```
 
 **Solution:**
+
 ```tsx
 // Add a view with explicit type cast
-const UIStateModel = types.model({
-  mode: types.enumeration(['a', 'b', 'c']),
-}).views((self) => ({
-  get modeValue(): 'a' | 'b' | 'c' {
-    return self.mode as 'a' | 'b' | 'c';
-  },
-}));
+const UIStateModel = types
+  .model({
+    mode: types.enumeration(['a', 'b', 'c']),
+  })
+  .views((self) => ({
+    get modeValue(): 'a' | 'b' | 'c' {
+      return self.mode as 'a' | 'b' | 'c';
+    },
+  }));
 
 // Use the view
-<Component mode={store.modeValue} />
+<Component mode={store.modeValue} />;
 ```
 
 #### ❌ Gotcha 4: Missing Provider Wrapper
 
 **Problem:**
+
 ```tsx
 // Tests fail with "useRootStore must be used within RootStoreProvider"
 ```
 
 **Solution:**
+
 ```tsx
 import { RootStoreProvider } from '@/stores/store-setup';
 
@@ -324,6 +338,7 @@ render(
 #### ❌ Gotcha 5: Volatile State Not Serialized
 
 **Problem:**
+
 ```tsx
 // Chess.js instance disappears on hydration
 const GameModel = types.model({
@@ -334,22 +349,24 @@ const GameModel = types.model({
 ```
 
 **Solution:**
+
 ```tsx
-const GameModel = types.model({
-  fen: types.string,
-})
-.volatile(() => ({
-  // ✅ Volatile state: not persisted, recreated on hydration
-  chessInstance: new Chess(),
-}))
-.actions((self) => ({
-  afterCreate() {
-    // Restore state from FEN
-    if (self.fen) {
-      self.chessInstance.load(self.fen);
-    }
-  },
-}));
+const GameModel = types
+  .model({
+    fen: types.string,
+  })
+  .volatile(() => ({
+    // ✅ Volatile state: not persisted, recreated on hydration
+    chessInstance: new Chess(),
+  }))
+  .actions((self) => ({
+    afterCreate() {
+      // Restore state from FEN
+      if (self.fen) {
+        self.chessInstance.load(self.fen);
+      }
+    },
+  }));
 ```
 
 ### Testing with MobX Store
@@ -361,11 +378,7 @@ import { RootStoreProvider } from '@/stores/store-setup';
 import { render } from '@testing-library/react';
 
 function renderWithStore(component: React.ReactElement) {
-  return render(
-    <RootStoreProvider>
-      {component}
-    </RootStoreProvider>
-  );
+  return render(<RootStoreProvider>{component}</RootStoreProvider>);
 }
 
 test('component renders', () => {
@@ -380,8 +393,8 @@ In development mode, the root store is exposed on `window` for debugging:
 
 ```javascript
 // In browser console
-window.__rootStoreInstance.game.fen
-window.__rootStoreInstance.ui.toggleBoardFlip()
+window.__rootStoreInstance.game.fen;
+window.__rootStoreInstance.ui.toggleBoardFlip();
 ```
 
 ### Migration from useState/useReducer
@@ -599,6 +612,7 @@ When features aren't working as expected:
    - **NEVER** say "the code looks correct" without actually running it
 
 **Example of Critical Mistake to Avoid:**
+
 ```typescript
 // ❌ WRONG: Multiple components creating isolated state
 function ParentComponent() {

@@ -1,6 +1,6 @@
 /**
  * Performance profiling utilities for purrfect-chess
- * 
+ *
  * Provides tools to monitor rendering performance and ensure parity with legacy app
  * - Frame time tracking (target: ≤16ms for ≥60 FPS)
  * - Drag operation monitoring
@@ -22,7 +22,7 @@ export class FrameBudgetMonitor {
    */
   start() {
     if (this.isMonitoring) return;
-    
+
     this.isMonitoring = true;
     this.frameTimes = [];
     this.lastFrameTime = performance.now();
@@ -80,9 +80,9 @@ export class FrameBudgetMonitor {
     const min = Math.min(...this.frameTimes);
     const max = Math.max(...this.frameTimes);
     const fps = 1000 / avg;
-    
+
     // Frames exceeding 16.67ms (1000ms / 60fps) are considered dropped
-    const droppedFrames = this.frameTimes.filter(t => t > 16.67).length;
+    const droppedFrames = this.frameTimes.filter((t) => t > 16.67).length;
 
     return {
       avgFrameTime: Math.round(avg * 100) / 100,
@@ -191,7 +191,7 @@ export function createRenderTracker(componentName: string) {
 /**
  * Performance assertion helper for tests
  * Validates that operations complete within expected time budget
- * 
+ *
  * @returns true if performance meets target, false otherwise
  */
 export async function assertPerformance(
@@ -204,7 +204,7 @@ export async function assertPerformance(
   const elapsed = performance.now() - start;
 
   const meetsTarget = elapsed <= maxTimeMs;
-  
+
   if (!meetsTarget) {
     console.warn(
       `Performance assertion failed: ${label} took ${Math.round(elapsed)}ms (expected ≤${maxTimeMs}ms)`
@@ -214,7 +214,7 @@ export async function assertPerformance(
       `✓ Performance assertion passed: ${label} took ${Math.round(elapsed)}ms`
     );
   }
-  
+
   return meetsTarget;
 }
 

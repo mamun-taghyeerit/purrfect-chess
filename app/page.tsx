@@ -31,7 +31,13 @@ const Home = observer(() => {
   const engine = store.engine;
 
   // Initialize engine (hook manages worker lifecycle)
-  const { isEngineReady, isAnalyzing, currentDepth, startAnalysis, stopAnalysis } = useEngine({
+  const {
+    isEngineReady,
+    isAnalyzing,
+    currentDepth,
+    startAnalysis,
+    stopAnalysis,
+  } = useEngine({
     onError: handleError,
   });
 
@@ -43,8 +49,13 @@ const Home = observer(() => {
     depth: 15, // Use depth 15 for auto-evaluation (lighter than full analysis)
   });
 
-  const { isReviewing, currentBadge, reviewStatus, reviewLastMove, clearBadge } =
-    useMoveReview();
+  const {
+    isReviewing,
+    currentBadge,
+    reviewStatus,
+    reviewLastMove,
+    clearBadge,
+  } = useMoveReview();
 
   const { setTargetElement } = useEasterEgg({
     onReveal: () => store.ui.showEnginePanel(),
@@ -72,7 +83,14 @@ const Home = observer(() => {
       }
     }
     prevGameOverRef.current = store.game.isGameOver;
-  }, [store.game.isGameOver, store.game.checkmate, store.game.stalemate, store.game.turn, showMessage, store]);
+  }, [
+    store.game.isGameOver,
+    store.game.checkmate,
+    store.game.stalemate,
+    store.game.turn,
+    showMessage,
+    store,
+  ]);
 
   return (
     <MainLayout>
@@ -87,7 +105,8 @@ const Home = observer(() => {
 
       <div className="mb-6 text-center">
         <p className="text-sm text-gray-400">
-          Phase X: Functional & Visual Parity Complete ✅ | Next.js Migration Success
+          Phase X: Functional & Visual Parity Complete ✅ | Next.js Migration
+          Success
         </p>
       </div>
 
@@ -104,14 +123,22 @@ const Home = observer(() => {
         {(store.game.isGameOver || store.game.check) && (
           <>
             {store.game.checkmate && (
-              <div className="text-2xl font-bold text-red-600">Checkmate! 👑</div>
+              <div className="text-2xl font-bold text-red-600">
+                Checkmate! 👑
+              </div>
             )}
             {store.game.stalemate && (
-              <div className="text-2xl font-bold text-yellow-600">Stalemate! 🤝</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                Stalemate! 🤝
+              </div>
             )}
-            {store.game.isGameOver && !store.game.checkmate && !store.game.stalemate && (
-              <div className="text-2xl font-bold text-orange-600">Time Out! ⏰</div>
-            )}
+            {store.game.isGameOver &&
+              !store.game.checkmate &&
+              !store.game.stalemate && (
+                <div className="text-2xl font-bold text-orange-600">
+                  Time Out! ⏰
+                </div>
+              )}
             {store.game.check && !store.game.checkmate && (
               <div className="text-xl font-bold text-orange-600">Check! ⚠️</div>
             )}
@@ -158,13 +185,13 @@ const Home = observer(() => {
 
       <div className="mt-8 text-center text-sm" style={{ color: '#999' }}>
         <p>
-          <strong>Phase X Complete:</strong> Functional & visual parity achieved ✅ | Board
-          rendering ✓, Piece movement ✓, Time controls ✓, Engine analysis ✓, Appearance
-          controls ✓, All features validated
+          <strong>Phase X Complete:</strong> Functional & visual parity achieved
+          ✅ | Board rendering ✓, Piece movement ✓, Time controls ✓, Engine
+          analysis ✓, Appearance controls ✓, All features validated
         </p>
         <p className="mt-2">
-          <strong>Easter Egg:</strong> Select the text above and type a secret code to
-          unlock hidden features...
+          <strong>Easter Egg:</strong> Select the text above and type a secret
+          code to unlock hidden features...
         </p>
       </div>
     </MainLayout>

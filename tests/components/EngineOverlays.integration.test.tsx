@@ -18,7 +18,9 @@ import React from 'react';
 
 describe('Engine Overlays Integration', () => {
   // Helper component to reset UI state before rendering
-  const EvalBarWithReset = (props: React.ComponentProps<typeof EvaluationBar>) => {
+  const EvalBarWithReset = (
+    props: React.ComponentProps<typeof EvaluationBar>
+  ) => {
     const store = useRootStore();
     React.useEffect(() => {
       // Reset eval bar visibility to default (false)
@@ -264,11 +266,7 @@ describe('Engine Overlays Integration', () => {
           }
         }, [store]);
         return (
-          <EvaluationBar
-            isAnalyzing={true}
-            currentDepth={12}
-            maxDepth={22}
-          />
+          <EvaluationBar isAnalyzing={true} currentDepth={12} maxDepth={22} />
         );
       };
 

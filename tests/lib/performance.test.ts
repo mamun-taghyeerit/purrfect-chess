@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FrameBudgetMonitor, DragPerformanceMonitor, assertPerformance } from '@/lib/performance';
+import {
+  FrameBudgetMonitor,
+  DragPerformanceMonitor,
+  assertPerformance,
+} from '@/lib/performance';
 
 describe('Performance Utilities', () => {
   describe('FrameBudgetMonitor', () => {
@@ -16,7 +20,7 @@ describe('Performance Utilities', () => {
     it('should start and stop monitoring', () => {
       monitor.start();
       const stats = monitor.stop();
-      
+
       expect(stats).toHaveProperty('avgFrameTime');
       expect(stats).toHaveProperty('fps');
       expect(stats).toHaveProperty('droppedFrames');
@@ -32,7 +36,7 @@ describe('Performance Utilities', () => {
       monitor.start();
       // Allow some frames to be tracked
       const stats = monitor.getStats();
-      
+
       // Should have meetsTargets method
       expect(typeof monitor.meetsTargets()).toBe('boolean');
     });
@@ -48,7 +52,7 @@ describe('Performance Utilities', () => {
     it('should track drag performance', () => {
       dragMonitor.startDrag();
       const result = dragMonitor.stopDrag();
-      
+
       expect(result).toHaveProperty('meetsTarget');
       expect(result).toHaveProperty('message');
       expect(typeof result.meetsTarget).toBe('boolean');
@@ -58,7 +62,7 @@ describe('Performance Utilities', () => {
     it('should provide performance message', () => {
       dragMonitor.startDrag();
       const result = dragMonitor.stopDrag();
-      
+
       expect(result.message).toMatch(/(Excellent|Good|Degraded|Poor)/);
     });
   });
@@ -66,7 +70,7 @@ describe('Performance Utilities', () => {
   describe('assertPerformance', () => {
     it('should measure operation performance', async () => {
       const operation = async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       };
 
       const result = await assertPerformance(operation, 100, 'Test operation');
@@ -76,21 +80,27 @@ describe('Performance Utilities', () => {
     it('should handle synchronous operations', async () => {
       const operation = () => {
         // Synchronous operation
-        const sum = Array(1000).fill(1).reduce((a, b) => a + b, 0);
+        const sum = Array(1000)
+          .fill(1)
+          .reduce((a, b) => a + b, 0);
         expect(sum).toBe(1000);
       };
 
       const result = await assertPerformance(operation, 100, 'Sync operation');
       expect(typeof result).toBe('boolean');
     });
-    
+
     it('should return true when operation meets target', async () => {
       const fastOperation = () => {
         // Very fast operation
         return 1 + 1;
       };
-      
-      const result = await assertPerformance(fastOperation, 1000, 'Fast operation');
+
+      const result = await assertPerformance(
+        fastOperation,
+        1000,
+        'Fast operation'
+      );
       expect(result).toBe(true);
     });
   });

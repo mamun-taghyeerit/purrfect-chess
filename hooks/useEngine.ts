@@ -12,7 +12,7 @@ import type { EngineAnalysis } from '@/stores/root-store';
  * IMPORTANT: This hook shares global state via the root store.
  * Multiple invocations of this hook will access the SAME engine state.
  * This ensures that engine analysis is accessible across all components.
- * 
+ *
  * Integrates with the stockfish npm package via Web Worker
  * Provides real-time analysis with multi-PV support
  */
@@ -33,17 +33,19 @@ interface UseEngineReturn {
 
 export function useEngine(options: UseEngineOptions = {}): UseEngineReturn {
   const { onError } = options;
-  
+
   // Access shared engine state from root store
   const store = useRootStore();
   const engine = store.engine;
-  
+
   // Local state for depth preference (not shared)
   const [depth, setDepth] = useState(15);
-  
+
   // Worker is managed globally (singleton pattern)
   const workerRef = useRef<Worker | null>(null);
-  const analysisMapRef = useRef<Map<number, Partial<EngineAnalysis>>>(new Map());
+  const analysisMapRef = useRef<Map<number, Partial<EngineAnalysis>>>(
+    new Map()
+  );
   const onErrorRef = useRef(onError);
 
   // Keep onError ref up to date

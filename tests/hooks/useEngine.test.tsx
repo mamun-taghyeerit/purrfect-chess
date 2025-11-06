@@ -63,7 +63,7 @@ describe('useEngine hook', () => {
       // 4. setTimeout(fn, 0) for MobX store update (async)
       // This creates a race condition that's hard to test reliably
       // The functionality works in practice, but the test is timing-sensitive
-      
+
       const { result } = renderHook(() => useEngine(), { wrapper });
 
       // Initial state should be not ready
@@ -71,7 +71,9 @@ describe('useEngine hook', () => {
 
       // Give enough time for async state updates to complete
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
+        await new Promise((resolve) =>
+          setTimeout(resolve, TEST_ASYNC_WAIT_TIME)
+        );
       });
 
       await waitFor(
@@ -104,7 +106,9 @@ describe('useEngine hook', () => {
 
       // Wait a reasonable time for initialization
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
+        await new Promise((resolve) =>
+          setTimeout(resolve, TEST_ASYNC_WAIT_TIME)
+        );
       });
 
       // Try to start analysis - it should not throw even if engine isn't ready
@@ -114,7 +118,7 @@ describe('useEngine hook', () => {
           'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
         );
       });
-      
+
       // Verify the function exists and is callable
       expect(typeof result.current.startAnalysis).toBe('function');
     });
@@ -124,14 +128,16 @@ describe('useEngine hook', () => {
 
       // Wait a reasonable time
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
+        await new Promise((resolve) =>
+          setTimeout(resolve, TEST_ASYNC_WAIT_TIME)
+        );
       });
 
       // Should not throw
       act(() => {
         result.current.stopAnalysis();
       });
-      
+
       // Verify the function exists and is callable
       expect(typeof result.current.stopAnalysis).toBe('function');
     });
@@ -141,7 +147,9 @@ describe('useEngine hook', () => {
 
       // Wait a reasonable time
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, TEST_ASYNC_WAIT_TIME));
+        await new Promise((resolve) =>
+          setTimeout(resolve, TEST_ASYNC_WAIT_TIME)
+        );
       });
 
       act(() => {

@@ -319,10 +319,10 @@ import { test, expect } from '@playwright/test';
 
 test('should load the home page', async ({ page }) => {
   await page.goto('/');
-  
+
   // Check for key elements
   await expect(page.locator('h1')).toContainText('Purrfect Chess');
-  
+
   // Take a screenshot for visual regression
   await page.screenshot({ path: 'screenshots/home.png' });
 });
@@ -333,14 +333,14 @@ test('should load the home page', async ({ page }) => {
 ```tsx
 test('should make a chess move', async ({ page }) => {
   await page.goto('/');
-  
+
   // Wait for board to be ready
   await page.waitForSelector('[data-testid="chess-board"]');
-  
+
   // Click on a piece and then a destination square
   await page.click('[data-square="e2"]');
   await page.click('[data-square="e4"]');
-  
+
   // Verify the move was made
   await expect(page.locator('[data-square="e4"]')).toContainText('♙');
 });
@@ -394,21 +394,25 @@ yarn playwright test --debug
 Playwright requires browser binaries to be installed separately from the npm package.
 
 **Install all browsers:**
+
 ```bash
 yarn playwright install
 ```
 
 **Install with system dependencies (Linux):**
+
 ```bash
 yarn playwright install --with-deps
 ```
 
 **Install specific browser:**
+
 ```bash
 yarn playwright install chromium
 ```
 
 **Check installed browsers:**
+
 ```bash
 yarn playwright install --list
 ```
@@ -557,21 +561,25 @@ Tests run automatically on every push and pull request via GitHub Actions.
 **Workflow**: `.github/workflows/test.yml`
 
 **What runs**:
+
 - Linting (`yarn lint`)
 - All tests with coverage (`yarn test:coverage`)
 - Build verification (`yarn build`)
 
 **Coverage Reports**:
+
 - Uploaded to Codecov
 - Displayed in PR comments
 - Archived as artifacts for 30 days
 
 **Viewing CI Results**:
+
 1. Go to the repository on GitHub
 2. Navigate to the "Actions" tab
 3. Select the workflow run to view results
 
 **Local CI Simulation**:
+
 ```bash
 # Run the same checks that CI runs
 yarn lint && yarn test:coverage && yarn build

@@ -15,7 +15,7 @@ import { useRootStore } from '@/stores/store-setup';
  * - Smooth transitions on score changes
  * - Analyzing animation when engine is running
  * - Concealed mode (blurred backdrop when hidden)
- * 
+ *
  * Performance Optimizations:
  * - Uses MobX observer for fine-grained reactivity
  * - Only re-renders when score or state actually changes

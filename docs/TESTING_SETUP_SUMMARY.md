@@ -11,6 +11,7 @@ This document summarizes the work completed to establish the foundational testin
 **Created**: `docs/TESTING_STRATEGY.md` (comprehensive 10KB+ document)
 
 **Covers**:
+
 - Overview and goals for testing
 - Six types of tests (unit, component, integration, parity, accessibility, manual)
 - Testing infrastructure and tools
@@ -26,6 +27,7 @@ This document summarizes the work completed to establish the foundational testin
 **Created**: `.github/workflows/test.yml`
 
 **Features**:
+
 - Runs on push to main/develop and all pull requests
 - Executes three jobs:
   1. Lint check (`yarn lint`)
@@ -39,6 +41,7 @@ This document summarizes the work completed to establish the foundational testin
 ### 3. ✅ Fixed Failing Tests
 
 **Results**:
+
 - **Before**: 26 failures out of 193 tests (86.5% pass rate)
 - **After**: 11 failures out of 193 tests (94.3% pass rate)
 - **Improvement**: 15 tests fixed, 7.8% improvement in pass rate
@@ -46,6 +49,7 @@ This document summarizes the work completed to establish the foundational testin
 **Specific Fixes**:
 
 #### useEngine.test.tsx (7 failures → all passing)
+
 - Added `RootStoreProvider` wrapper to `renderHook` calls
 - Renamed file from `.ts` to `.tsx` for JSX support
 - Used `act()` to wrap async state updates
@@ -53,11 +57,13 @@ This document summarizes the work completed to establish the foundational testin
 - Result: 8 passing, 1 todo
 
 #### game-lifecycle-reset.test.tsx (1 failure → all passing)
+
 - Fixed `loadFen()` and `loadPgn()` methods to update `isGameOver` state
 - Now properly detects checkmate/stalemate when loading positions
 - Result: 6 passing
 
 #### EnginePanel.test.tsx (5 failures → all passing)
+
 - Identified that tests require populating `store.engine.analysis`
 - Marked 5 analysis display tests as todo
 - Documented that mock `useEngine` doesn't affect store state
@@ -68,6 +74,7 @@ This document summarizes the work completed to establish the foundational testin
 **Updated**: `TESTING.md`
 
 **Changes**:
+
 - Added reference to new testing strategy document
 - Added CI/CD section explaining automated testing workflow
 - Increased coverage targets from >80% to >85%
@@ -79,10 +86,12 @@ This document summarizes the work completed to establish the foundational testin
 **Documented in Testing Strategy**:
 
 **Todo Tests** (18 total):
+
 - 1 useEngine initialization test (timing-sensitive)
 - 5 EnginePanel analysis display tests (need store setup)
 
 **Failing Tests** (11 remaining):
+
 - 8 Board interaction tests (drag-and-drop)
 - 7 Parity test files (Next.js vs legacy comparison)
 - 3 Engine overlay integration tests
@@ -128,12 +137,12 @@ tests/
 
 ### Coverage Status
 
-| Code Type | Target | Current | Status |
-|-----------|--------|---------|--------|
-| Hooks | >90% | ~85% | 🟡 Close |
-| Components | >85% | ~80% | 🟡 Close |
-| Utilities | >90% | ~90% | ✅ Met |
-| Integration | >70% | ~60% | 🟡 Close |
+| Code Type   | Target   | Current  | Status       |
+| ----------- | -------- | -------- | ------------ |
+| Hooks       | >90%     | ~85%     | 🟡 Close     |
+| Components  | >85%     | ~80%     | 🟡 Close     |
+| Utilities   | >90%     | ~90%     | ✅ Met       |
+| Integration | >70%     | ~60%     | 🟡 Close     |
 | **Overall** | **>85%** | **~80%** | **🟡 Close** |
 
 ## Key Patterns Documented
@@ -163,9 +172,12 @@ const { result } = renderHook(() => useMyHook(), { wrapper });
 ### 3. Testing Async Operations
 
 ```typescript
-await waitFor(() => {
-  expect(screen.getByText('Loaded')).toBeInTheDocument();
-}, { timeout: 1000 });
+await waitFor(
+  () => {
+    expect(screen.getByText('Loaded')).toBeInTheDocument();
+  },
+  { timeout: 1000 }
+);
 ```
 
 ### 4. Mocking Web Workers
@@ -173,7 +185,9 @@ await waitFor(() => {
 ```typescript
 class MockWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
-  postMessage(data: any) { /* ... */ }
+  postMessage(data: any) {
+    /* ... */
+  }
   terminate() {}
 }
 
@@ -183,10 +197,12 @@ vi.stubGlobal('Worker', MockWorker);
 ## Manual Testing
 
 **Runbooks Created**:
+
 - `docs/runbooks/arrow-drawing-manual-tests.md` - Arrow drawing feature
 - `docs/runbooks/side-by-side.md` - Legacy vs Next.js comparison
 
 **Manual Test Coverage**:
+
 - Visual design validation
 - Drag-and-drop interactions
 - Performance testing
@@ -197,18 +213,21 @@ vi.stubGlobal('Worker', MockWorker);
 ## Next Steps (Future Work)
 
 ### High Priority
+
 1. Fix remaining 11 failing tests
 2. Increase overall coverage to >85%
 3. Set up Codecov badge in README
 4. Add automated accessibility testing to CI
 
 ### Medium Priority
+
 1. Review and update parity tests
 2. Add more integration tests for critical workflows
 3. Create test data fixtures for common scenarios
 4. Add visual regression testing
 
 ### Low Priority
+
 1. Add performance regression testing
 2. Set up mutation testing
 3. Add E2E tests with Playwright
@@ -225,18 +244,21 @@ vi.stubGlobal('Worker', MockWorker);
 ## Metrics
 
 ### Test Count
+
 - **Total Tests**: 193
 - **Passing**: 164 (85%)
 - **Failing**: 11 (6%)
 - **Todo**: 18 (9%)
 
 ### Improvement
+
 - **Tests Fixed**: 15
 - **Pass Rate Improvement**: 7.8% (from 86.5% to 94.3%)
 - **Documentation Added**: 15KB+ of testing documentation
 - **CI/CD**: Fully automated testing pipeline
 
 ### Time Savings
+
 - **Manual Testing Time**: ~30 minutes per PR
 - **Automated Testing Time**: ~3 minutes per PR
 - **Time Saved**: ~27 minutes per PR
@@ -258,6 +280,6 @@ The foundational testing infrastructure is now in place with:
 
 ---
 
-*Completed: 2025-01-06*
-*Issue: Tracking foundational setup for automated and manual testing*
-*Status: ✅ Complete*
+_Completed: 2025-01-06_
+_Issue: Tracking foundational setup for automated and manual testing_
+_Status: ✅ Complete_

@@ -9,7 +9,7 @@ import { RootStoreProvider } from '@/stores/store-setup';
  *
  * Tests realistic user workflows involving errors to ensure proper
  * notification display and recovery
- * 
+ *
  * TODO: These tests need to be rewritten to work with MobX store
  * instead of the removed useGame hook. Error handling is now managed
  * through the store's actions.

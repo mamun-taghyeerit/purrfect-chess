@@ -32,7 +32,7 @@ import ArrowOverlay, {
  * - Right-click arrow drawing with preview and toggle
  * - Responsive sizing matching legacy breakpoints
  * - Orientation: A1 always bottom-left for white (default view)
- * 
+ *
  * Performance Optimizations:
  * - Uses MobX observer for fine-grained reactivity
  * - Memoized callbacks and computations
@@ -63,7 +63,7 @@ export interface BoardProps {
   showEvalBarOverlay?: boolean;
 
   /** Move badge to display (from move review) */
-  moveBadge?: { type: string; square: string} | null;
+  moveBadge?: { type: string; square: string } | null;
 
   /** Callback when badge animation completes */
   onBadgeComplete?: () => void;
@@ -82,18 +82,18 @@ function Board({
   // Access store directly for game state and UI state
   const store = useRootStore();
   const ui = store.ui;
-  
+
   // Get UI state from store
   const flipped = ui.isBoardFlipped;
   const engineDisplayMode = ui.engineDisplayModeValue;
-  
+
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [captureMoves, setCaptureMoves] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const dragSourceRef = useRef<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
-  
+
   // Keyboard navigation state
   const [focusedSquare, setFocusedSquare] = useState<string | null>(null);
   const squareRefs = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -110,15 +110,29 @@ function Board({
   } | null>(null);
 
   // Custom square highlights (right-click)
-  const [customHighlights, setCustomHighlights] = useState<Set<string>>(new Set());
+  const [customHighlights, setCustomHighlights] = useState<Set<string>>(
+    new Set()
+  );
 
   // File and rank labels for coordinates (matching legacy)
   // When flipped, reverse the arrays
-  const files = useMemo(() => flipped ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], [flipped]);
-  const ranks = useMemo(() => flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1], [flipped]);
+  const files = useMemo(
+    () =>
+      flipped
+        ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a']
+        : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+    [flipped]
+  );
+  const ranks = useMemo(
+    () => (flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1]),
+    [flipped]
+  );
 
   // Get last move for highlighting
-  const lastMove = store.game.history.length > 0 ? store.game.history[store.game.history.length - 1] : null;
+  const lastMove =
+    store.game.history.length > 0
+      ? store.game.history[store.game.history.length - 1]
+      : null;
 
   // Helper to get algebraic notation for square (file, rank indices)
   const algebraicAt = useCallback(
@@ -385,7 +399,7 @@ function Board({
         targetSquare === drag.fromSquare
       ) {
         // Toggle custom highlight on the square
-        setCustomHighlights(prev => {
+        setCustomHighlights((prev) => {
           const next = new Set(prev);
           if (next.has(drag.fromSquare)) {
             next.delete(drag.fromSquare);
@@ -493,7 +507,8 @@ function Board({
       return;
     }
 
-    const wasReset = previousHistoryLength.current > 0 && store.game.history.length === 0;
+    const wasReset =
+      previousHistoryLength.current > 0 && store.game.history.length === 0;
     const wasMove = store.game.history.length > previousHistoryLength.current;
 
     if (wasReset) {
@@ -531,7 +546,12 @@ function Board({
 
       if (selectedSquare) {
         // Try to move piece
-        const success = store.game.movePieceWithValidation(selectedSquare, square, undefined, onError);
+        const success = store.game.movePieceWithValidation(
+          selectedSquare,
+          square,
+          undefined,
+          onError
+        );
 
         // Clear selection state
         setSelectedSquare(null);
@@ -693,7 +713,12 @@ function Board({
 
     if (fromSquare) {
       // Attempt move - invalid moves are rejected by movePiece, no state mutation
-      store.game.movePieceWithValidation(fromSquare, targetSquare, undefined, onError);
+      store.game.movePieceWithValidation(
+        fromSquare,
+        targetSquare,
+        undefined,
+        onError
+      );
     }
 
     // Clear drag state
@@ -732,8 +757,8 @@ function Board({
         </div>
 
         {/* 8×8 Board grid */}
-        <div 
-          id="board" 
+        <div
+          id="board"
           ref={boardRef}
           role="application"
           aria-label="Chess board with 64 squares"
@@ -760,7 +785,9 @@ function Board({
               // Only apply if engineDisplayMode includes squares
               // IMPORTANT: Do NOT show square highlights for eval bar overlay (arrows only)
               const showEngineSquares =
-                !showEvalBarOverlay && (engineDisplayMode === 'both' || engineDisplayMode === 'squares');
+                !showEvalBarOverlay &&
+                (engineDisplayMode === 'both' ||
+                  engineDisplayMode === 'squares');
               let engineHighlightRank: number | null = null;
 
               if (showEngineSquares && engineHighlights.length > 0) {
@@ -899,7 +926,7 @@ function Board({
 /**
  * MoveBadge Component - Animated move quality badge
  * Ported from legacy src/main.ts displayMoveBadge() function
- * 
+ *
  * Handles:
  * - Badge positioning relative to target square
  * - CSS animation triggers

@@ -25,19 +25,24 @@ test.describe('Layout Stability', () => {
     await page.waitForSelector('[role="application"]', { state: 'visible' });
 
     // Measure board position before move
-    const boardBefore = await page.locator('[role="application"]').boundingBox();
+    const boardBefore = await page
+      .locator('[role="application"]')
+      .boundingBox();
     expect(boardBefore).toBeTruthy();
 
     // Take screenshot before move
-    await page.screenshot({ path: 'test-results/layout-before-move.png', fullPage: true });
+    await page.screenshot({
+      path: 'test-results/layout-before-move.png',
+      fullPage: true,
+    });
 
     // Make first move (e4)
     // Click on e2 square (white pawn)
     await page.click('[aria-label="e2, White pawn"]');
-    
+
     // Wait a bit for the square to be selected
     await page.waitForTimeout(100);
-    
+
     // Click on e4 square (destination)
     await page.click('[aria-label="e4, empty, legal move"]');
 
@@ -45,7 +50,10 @@ test.describe('Layout Stability', () => {
     await page.waitForTimeout(200);
 
     // Take screenshot after move
-    await page.screenshot({ path: 'test-results/layout-after-move.png', fullPage: true });
+    await page.screenshot({
+      path: 'test-results/layout-after-move.png',
+      fullPage: true,
+    });
 
     // Measure board position after move
     const boardAfter = await page.locator('[role="application"]').boundingBox();
@@ -62,7 +70,10 @@ test.describe('Layout Stability', () => {
     expect(boardAfter!.height).toBe(boardBefore!.height);
   });
 
-  test('control panels maintain fixed width on xl screens', async ({ page, viewport }) => {
+  test('control panels maintain fixed width on xl screens', async ({
+    page,
+    viewport,
+  }) => {
     // Set viewport to XL size (1280px+)
     await page.setViewportSize({ width: 1440, height: 900 });
 
@@ -118,7 +129,10 @@ test.describe('Layout Stability', () => {
     expect(rightPanelAfter!.width).toBe(rightPanelBefore!.width);
   });
 
-  test('layout remains stable across multiple moves', async ({ page, viewport }) => {
+  test('layout remains stable across multiple moves', async ({
+    page,
+    viewport,
+  }) => {
     // Set viewport to XL size
     await page.setViewportSize({ width: 1440, height: 900 });
 
@@ -129,7 +143,9 @@ test.describe('Layout Stability', () => {
     await page.waitForSelector('[role="application"]', { state: 'visible' });
 
     // Get initial board position
-    const initialBoard = await page.locator('[role="application"]').boundingBox();
+    const initialBoard = await page
+      .locator('[role="application"]')
+      .boundingBox();
     expect(initialBoard).toBeTruthy();
 
     // Make 10 moves
@@ -154,7 +170,9 @@ test.describe('Layout Stability', () => {
       await page.waitForTimeout(200);
 
       // Check board position after each move
-      const currentBoard = await page.locator('[role="application"]').boundingBox();
+      const currentBoard = await page
+        .locator('[role="application"]')
+        .boundingBox();
       expect(currentBoard).toBeTruthy();
 
       // Board should not shift on any move
@@ -163,10 +181,16 @@ test.describe('Layout Stability', () => {
     }
 
     // Take final screenshot
-    await page.screenshot({ path: 'test-results/layout-after-10-moves.png', fullPage: true });
+    await page.screenshot({
+      path: 'test-results/layout-after-10-moves.png',
+      fullPage: true,
+    });
   });
 
-  test('panels maintain width when toggling eval bar', async ({ page, viewport }) => {
+  test('panels maintain width when toggling eval bar', async ({
+    page,
+    viewport,
+  }) => {
     // Set viewport to XL size
     await page.setViewportSize({ width: 1440, height: 900 });
 
@@ -223,6 +247,9 @@ test.describe('Layout Stability', () => {
     await expect(blackControls).toBeVisible();
 
     // Take screenshot for visual verification
-    await page.screenshot({ path: 'test-results/layout-mobile.png', fullPage: true });
+    await page.screenshot({
+      path: 'test-results/layout-mobile.png',
+      fullPage: true,
+    });
   });
 });

@@ -20,7 +20,11 @@ export interface Notification {
 
 interface UseNotificationReturn {
   notifications: Notification[];
-  showMessage: (type: NotificationType, message: string, duration?: number) => void;
+  showMessage: (
+    type: NotificationType,
+    message: string,
+    duration?: number
+  ) => void;
   dismissNotification: (id: string) => void;
 }
 

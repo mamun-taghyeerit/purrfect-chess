@@ -1,7 +1,7 @@
 # Next.js Migration Guide
 
 > **🎉 MIGRATION COMPLETE!** The Next.js migration has been successfully completed and the legacy Vite/HTML implementation has been removed from the develop branch. This document is preserved for historical reference and to explain the migration journey.
-> 
+>
 > The original Vite implementation is preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch.
 
 This document explains the Next.js migration journey and final architecture.
@@ -78,6 +78,7 @@ The legacy Vite implementation has been preserved on the [`legacy`](https://gith
 Phase X has been successfully completed! All 14 workstreams achieved functional and visual parity between the legacy Vite app and Next.js app.
 
 **Achievements:**
+
 - ✅ All 14 workstreams validated (see [Phase X Audit](./docs/phase-x/phase-x-audit.md))
 - ✅ Tested with 27 FEN fixtures and 10 PGN fixtures
 - ✅ Side-by-side manual validation completed
@@ -87,11 +88,13 @@ Phase X has been successfully completed! All 14 workstreams achieved functional 
 - ✅ Production build: zero errors, 2 non-blocking warnings
 
 **Intentional Deviations from Legacy:**
+
 - **Architectural differences:** Next.js uses React state management (MobX) vs legacy module-level state - both are correct for their respective contexts
 - **Engine integration:** Next.js uses React state updates vs legacy Promise-based returns - functionally equivalent, architecturally different
 - **Build tooling:** Next.js framework overhead results in slightly longer build times (~18s vs ~8s) and initial load (~800ms vs ~500ms), but runtime performance is identical
 
 **All Features Complete:**
+
 - ✅ Arrow drawing system implemented (issues #80, #81)
 - ✅ EvaluationBar component fully integrated (issue #50)
 - ✅ No outstanding parity gaps
@@ -109,43 +112,45 @@ Phase X has been successfully completed! All 14 workstreams achieved functional 
 See [Issue #94](https://github.com/purrfectsoft/purrfect-chess/issues/94) for cleanup details.
 
 ## Architecture Overview
+
 .
-├── app/                      # Next.js App Router
-│   ├── layout.tsx           # Root layout with metadata
-│   ├── page.tsx             # Homepage with Board component
-│   └── globals.css          # Global Tailwind styles
+├── app/ # Next.js App Router
+│ ├── layout.tsx # Root layout with metadata
+│ ├── page.tsx # Homepage with Board component
+│ └── globals.css # Global Tailwind styles
 │
-├── components/              # React components
-│   └── Board.tsx            # Chess board component (placeholder)
+├── components/ # React components
+│ └── Board.tsx # Chess board component (placeholder)
 │
-├── hooks/                   # Custom React hooks
-│   ├── useGame.ts           # Game state management (chess.js)
-│   └── useEngine.ts         # Stockfish engine integration (stub)
+├── hooks/ # Custom React hooks
+│ ├── useGame.ts # Game state management (chess.js)
+│ └── useEngine.ts # Stockfish engine integration (stub)
 │
-├── workers/                 # Web Workers
-│   └── stockfish.worker.ts  # Stockfish UCI worker (stub)
+├── workers/ # Web Workers
+│ └── stockfish.worker.ts # Stockfish UCI worker (stub)
 │
-├── lib/                     # Utility libraries
-│   └── (future utility modules)
+├── lib/ # Utility libraries
+│ └── (future utility modules)
 │
-├── public/                  # Static assets
-│   ├── assets/              # Piece and square images (CC BY 4.0)
-│   └── libs/                # Stockfish binaries
+├── public/ # Static assets
+│ ├── assets/ # Piece and square images (CC BY 4.0)
+│ └── libs/ # Stockfish binaries
 │
-├── src/                     # Original vanilla TS modules (preserved)
-│   ├── board.ts             # ← To be migrated to components/Board.tsx
-│   ├── game.ts              # ← Logic migrated to hooks/useGame.ts
-│   ├── engine.ts            # ← To be migrated to hooks/useEngine.ts
-│   ├── ui.ts                # ← To be split into React components
-│   └── ...
+├── src/ # Original vanilla TS modules (preserved)
+│ ├── board.ts # ← To be migrated to components/Board.tsx
+│ ├── game.ts # ← Logic migrated to hooks/useGame.ts
+│ ├── engine.ts # ← To be migrated to hooks/useEngine.ts
+│ ├── ui.ts # ← To be split into React components
+│ └── ...
 │
-├── next.config.mjs          # Next.js configuration
-├── tsconfig.json            # TypeScript config (updated for Next.js)
-├── tailwind.config.js       # Tailwind config (updated paths)
-├── .eslintrc.json           # ESLint with Next.js rules
-├── .prettierrc.json         # Prettier configuration
-└── package.json             # Dependencies and scripts
-```
+├── next.config.mjs # Next.js configuration
+├── tsconfig.json # TypeScript config (updated for Next.js)
+├── tailwind.config.js # Tailwind config (updated paths)
+├── .eslintrc.json # ESLint with Next.js rules
+├── .prettierrc.json # Prettier configuration
+└── package.json # Dependencies and scripts
+
+````
 
 ## Running the Next.js App
 
@@ -162,7 +167,7 @@ nvm use
 
 # Install dependencies (if not already done)
 yarn
-```
+````
 
 ### Development Server
 

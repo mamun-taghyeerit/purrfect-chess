@@ -239,10 +239,10 @@ yarn format
 **Current State:** Limited CI workflow exists (`.github/workflows/copilot-setup-steps.yml`) for environment setup only.
 
 **Phase 4 Goal:** Add comprehensive CI workflow with:
+
 - Automated build/lint/test on all PRs
 - Deploy preview environments
 - Status badges in README
 - Automated dependency updates
 
 See [Phase 4 tasks in NEXT_STEPS_ISSUE.md](./NEXT_STEPS_ISSUE.md#phase-4-testing--cleanup-next) for CI/CD implementation plan.
-

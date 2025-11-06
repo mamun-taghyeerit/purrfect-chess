@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { FrameBudgetMonitor, DragPerformanceMonitor, type DragPerformanceResult } from '@/lib/performance';
+import {
+  FrameBudgetMonitor,
+  DragPerformanceMonitor,
+  type DragPerformanceResult,
+} from '@/lib/performance';
 
 /**
  * Hook to monitor frame budget performance
@@ -38,16 +42,16 @@ export function usePerformanceMonitor(isActive: boolean = true) {
 /**
  * Hook to monitor drag performance
  * Automatically tracks performance during drag operations
- * 
+ *
  * Usage:
  * ```tsx
  * const { startDrag, stopDrag } = useDragPerformance();
- * 
+ *
  * const handleDragStart = () => {
  *   startDrag();
  *   // ... your drag logic
  * };
- * 
+ *
  * const handleDragEnd = () => {
  *   const result = stopDrag();
  *   console.log(result.message);
@@ -94,7 +98,7 @@ export function useDragPerformance() {
 
 /**
  * Hook to track component render count (dev mode only)
- * 
+ *
  * Usage:
  * ```tsx
  * function MyComponent() {

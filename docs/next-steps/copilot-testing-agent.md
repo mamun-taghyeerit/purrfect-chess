@@ -7,11 +7,13 @@ This document captures key learnings from updating tests after refactoring compo
 ## Background Context
 
 ### The Refactoring
+
 - **Before**: Components used a custom `useGame()` hook that returned game state and actions
 - **After**: Components use MobX `observer()` HOC and access state via `useRootStore()` hook from `@/stores/store-setup`
 - **Impact**: All tests that rendered these components failed with "usePersistentStore must be used within a PersistentStoreProvider" errors
 
 ### Components Affected
+
 - `Board` - Main chess board component
 - `EnginePanel` - Engine analysis panel
 - `EvaluationBar` - Position evaluation bar
@@ -43,6 +45,7 @@ render(
 ```
 
 **Pattern for Reusability**:
+
 ```typescript
 // Create a helper function in each test file
 const renderWithStore = (component: React.ReactElement) => {
@@ -78,6 +81,7 @@ vi.mock('@/hooks/useGame', () => ({
 ```
 
 **Keep mocks for hooks that still exist**:
+
 ```typescript
 // ✅ Still mock useEngine - it hasn't been refactored
 vi.mock('@/hooks/useEngine', () => ({
@@ -94,10 +98,11 @@ vi.mock('@/hooks/useEngine', () => ({
 **Problem**: Components no longer accept props that come from the store.
 
 **Example - EnginePanel**:
+
 ```typescript
 // ❌ BEFORE (component accepted props)
 render(
-  <EnginePanel 
+  <EnginePanel
     engineDisplayMode="arrows"
     onEngineDisplayModeChange={mockFn}
   />
@@ -114,6 +119,7 @@ render(
 ```
 
 **Example - Board**:
+
 ```typescript
 // ✅ STILL VALID - Board accepts optional props for engine overlays
 render(
@@ -147,6 +153,7 @@ expect(store.game.history.length).toBe(1);
 ```
 
 **Benefits**:
+
 - No need for React's `act()` wrapper
 - Direct access to store actions and state
 - Simpler and more focused tests
@@ -156,6 +163,7 @@ expect(store.game.history.length).toBe(1);
 **Problem**: Store APIs may differ from hook APIs.
 
 **Example - Time Controls**:
+
 ```typescript
 // ❌ Hook API (old)
 result.current.setTimeControl({ minutes: 10, increment: 5 });
@@ -171,6 +179,7 @@ store.game.setTimeControl(10, 5); // Two separate parameters
 **Problem**: Some UI state is local to components, not in the store.
 
 **Example - Board Selection**:
+
 ```typescript
 // ✅ Selection state is local to Board component
 const { container } = renderWithStore(<Board />);
@@ -182,6 +191,7 @@ expect(e2Square?.classList.contains('selected')).toBe(true);
 ```
 
 **Lesson**: Understand which state lives where:
+
 - **Store**: Game state, UI preferences, settings
 - **Component**: Transient UI state (selection, drag, hover)
 
@@ -205,6 +215,7 @@ import RootStoreModel, { createDefaultSnapshot } from '@/stores/root-store';
 **Problem**: Assertions need to match new component behavior.
 
 **Example - Callback Props**:
+
 ```typescript
 // ❌ BEFORE (testing prop callback)
 const onClose = vi.fn();
@@ -230,32 +241,38 @@ fireEvent.click(closeButton);
 When refactoring components to use MobX/MST, update tests as follows:
 
 ### Step 1: Identify Affected Tests
+
 - [ ] Find tests that render the refactored component
 - [ ] Look for "usePersistentStore must be used within a PersistentStoreProvider" errors
 - [ ] Look for "Failed to resolve import" errors for removed hooks
 
 ### Step 2: Add Provider Wrapper
+
 - [ ] Import `RootStoreProvider` from `@/stores/store-setup`
 - [ ] Wrap all `render()` calls with `<RootStoreProvider>`
 - [ ] Create a helper function if many tests need it
 
 ### Step 3: Remove Obsolete Mocks
+
 - [ ] Remove `vi.mock()` calls for hooks that no longer exist
 - [ ] Remove mock state creation functions
 - [ ] Keep mocks for hooks that still exist (e.g., `useEngine`)
 
 ### Step 4: Update Test Logic
+
 - [ ] Replace `renderHook()` tests with direct store tests
 - [ ] Remove props that now come from the store
 - [ ] Update assertions for callback props that now update the store
 - [ ] Verify store API usage (check for parameter differences)
 
 ### Step 5: Fix Imports
+
 - [ ] Remove imports of deleted hooks
 - [ ] Add imports for store modules if testing store directly
 - [ ] Update any import paths that changed
 
 ### Step 6: Verify Tests
+
 - [ ] Run tests to check for syntax errors
 - [ ] Run tests to check for assertion failures
 - [ ] Verify expected behavior still works
@@ -263,6 +280,7 @@ When refactoring components to use MobX/MST, update tests as follows:
 ## Common Error Patterns
 
 ### Error 1: Context Provider Missing
+
 ```
 Error: usePersistentStore must be used within a PersistentStoreProvider
 ```
@@ -270,6 +288,7 @@ Error: usePersistentStore must be used within a PersistentStoreProvider
 **Fix**: Wrap component with `<RootStoreProvider>`
 
 ### Error 2: Import Not Found
+
 ```
 Error: Failed to resolve import "@/hooks/useGame"
 ```
@@ -277,6 +296,7 @@ Error: Failed to resolve import "@/hooks/useGame"
 **Fix**: Remove import, use store instead
 
 ### Error 3: Type Mismatch
+
 ```
 Error: [mobx-state-tree] Error while converting {...} to `TimeControl`
 ```
@@ -284,6 +304,7 @@ Error: [mobx-state-tree] Error while converting {...} to `TimeControl`
 **Fix**: Check store API - likely passing object instead of individual parameters
 
 ### Error 4: Props Don't Exist
+
 ```
 Warning: React does not recognize the `onEngineDisplayModeChange` prop
 ```
@@ -293,6 +314,7 @@ Warning: React does not recognize the `onEngineDisplayModeChange` prop
 ## Testing Patterns by Component Type
 
 ### Pattern 1: Pure Presentational Component
+
 ```typescript
 // Component accepts props, no store access
 test('renders with props', () => {
@@ -302,6 +324,7 @@ test('renders with props', () => {
 ```
 
 ### Pattern 2: Store-Connected Component
+
 ```typescript
 // Component uses observer() and useRootStore()
 test('renders with store', () => {
@@ -314,6 +337,7 @@ test('renders with store', () => {
 ```
 
 ### Pattern 3: Hybrid Component
+
 ```typescript
 // Component uses store but also accepts optional props
 test('renders with store and props', () => {
@@ -326,6 +350,7 @@ test('renders with store and props', () => {
 ```
 
 ### Pattern 4: Direct Store Testing
+
 ```typescript
 // Test store actions and state without React
 test('store action works', () => {
@@ -338,14 +363,18 @@ test('store action works', () => {
 ## Automation Opportunities
 
 ### Detection
+
 A testing guardian agent could automatically detect:
+
 1. Test files importing removed hooks (`useGame`, etc.)
 2. Error messages about missing provider context
 3. Components using `observer()` HOC that aren't wrapped in tests
 4. Render calls without `RootStoreProvider` for store-connected components
 
 ### Auto-Fix Capabilities
+
 The agent could automatically:
+
 1. Add `RootStoreProvider` wrapper to renders
 2. Remove imports of deleted hooks
 3. Remove obsolete `vi.mock()` calls
@@ -354,6 +383,7 @@ The agent could automatically:
 6. Convert `renderHook()` tests to direct store tests
 
 ### Code Patterns to Detect
+
 ```typescript
 // Pattern: Import of removed hook
 /import.*from ['"]@\/hooks\/useGame['"]/
@@ -371,6 +401,7 @@ The agent could automatically:
 ## Future Considerations
 
 ### For Testing Agent Development
+
 1. **Context Awareness**: Agent should understand which components use which state management pattern
 2. **Import Graph**: Track dependencies to know when hooks are removed
 3. **API Mapping**: Maintain a mapping of old hook APIs to new store APIs
@@ -378,6 +409,7 @@ The agent could automatically:
 5. **Validation**: Run tests after auto-fix to ensure they pass
 
 ### For Code Maintainability
+
 1. **Documentation**: Keep store API documentation up to date
 2. **Migration Guides**: Document state management changes
 3. **Type Safety**: Use TypeScript to catch API mismatches early
@@ -395,6 +427,7 @@ The agent could automatically:
 ### Before and After: EnginePanel.test.tsx
 
 **Before**:
+
 ```typescript
 import { render } from '@testing-library/react';
 import EnginePanel from '@/components/EnginePanel';
@@ -410,6 +443,7 @@ it('renders header', () => {
 ```
 
 **After**:
+
 ```typescript
 import { render } from '@testing-library/react';
 import EnginePanel from '@/components/EnginePanel';
@@ -430,18 +464,19 @@ it('renders header', () => {
 ### Before and After: Game Lifecycle Test
 
 **Before**:
+
 ```typescript
 import { renderHook, act } from '@testing-library/react';
 import { useGame } from '@/hooks/useGame';
 
 it('resets game', () => {
   const { result } = renderHook(() => useGame());
-  
+
   act(() => {
     result.current.movePiece('e2', 'e4');
   });
   expect(result.current.history.length).toBe(1);
-  
+
   act(() => {
     result.current.resetGame();
   });
@@ -450,15 +485,16 @@ it('resets game', () => {
 ```
 
 **After**:
+
 ```typescript
 import RootStoreModel, { createDefaultSnapshot } from '@/stores/root-store';
 
 it('resets game', () => {
   const store = RootStoreModel.create(createDefaultSnapshot());
-  
+
   store.game.movePiece('e2', 'e4');
   expect(store.game.history.length).toBe(1);
-  
+
   store.game.resetGame();
   expect(store.game.history.length).toBe(0);
 });
@@ -471,6 +507,7 @@ The key insight for a testing guardian agent is to recognize the pattern:
 **Component refactored to use MobX/MST** → **Tests need provider wrapper + API updates**
 
 The agent should:
+
 1. Detect components using `observer()` HOC
 2. Detect tests rendering those components without provider
 3. Auto-wrap with `RootStoreProvider`

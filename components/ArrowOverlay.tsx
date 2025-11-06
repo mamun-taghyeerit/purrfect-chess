@@ -11,7 +11,7 @@
  * - User arrows (blue) and engine arrows (rank-based colors)
  * - Arrow preview during right-click drag
  * - Positioned absolutely over board
- * 
+ *
  * Performance Optimizations:
  * - Memoized to prevent unnecessary re-renders
  * - Shallow comparison of arrow arrays for prop equality
@@ -192,123 +192,73 @@ function buildPreviewPath(
  * ArrowOverlay component with memoization for performance
  * Only re-renders when arrows actually change
  */
-const ArrowOverlay = memo(function ArrowOverlay({
-  userArrows = [],
-  engineArrows = [],
-  previewArrow = null,
-}: ArrowOverlayProps) {
-  // Don't render if no arrows or preview
-  if (userArrows.length === 0 && engineArrows.length === 0 && !previewArrow) {
-    return null;
-  }
+const ArrowOverlay = memo(
+  function ArrowOverlay({
+    userArrows = [],
+    engineArrows = [],
+    previewArrow = null,
+  }: ArrowOverlayProps) {
+    // Don't render if no arrows or preview
+    if (userArrows.length === 0 && engineArrows.length === 0 && !previewArrow) {
+      return null;
+    }
 
-  return (
-    <svg
-      className="board-arrow-layer"
-      viewBox="0 0 8 8"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      style={{
-        pointerEvents: 'none',
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      {/* Arrow head marker definition */}
-      <defs>
-        <marker
-          id={ARROW_HEAD_ID}
-          markerWidth={ARROW_HEAD_SIZE}
-          markerHeight={ARROW_HEAD_SIZE}
-          refX="1"
-          refY="0.5"
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-          viewBox="0 0 1 1"
-        >
-          <path d="M 0 0 L 1 0.5 L 0 1 Z" fill="context-stroke" stroke="none" />
-        </marker>
-      </defs>
+    return (
+      <svg
+        className="board-arrow-layer"
+        viewBox="0 0 8 8"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+        style={{
+          pointerEvents: 'none',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+        }}
+      >
+        {/* Arrow head marker definition */}
+        <defs>
+          <marker
+            id={ARROW_HEAD_ID}
+            markerWidth={ARROW_HEAD_SIZE}
+            markerHeight={ARROW_HEAD_SIZE}
+            refX="1"
+            refY="0.5"
+            orient="auto"
+            markerUnits="userSpaceOnUse"
+            viewBox="0 0 1 1"
+          >
+            <path
+              d="M 0 0 L 1 0.5 L 0 1 Z"
+              fill="context-stroke"
+              stroke="none"
+            />
+          </marker>
+        </defs>
 
-      {/* Render engine arrows (drawn first, under user arrows) */}
-      {engineArrows.map((arrow, index) => {
-        const pathData = buildArrowPath(arrow.from, arrow.to);
-        if (!pathData) return null;
-
-        // Rank 0 = eval bar overlay (transparent blue)
-        // Rank 1-3 = engine panel overlays (normal multi-PV colors)
-        const rank = arrow.rank ?? 1;
-        const isEvalBarArrow = rank === 0;
-        
-        // Clamp rank to 0-3 for CSS class
-        const clampedRank = Math.min(Math.max(rank, 0), 3);
-
-        return (
-          <path
-            key={`engine-arrow-${index}`}
-            className={`board-arrow engine-arrow engine-arrow-${clampedRank} ${isEvalBarArrow ? 'engine-arrow-eval-bar' : ''}`}
-            d={pathData}
-            fill="none"
-            strokeWidth={ARROW_THICKNESS}
-            strokeLinecap="butt"
-            strokeLinejoin="round"
-            markerEnd={`url(#${ARROW_HEAD_ID})`}
-            style={{ pointerEvents: 'none' }}
-          />
-        );
-      })}
-
-      {/* Render user arrows (drawn over engine arrows) */}
-      {userArrows.map((arrow, index) => {
-        const pathData = buildArrowPath(arrow.from, arrow.to);
-        if (!pathData) return null;
-
-        return (
-          <path
-            key={`user-arrow-${index}-${arrow.from}-${arrow.to}`}
-            className="board-arrow"
-            d={pathData}
-            fill="none"
-            stroke={ARROW_STROKE}
-            strokeWidth={ARROW_THICKNESS}
-            strokeLinecap="butt"
-            strokeLinejoin="round"
-            markerEnd={`url(#${ARROW_HEAD_ID})`}
-            style={{ pointerEvents: 'none' }}
-          />
-        );
-      })}
-
-      {/* Render preview arrow (drawn on top) */}
-      {previewArrow &&
-        (() => {
-          let pathData: string | null = null;
-
-          if (previewArrow.to) {
-            // Preview to a specific square
-            pathData = buildArrowPath(previewArrow.from, previewArrow.to);
-          } else if (previewArrow.toPoint) {
-            // Preview to an arbitrary point
-            const fromPoint = squareCenter(previewArrow.from);
-            if (fromPoint) {
-              pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
-            }
-          }
-
+        {/* Render engine arrows (drawn first, under user arrows) */}
+        {engineArrows.map((arrow, index) => {
+          const pathData = buildArrowPath(arrow.from, arrow.to);
           if (!pathData) return null;
+
+          // Rank 0 = eval bar overlay (transparent blue)
+          // Rank 1-3 = engine panel overlays (normal multi-PV colors)
+          const rank = arrow.rank ?? 1;
+          const isEvalBarArrow = rank === 0;
+
+          // Clamp rank to 0-3 for CSS class
+          const clampedRank = Math.min(Math.max(rank, 0), 3);
 
           return (
             <path
-              key="arrow-preview"
-              className="board-arrow board-arrow-preview"
+              key={`engine-arrow-${index}`}
+              className={`board-arrow engine-arrow engine-arrow-${clampedRank} ${isEvalBarArrow ? 'engine-arrow-eval-bar' : ''}`}
               d={pathData}
               fill="none"
-              stroke={ARROW_PREVIEW_STROKE}
               strokeWidth={ARROW_THICKNESS}
               strokeLinecap="butt"
               strokeLinejoin="round"
@@ -316,78 +266,142 @@ const ArrowOverlay = memo(function ArrowOverlay({
               style={{ pointerEvents: 'none' }}
             />
           );
-        })()}
-    </svg>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders when arrows haven't changed
-  // Note: Could use lodash.isEqual for simpler implementation, but avoiding
-  // external dependencies for this isolated comparison
-  
-  // Quick reference check - if arrays are same object, no need to deep compare
-  if (prevProps.userArrows === nextProps.userArrows &&
+        })}
+
+        {/* Render user arrows (drawn over engine arrows) */}
+        {userArrows.map((arrow, index) => {
+          const pathData = buildArrowPath(arrow.from, arrow.to);
+          if (!pathData) return null;
+
+          return (
+            <path
+              key={`user-arrow-${index}-${arrow.from}-${arrow.to}`}
+              className="board-arrow"
+              d={pathData}
+              fill="none"
+              stroke={ARROW_STROKE}
+              strokeWidth={ARROW_THICKNESS}
+              strokeLinecap="butt"
+              strokeLinejoin="round"
+              markerEnd={`url(#${ARROW_HEAD_ID})`}
+              style={{ pointerEvents: 'none' }}
+            />
+          );
+        })}
+
+        {/* Render preview arrow (drawn on top) */}
+        {previewArrow &&
+          (() => {
+            let pathData: string | null = null;
+
+            if (previewArrow.to) {
+              // Preview to a specific square
+              pathData = buildArrowPath(previewArrow.from, previewArrow.to);
+            } else if (previewArrow.toPoint) {
+              // Preview to an arbitrary point
+              const fromPoint = squareCenter(previewArrow.from);
+              if (fromPoint) {
+                pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
+              }
+            }
+
+            if (!pathData) return null;
+
+            return (
+              <path
+                key="arrow-preview"
+                className="board-arrow board-arrow-preview"
+                d={pathData}
+                fill="none"
+                stroke={ARROW_PREVIEW_STROKE}
+                strokeWidth={ARROW_THICKNESS}
+                strokeLinecap="butt"
+                strokeLinejoin="round"
+                markerEnd={`url(#${ARROW_HEAD_ID})`}
+                style={{ pointerEvents: 'none' }}
+              />
+            );
+          })()}
+      </svg>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Custom comparison to prevent re-renders when arrows haven't changed
+    // Note: Could use lodash.isEqual for simpler implementation, but avoiding
+    // external dependencies for this isolated comparison
+
+    // Quick reference check - if arrays are same object, no need to deep compare
+    if (
+      prevProps.userArrows === nextProps.userArrows &&
       prevProps.engineArrows === nextProps.engineArrows &&
-      prevProps.previewArrow === nextProps.previewArrow) {
-    return true;
-  }
-  
-  // Compare user arrows
-  if (prevProps.userArrows.length !== nextProps.userArrows.length) {
-    return false;
-  }
-  for (let i = 0; i < prevProps.userArrows.length; i++) {
-    if (
-      prevProps.userArrows[i].from !== nextProps.userArrows[i].from ||
-      prevProps.userArrows[i].to !== nextProps.userArrows[i].to
+      prevProps.previewArrow === nextProps.previewArrow
     ) {
-      return false;
-    }
-  }
-  
-  // Compare engine arrows
-  if (prevProps.engineArrows.length !== nextProps.engineArrows.length) {
-    return false;
-  }
-  for (let i = 0; i < prevProps.engineArrows.length; i++) {
-    if (
-      prevProps.engineArrows[i].from !== nextProps.engineArrows[i].from ||
-      prevProps.engineArrows[i].to !== nextProps.engineArrows[i].to ||
-      prevProps.engineArrows[i].rank !== nextProps.engineArrows[i].rank
-    ) {
-      return false;
-    }
-  }
-  
-  // Compare preview arrow - simplified comparison
-  if (prevProps.previewArrow !== nextProps.previewArrow) {
-    // Both null/undefined - equal
-    if (!prevProps.previewArrow && !nextProps.previewArrow) {
       return true;
     }
-    // One is null - not equal
-    if (!prevProps.previewArrow || !nextProps.previewArrow) {
+
+    // Compare user arrows
+    if (prevProps.userArrows.length !== nextProps.userArrows.length) {
       return false;
     }
-    // Compare preview arrow properties
-    if (prevProps.previewArrow.from !== nextProps.previewArrow.from ||
-        prevProps.previewArrow.to !== nextProps.previewArrow.to) {
-      return false;
-    }
-    // Compare toPoint if present
-    const prevPoint = prevProps.previewArrow.toPoint;
-    const nextPoint = nextProps.previewArrow.toPoint;
-    if (prevPoint || nextPoint) {
-      if (!prevPoint || !nextPoint ||
-          prevPoint.x !== nextPoint.x ||
-          prevPoint.y !== nextPoint.y) {
+    for (let i = 0; i < prevProps.userArrows.length; i++) {
+      if (
+        prevProps.userArrows[i].from !== nextProps.userArrows[i].from ||
+        prevProps.userArrows[i].to !== nextProps.userArrows[i].to
+      ) {
         return false;
       }
     }
+
+    // Compare engine arrows
+    if (prevProps.engineArrows.length !== nextProps.engineArrows.length) {
+      return false;
+    }
+    for (let i = 0; i < prevProps.engineArrows.length; i++) {
+      if (
+        prevProps.engineArrows[i].from !== nextProps.engineArrows[i].from ||
+        prevProps.engineArrows[i].to !== nextProps.engineArrows[i].to ||
+        prevProps.engineArrows[i].rank !== nextProps.engineArrows[i].rank
+      ) {
+        return false;
+      }
+    }
+
+    // Compare preview arrow - simplified comparison
+    if (prevProps.previewArrow !== nextProps.previewArrow) {
+      // Both null/undefined - equal
+      if (!prevProps.previewArrow && !nextProps.previewArrow) {
+        return true;
+      }
+      // One is null - not equal
+      if (!prevProps.previewArrow || !nextProps.previewArrow) {
+        return false;
+      }
+      // Compare preview arrow properties
+      if (
+        prevProps.previewArrow.from !== nextProps.previewArrow.from ||
+        prevProps.previewArrow.to !== nextProps.previewArrow.to
+      ) {
+        return false;
+      }
+      // Compare toPoint if present
+      const prevPoint = prevProps.previewArrow.toPoint;
+      const nextPoint = nextProps.previewArrow.toPoint;
+      if (prevPoint || nextPoint) {
+        if (
+          !prevPoint ||
+          !nextPoint ||
+          prevPoint.x !== nextPoint.x ||
+          prevPoint.y !== nextPoint.y
+        ) {
+          return false;
+        }
+      }
+    }
+
+    // Props are equal
+    return true;
   }
-  
-  // Props are equal
-  return true;
-});
+);
 
 export default ArrowOverlay;
 

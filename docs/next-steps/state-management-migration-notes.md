@@ -40,10 +40,11 @@ This document contains the findings from a comprehensive audit of all React comp
 **Status:** COMPLIANT - Uses store correctly
 
 **Current Pattern:**
+
 ```typescript
 const Home = observer(() => {
   const store = useRootStore();
-  
+
   return (
     <div>
       <Clock
@@ -59,6 +60,7 @@ const Home = observer(() => {
 ```
 
 **Analysis:**
+
 - ✅ Uses `observer()` wrapper correctly
 - ✅ Accesses `useRootStore()` directly
 - ✅ Accesses store properties in JSX for reactivity
@@ -73,6 +75,7 @@ const Home = observer(() => {
 **Status:** PROP DRILLING - Receives store-derived props instead of using store
 
 **Current Pattern:**
+
 ```typescript
 interface ClockProps {
   whiteTime: number; // From store.game.whiteTime
@@ -81,35 +84,42 @@ interface ClockProps {
   isRunning: boolean; // From store.game.isTimerRunning
 }
 
-const Clock = memo(function Clock({ whiteTime, blackTime, activeColor, isRunning }: ClockProps) {
+const Clock = memo(function Clock({
+  whiteTime,
+  blackTime,
+  activeColor,
+  isRunning,
+}: ClockProps) {
   // Uses React.memo with custom comparison
   // ...
 });
 ```
 
 **Issue:**
+
 - Receives all data as props from parent (app/page.tsx)
 - Parent must pass down store-derived values
 - Uses React.memo instead of observer pattern
 - Custom comparison function for optimization (not needed with observer)
 
 **Recommended Refactor:**
+
 ```typescript
 const Clock = observer(function Clock() {
   const store = useRootStore();
   const game = store.game;
-  
+
   const formatTime = (ms: number): string => {
     // ... formatting logic
   };
-  
+
   return (
     <div className="w-full max-w-md space-y-2">
       <div className={/* ... */}>
         <div className="text-sm font-normal mb-1">Black</div>
         <div>{formatTime(game.blackTime)}</div>
       </div>
-      
+
       <div className={/* ... */}>
         <div className="text-sm font-normal mb-1">White</div>
         <div>{formatTime(game.whiteTime)}</div>
@@ -120,6 +130,7 @@ const Clock = observer(function Clock() {
 ```
 
 **Benefits:**
+
 - Eliminates 4 prop parameters
 - Removes need for custom React.memo comparison
 - MobX observer provides superior reactivity tracking
@@ -134,6 +145,7 @@ const Clock = observer(function Clock() {
 **Status:** PROP DRILLING - Receives callback props for game operations
 
 **Current Pattern:**
+
 ```typescript
 interface GameControlsProps {
   onReset: () => void;
@@ -143,17 +155,25 @@ interface GameControlsProps {
   onExportPgn: () => string;
 }
 
-export default function GameControls({ onReset, onLoadFen, onLoadPgn, onExportFen, onExportPgn }: GameControlsProps) {
+export default function GameControls({
+  onReset,
+  onLoadFen,
+  onLoadPgn,
+  onExportFen,
+  onExportPgn,
+}: GameControlsProps) {
   // Component uses callbacks passed from parent
 }
 ```
 
 **Issue:**
+
 - All operations are game store actions that could be called directly
 - Parent must create wrapper functions to call store methods
 - Not using observer pattern (but has no observable state access currently)
 
 **Recommended Refactor:**
+
 ```typescript
 const GameControls = observer(function GameControls() {
   const store = useRootStore();
@@ -161,7 +181,7 @@ const GameControls = observer(function GameControls() {
   const [fenInput, setFenInput] = useState('');
   const [pgnInput, setPgnInput] = useState('');
   // ... other local UI state
-  
+
   const handleImportFen = () => {
     if (fenInput.trim()) {
       game.loadFen(fenInput.trim());
@@ -169,19 +189,21 @@ const GameControls = observer(function GameControls() {
       setShowFenInput(false);
     }
   };
-  
+
   const handleExportFen = () => {
     const fen = game.fen;
-    navigator.clipboard.writeText(fen)
+    navigator.clipboard
+      .writeText(fen)
       .then(() => console.log('FEN copied to clipboard'))
       .catch((err) => console.error('Failed to copy FEN:', err));
   };
-  
+
   // ... similar for PGN, reset, etc.
 });
 ```
 
 **Benefits:**
+
 - Eliminates 5 callback prop parameters
 - Direct access to store actions
 - Simpler component interface
@@ -198,6 +220,7 @@ const GameControls = observer(function GameControls() {
 **Status:** PROP DRILLING - Receives history array as prop
 
 **Current Pattern:**
+
 ```typescript
 interface MoveHistoryProps {
   history: Move[];
@@ -210,16 +233,18 @@ const MoveHistory = memo(function MoveHistory({ history }: MoveHistoryProps) {
 ```
 
 **Issue:**
+
 - Receives `history` array from parent (store.game.history)
 - Uses React.memo with custom comparison logic
 - Parent must track and pass down history changes
 
 **Recommended Refactor:**
+
 ```typescript
 const MoveHistory = observer(function MoveHistory() {
   const store = useRootStore();
   const history = store.game.history;
-  
+
   // Group moves by pairs (white and black)
   const movePairs: Array<{ white: Move | null; black: Move | null }> = [];
   for (let i = 0; i < history.length; i += 2) {
@@ -228,7 +253,7 @@ const MoveHistory = observer(function MoveHistory() {
       black: history[i + 1] || null,
     });
   }
-  
+
   return (
     <div className="w-full max-w-md">
       {/* ... render move pairs */}
@@ -238,6 +263,7 @@ const MoveHistory = observer(function MoveHistory() {
 ```
 
 **Benefits:**
+
 - Eliminates 1 prop parameter
 - Removes custom memo comparison logic
 - MobX observer automatically tracks history changes
@@ -254,6 +280,7 @@ const MoveHistory = observer(function MoveHistory() {
 **Status:** PROP DRILLING - Receives time control data and callback
 
 **Current Pattern:**
+
 ```typescript
 interface TimeControlSelectorProps {
   currentTimeControl: TimeControl;
@@ -261,39 +288,48 @@ interface TimeControlSelectorProps {
   disabled?: boolean;
 }
 
-export default function TimeControlSelector({ currentTimeControl, onSelect, disabled = false }: TimeControlSelectorProps) {
+export default function TimeControlSelector({
+  currentTimeControl,
+  onSelect,
+  disabled = false,
+}: TimeControlSelectorProps) {
   // ...
 }
 ```
 
 **Issue:**
+
 - Receives `currentTimeControl` from store.game.timeControl
 - Receives `onSelect` callback that wraps store.game.setTimeControl
 - Parent must manage prop passing
 
 **Recommended Refactor:**
+
 ```typescript
 interface TimeControlSelectorProps {
   disabled?: boolean; // Keep this as it's UI-specific logic from parent
 }
 
-const TimeControlSelector = observer(function TimeControlSelector({ disabled = false }: TimeControlSelectorProps) {
+const TimeControlSelector = observer(function TimeControlSelector({
+  disabled = false,
+}: TimeControlSelectorProps) {
   const store = useRootStore();
   const currentTimeControl = store.game.timeControl;
-  
+
   const handleSelect = (timeControl: TimeControl) => {
     store.game.setTimeControl(timeControl.minutes, timeControl.increment);
   };
-  
+
   const isSelected = (preset: TimeControl) =>
     preset.minutes === currentTimeControl.minutes &&
     preset.increment === currentTimeControl.increment;
-  
+
   // ... rest of component
 });
 ```
 
 **Benefits:**
+
 - Eliminates 2 props (keeps `disabled` as it's UI logic from parent)
 - Direct store access for time control
 - Direct action calls for setTimeControl
@@ -301,6 +337,7 @@ const TimeControlSelector = observer(function TimeControlSelector({ disabled = f
 **Risk Level:** LOW - Straightforward refactor
 
 **Current Usage:** Called from app/page.tsx with:
+
 ```typescript
 <TimeControlSelector
   currentTimeControl={store.game.timeControl}
@@ -316,6 +353,7 @@ const TimeControlSelector = observer(function TimeControlSelector({ disabled = f
 **Status:** PROP DRILLING - Receives display mode and FEN getter
 
 **Current Pattern:**
+
 ```typescript
 interface EnginePanelProps {
   onClose?: () => void;
@@ -326,41 +364,45 @@ interface EnginePanelProps {
 ```
 
 **Issue:**
+
 - Receives `engineDisplayMode` from store.ui.engineDisplayModeValue
 - Receives `onEngineDisplayModeChange` callback wrapping store.ui.setEngineDisplayMode
 - Receives `getFen` callback to access store.game.fen
 - Receives `onClose` callback wrapping store.ui.hideEnginePanel
 
 **Recommended Refactor:**
+
 ```typescript
 const EnginePanel = observer(function EnginePanel() {
   const store = useRootStore();
   const ui = store.ui;
   const game = store.game;
-  
+
   // useEngine hook already manages engine state locally (appropriate)
-  const { isAnalyzing, analysis, currentDepth, startAnalysis, stopAnalysis } = useEngine({
-    onError: (error) => {
-      // Handle error - could use notification system
-    },
-  });
-  
+  const { isAnalyzing, analysis, currentDepth, startAnalysis, stopAnalysis } =
+    useEngine({
+      onError: (error) => {
+        // Handle error - could use notification system
+      },
+    });
+
   const handleClose = () => {
     stopAnalysis();
     ui.hideEnginePanel();
   };
-  
+
   const handleModeChange = (mode: 'squares' | 'arrows' | 'both') => {
     ui.setEngineDisplayMode(mode);
   };
-  
+
   // Access FEN directly: game.fen
-  
+
   // ... rest of component
 });
 ```
 
 **Benefits:**
+
 - Eliminates 4 callback/value props
 - Direct access to store for all UI and game state
 - Simpler component interface
@@ -368,6 +410,7 @@ const EnginePanel = observer(function EnginePanel() {
 **Risk Level:** LOW - Straightforward refactor
 
 **Current Usage:** Conditionally rendered in app/page.tsx:
+
 ```typescript
 {store.ui.isEnginePanelVisible && (
   <EnginePanel
@@ -386,20 +429,30 @@ const EnginePanel = observer(function EnginePanel() {
 **Status:** COMPLIANT - Uses store correctly
 
 **Current Pattern:**
+
 ```typescript
-const Board = observer(function Board({ engineHighlights, engineDisplayMode, flipped, moveBadge, onBadgeComplete, onError }: BoardProps) {
+const Board = observer(function Board({
+  engineHighlights,
+  engineDisplayMode,
+  flipped,
+  moveBadge,
+  onBadgeComplete,
+  onError,
+}: BoardProps) {
   const store = useRootStore();
   // ... uses store.game for position, history, move validation
 });
 ```
 
 **Analysis:**
+
 - ✅ Uses `observer()` wrapper
 - ✅ Accesses `useRootStore()` directly for game state
 - ✅ Receives engine-related props (from useEngine hook in parent - appropriate)
 - ✅ Receives UI props (flipped, moveBadge - from parent UI state - appropriate)
 
 **Props Analysis:**
+
 - `engineHighlights` - Derived from useEngine hook (local concern in parent)
 - `engineDisplayMode` - From store.ui.engineDisplayModeValue (could access directly)
 - `flipped` - From store.ui.isBoardFlipped (could access directly)
@@ -408,20 +461,27 @@ const Board = observer(function Board({ engineHighlights, engineDisplayMode, fli
 - `onError` - Error handler callback
 
 **Potential Improvement:**
+
 ```typescript
-const Board = observer(function Board({ engineHighlights, moveBadge, onBadgeComplete, onError }: BoardProps) {
+const Board = observer(function Board({
+  engineHighlights,
+  moveBadge,
+  onBadgeComplete,
+  onError,
+}: BoardProps) {
   const store = useRootStore();
   const ui = store.ui;
-  
+
   // Access flipped and engineDisplayMode directly from store
   const flipped = ui.isBoardFlipped;
   const engineDisplayMode = ui.engineDisplayModeValue;
-  
+
   // ... rest of component
 });
 ```
 
 **Benefits:**
+
 - Eliminates 2 props that are already in store
 - Parent doesn't need to pass down UI state
 
@@ -434,6 +494,7 @@ const Board = observer(function Board({ engineHighlights, moveBadge, onBadgeComp
 **Status:** PROP DRILLING - Receives engine analysis data
 
 **Current Pattern:**
+
 ```typescript
 export interface EvaluationBarProps {
   scoreCp?: number | null;
@@ -445,12 +506,21 @@ export interface EvaluationBarProps {
   className?: string;
 }
 
-const EvaluationBar = memo(function EvaluationBar({ scoreCp, mateIn, isAnalyzing, isVisible, currentDepth, maxDepth, className }: EvaluationBarProps) {
+const EvaluationBar = memo(function EvaluationBar({
+  scoreCp,
+  mateIn,
+  isAnalyzing,
+  isVisible,
+  currentDepth,
+  maxDepth,
+  className,
+}: EvaluationBarProps) {
   // Uses React.memo
 });
 ```
 
 **Issue:**
+
 - Receives engine analysis data from parent (derived from useEngine hook)
 - Receives `isVisible` from store.ui.isEvalBarVisible
 - Uses React.memo instead of observer
@@ -459,6 +529,7 @@ const EvaluationBar = memo(function EvaluationBar({ scoreCp, mateIn, isAnalyzing
 The engine analysis data comes from useEngine hook, which is appropriate as a local concern. However, `isVisible` comes from the store.
 
 **Recommended Refactor:**
+
 ```typescript
 export interface EvaluationBarProps {
   scoreCp?: number | null;
@@ -469,15 +540,23 @@ export interface EvaluationBarProps {
   className?: string;
 }
 
-const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnalyzing, currentDepth, maxDepth, className = '' }: EvaluationBarProps) {
+const EvaluationBar = observer(function EvaluationBar({
+  scoreCp,
+  mateIn,
+  isAnalyzing,
+  currentDepth,
+  maxDepth,
+  className = '',
+}: EvaluationBarProps) {
   const store = useRootStore();
   const isVisible = store.ui.isEvalBarVisible;
-  
+
   // ... rest of component
 });
 ```
 
 **Benefits:**
+
 - Eliminates 1 prop (isVisible)
 - Direct access to store for visibility state
 - MobX observer pattern
@@ -493,6 +572,7 @@ const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnaly
 **Status:** COMPLIANT - Appropriate local UI state
 
 **Analysis:**
+
 - Manages appearance sliders with local state (hue, saturation, brightness, scale)
 - Uses CSS custom properties to apply filters
 - Provides imperative handle for reset functionality
@@ -509,6 +589,7 @@ const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnaly
 **Status:** COMPLIANT - Receives notification state appropriately
 
 **Analysis:**
+
 - Receives notifications array and dismiss callback from useNotification hook
 - This is appropriate as notifications are managed by a dedicated hook
 - No store-derived props
@@ -524,6 +605,7 @@ const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnaly
 **Status:** COMPLIANT - Pure rendering component
 
 **Analysis:**
+
 - Receives arrow and preview data as props from Board component
 - Pure presentational component
 - No state management concerns
@@ -537,6 +619,7 @@ const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnaly
 **Status:** COMPLIANT - Correctly wraps app with RootStoreProvider
 
 **Analysis:**
+
 - Simple wrapper around RootStoreProvider from store-setup
 - Correct usage pattern
 
@@ -551,6 +634,7 @@ const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnaly
 **Status:** DEPRECATED - Duplicates store functionality
 
 **Issue:**
+
 - Creates separate Chess.js instance
 - Manages game state locally with useState
 - Duplicates timer management
@@ -558,6 +642,7 @@ const EvaluationBar = observer(function EvaluationBar({ scoreCp, mateIn, isAnaly
 - All functionality is now in the MST store
 
 **Evidence of Non-Use:**
+
 ```bash
 $ grep -r "useGame" components/ app/ hooks/
 components/Board.tsx:39: * - Note: Not using React.memo due to complex internal state from useGame hook
@@ -569,6 +654,7 @@ The only reference is an outdated comment in Board.tsx.
 **Recommendation:** DELETE this file entirely.
 
 **Benefits:**
+
 - Removes duplicate state management
 - Eliminates confusion about source of truth
 - Prevents accidental usage
@@ -582,6 +668,7 @@ The only reference is an outdated comment in Board.tsx.
 **Status:** COMPLIANT - Appropriate local concern
 
 **Analysis:**
+
 - Manages Stockfish Web Worker
 - Handles UCI protocol parsing
 - Manages engine analysis state
@@ -597,6 +684,7 @@ The only reference is an outdated comment in Board.tsx.
 **Status:** COMPLIANT - Appropriate local concern (currently)
 
 **Analysis:**
+
 - Manages notification queue and auto-dismiss timers
 - Currently scoped to app/page.tsx
 - Could potentially be moved to store if notifications need to be global
@@ -610,6 +698,7 @@ The only reference is an outdated comment in Board.tsx.
 **Status:** COMPLIANT - Appropriate local concern
 
 **Analysis:**
+
 - Manages move classification logic (currently a stub)
 - Manages badge display timing
 - Appropriately scoped to parent component
@@ -623,6 +712,7 @@ The only reference is an outdated comment in Board.tsx.
 **Status:** COMPLIANT - Appropriate local concern
 
 **Analysis:**
+
 - Manages easter egg detection ("gmmamun" cheatcode)
 - Local event listeners and state
 - Appropriately scoped
@@ -636,11 +726,12 @@ The only reference is an outdated comment in Board.tsx.
 ### ✅ DO: Access Store Directly in Observer Components
 
 **Good Example (Board.tsx):**
+
 ```typescript
 const Board = observer(function Board(props) {
   const store = useRootStore();
   const game = store.game;
-  
+
   // Access properties in JSX for reactivity
   return <div>{game.fen}</div>;
 });
@@ -649,11 +740,12 @@ const Board = observer(function Board(props) {
 ### ❌ DON'T: Pass Store-Derived Props
 
 **Anti-Pattern (current app/page.tsx → Clock):**
+
 ```typescript
 // Parent
 const Home = observer(() => {
   const store = useRootStore();
-  
+
   return (
     <Clock
       whiteTime={store.game.whiteTime}
@@ -671,6 +763,7 @@ const Clock = memo(function Clock({ whiteTime, blackTime, activeColor, isRunning
 ```
 
 **Better Approach:**
+
 ```typescript
 // Parent
 const Home = observer(() => {
@@ -681,7 +774,7 @@ const Home = observer(() => {
 const Clock = observer(function Clock() {
   const store = useRootStore();
   const game = store.game;
-  
+
   return (
     <div>
       {formatTime(game.whiteTime)}
@@ -694,6 +787,7 @@ const Clock = observer(function Clock() {
 ### ✅ DO: Use Observer Instead of React.memo
 
 **Anti-Pattern:**
+
 ```typescript
 const Clock = memo(function Clock({ whiteTime, blackTime }) {
   return <div>{whiteTime} - {blackTime}</div>;
@@ -704,11 +798,12 @@ const Clock = memo(function Clock({ whiteTime, blackTime }) {
 ```
 
 **Better Approach:**
+
 ```typescript
 const Clock = observer(function Clock() {
   const store = useRootStore();
   const game = store.game;
-  
+
   // MobX automatically tracks which properties are accessed
   // and only re-renders when those specific properties change
   return <div>{game.whiteTime} - {game.blackTime}</div>;
@@ -718,22 +813,24 @@ const Clock = observer(function Clock() {
 ### ✅ DO: Access Properties in JSX for Reactivity
 
 **Anti-Pattern (early destructuring):**
+
 ```typescript
 const MyComponent = observer(() => {
   const store = useRootStore();
   const game = store.game;
   const { turn, fen } = game; // ❌ Destructured too early - not reactive!
-  
+
   return <div>{turn}</div>; // Won't update on changes
 });
 ```
 
 **Better Approach:**
+
 ```typescript
 const MyComponent = observer(() => {
   const store = useRootStore();
   const game = store.game;
-  
+
   return <div>{game.turn}</div>; // ✅ Reactive - accesses in JSX
 });
 ```
@@ -745,11 +842,11 @@ Not everything belongs in the store! Keep local UI state in components:
 ```typescript
 const MyComponent = observer(() => {
   const store = useRootStore();
-  
+
   // ✅ Local UI state for this component only
   const [isExpanded, setIsExpanded] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  
+
   return (
     <div>
       <input value={inputValue} onChange={e => setInputValue(e.target.value)} />
@@ -766,11 +863,13 @@ const MyComponent = observer(() => {
 ### Phase 1: Low-Risk Components (IMMEDIATE)
 
 **Components to refactor first:**
+
 1. Clock - Remove prop drilling, use observer
 2. MoveHistory - Remove prop drilling, use observer
 3. TimeControlSelector - Remove prop drilling, use observer
 
 **Steps:**
+
 1. Add `observer` wrapper to component
 2. Add `useRootStore()` hook call
 3. Access store slices directly
@@ -779,6 +878,7 @@ const MyComponent = observer(() => {
 6. Test reactivity
 
 **Expected Impact:**
+
 - Simplifies prop interfaces
 - Reduces parent complexity
 - Better performance with MobX reactivity
@@ -786,6 +886,7 @@ const MyComponent = observer(() => {
 ### Phase 2: Medium-Risk Components
 
 **Components:**
+
 1. GameControls - Remove callbacks, use store directly
 2. EnginePanel - Remove callbacks and getFen, use store directly
 3. EvaluationBar - Remove isVisible prop, use store directly
@@ -796,6 +897,7 @@ const MyComponent = observer(() => {
 ### Phase 3: Cleanup
 
 **Tasks:**
+
 1. Delete hooks/useGame.ts (not used)
 2. Update Board.tsx comment that references useGame
 3. Run full test suite
@@ -808,6 +910,7 @@ const MyComponent = observer(() => {
 ### Unit Tests
 
 **Before (prop-based):**
+
 ```typescript
 test('Clock displays time correctly', () => {
   render(<Clock whiteTime={300000} blackTime={300000} activeColor="w" isRunning={true} />);
@@ -816,6 +919,7 @@ test('Clock displays time correctly', () => {
 ```
 
 **After (store-based):**
+
 ```typescript
 import { RootStoreProvider } from '@/stores/store-setup';
 
@@ -953,8 +1057,9 @@ Existing tests that wrap components with RootStoreProvider should continue to wo
 ### Components Refactored: 7
 
 All refactored components now follow the correct MobX + MST pattern:
+
 1. Clock
-2. MoveHistory  
+2. MoveHistory
 3. TimeControlSelector
 4. GameControls
 5. EnginePanel
@@ -964,6 +1069,7 @@ All refactored components now follow the correct MobX + MST pattern:
 ### Props Eliminated: 20+
 
 **Before refactoring:**
+
 - Clock: 4 props (whiteTime, blackTime, activeColor, isRunning)
 - MoveHistory: 1 prop (history)
 - TimeControlSelector: 2 props (currentTimeControl, onSelect)
@@ -975,6 +1081,7 @@ All refactored components now follow the correct MobX + MST pattern:
 **Total:** 19 props eliminated from component interfaces
 
 **After refactoring:**
+
 - All components access store directly via `useRootStore()`
 - Parent (app/page.tsx) simplified - no need to pass store-derived values
 - Single source of truth maintained
@@ -1013,13 +1120,14 @@ All refactored components now follow the correct MobX + MST pattern:
 **Note:** Tests need to be updated to wrap refactored components with `RootStoreProvider` from `@/stores/store-setup`. Current test failures are expected and due to missing provider wrapper.
 
 **Test Update Pattern:**
+
 ```typescript
 import { RootStoreProvider } from '@/stores/store-setup';
 
 // Before
 render(<MyComponent prop1={value1} prop2={value2} />);
 
-// After  
+// After
 render(
   <RootStoreProvider>
     <MyComponent />
@@ -1041,12 +1149,14 @@ This audit has identified systematic patterns of prop drilling throughout the co
 4. **Maintain appropriate local state** where it belongs (appearance, notifications, etc.) ✅ MAINTAINED
 
 The migration is straightforward with low risk due to:
+
 - Well-defined store structure with clear slices (game, ui, settings)
 - Comprehensive test coverage (tests need provider wrapper update)
 - Incremental approach allows testing at each step
 - No breaking changes to public APIs
 
 All recommended changes align with MobX + MST best practices and will result in:
+
 - Simpler component interfaces (19 props eliminated) ✅
 - Better performance (MobX fine-grained reactivity) ✅
 - Single source of truth (store) ✅
