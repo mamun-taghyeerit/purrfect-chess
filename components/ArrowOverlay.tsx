@@ -49,6 +49,8 @@ export interface ArrowOverlayProps {
   engineArrows?: Arrow[];
   /** Preview arrow during drag */
   previewArrow?: PreviewArrow | null;
+  /** Whether the board is flipped (black on bottom) */
+  flipped?: boolean;
 }
 
 /**
@@ -67,14 +69,18 @@ function parseSquare(square: string): { file: number; rank: number } | null {
 
 /**
  * Get center point of square in SVG coordinates (0-8 range)
+ * Takes board flip into account for proper arrow positioning
  */
-function squareCenter(square: string): { x: number; y: number } | null {
+function squareCenter(square: string, flipped: boolean = false): { x: number; y: number } | null {
   const coords = parseSquare(square);
   if (!coords) return null;
-  return {
-    x: coords.file + 0.5,
-    y: coords.rank + 0.5,
-  };
+  
+  // Apply flip transformation if board is flipped
+  // When flipped: file a->h becomes h->a (7-file), rank 1->8 becomes 8->1 (7-rank)
+  const x = flipped ? (7 - coords.file) + 0.5 : coords.file + 0.5;
+  const y = flipped ? (7 - coords.rank) + 0.5 : coords.rank + 0.5;
+  
+  return { x, y };
 }
 
 /**
@@ -129,14 +135,15 @@ function buildPath(points: { x: number; y: number }[]): string | null {
 }
 
 /**
- * Build arrow points (with knight move handling)
+ * Build arrow points (with knight move handling and board flip support)
  */
 function buildArrowPoints(
   from: string,
-  to: string
+  to: string,
+  flipped: boolean = false
 ): { x: number; y: number }[] | null {
-  const start = squareCenter(from);
-  const end = squareCenter(to);
+  const start = squareCenter(from, flipped);
+  const end = squareCenter(to, flipped);
   if (!start || !end) return null;
 
   // Straight arrow for non-knight moves
@@ -170,8 +177,8 @@ function buildArrowPoints(
 /**
  * Build arrow path string
  */
-function buildArrowPath(from: string, to: string): string | null {
-  const points = buildArrowPoints(from, to);
+function buildArrowPath(from: string, to: string, flipped: boolean = false): string | null {
+  const points = buildArrowPoints(from, to, flipped);
   if (!points) return null;
   return buildPath(points);
 }
@@ -196,6 +203,7 @@ const ArrowOverlay = memo(function ArrowOverlay({
   userArrows = [],
   engineArrows = [],
   previewArrow = null,
+  flipped = false,
 }: ArrowOverlayProps) {
   // Don't render if no arrows or preview
   if (userArrows.length === 0 && engineArrows.length === 0 && !previewArrow) {
@@ -237,7 +245,7 @@ const ArrowOverlay = memo(function ArrowOverlay({
 
       {/* Render engine arrows (drawn first, under user arrows) */}
       {engineArrows.map((arrow, index) => {
-        const pathData = buildArrowPath(arrow.from, arrow.to);
+        const pathData = buildArrowPath(arrow.from, arrow.to, flipped);
         if (!pathData) return null;
 
         // Rank 0 = eval bar overlay (transparent blue)
@@ -265,7 +273,7 @@ const ArrowOverlay = memo(function ArrowOverlay({
 
       {/* Render user arrows (drawn over engine arrows) */}
       {userArrows.map((arrow, index) => {
-        const pathData = buildArrowPath(arrow.from, arrow.to);
+        const pathData = buildArrowPath(arrow.from, arrow.to, flipped);
         if (!pathData) return null;
 
         return (
@@ -291,12 +299,16 @@ const ArrowOverlay = memo(function ArrowOverlay({
 
           if (previewArrow.to) {
             // Preview to a specific square
-            pathData = buildArrowPath(previewArrow.from, previewArrow.to);
+            pathData = buildArrowPath(previewArrow.from, previewArrow.to, flipped);
           } else if (previewArrow.toPoint) {
-            // Preview to an arbitrary point
-            const fromPoint = squareCenter(previewArrow.from);
+            // Preview to an arbitrary point - transform point if flipped
+            const fromPoint = squareCenter(previewArrow.from, flipped);
             if (fromPoint) {
-              pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
+              // Transform the toPoint if board is flipped
+              const toPoint = flipped 
+                ? { x: 8 - previewArrow.toPoint.x, y: 8 - previewArrow.toPoint.y }
+                : previewArrow.toPoint;
+              pathData = buildPreviewPath(fromPoint, toPoint);
             }
           }
 
@@ -327,8 +339,14 @@ const ArrowOverlay = memo(function ArrowOverlay({
   // Quick reference check - if arrays are same object, no need to deep compare
   if (prevProps.userArrows === nextProps.userArrows &&
       prevProps.engineArrows === nextProps.engineArrows &&
-      prevProps.previewArrow === nextProps.previewArrow) {
+      prevProps.previewArrow === nextProps.previewArrow &&
+      prevProps.flipped === nextProps.flipped) {
     return true;
+  }
+  
+  // Check if flipped changed
+  if (prevProps.flipped !== nextProps.flipped) {
+    return false;
   }
   
   // Compare user arrows

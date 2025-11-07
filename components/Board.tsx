@@ -219,7 +219,7 @@ function Board({
       if (!point) return null;
 
       for (const [key, arrow] of userArrows.entries()) {
-        const points = buildArrowPoints(arrow.from, arrow.to);
+        const points = buildArrowPoints(arrow.from, arrow.to, flipped);
         if (!points || points.length < 2) continue;
 
         const origin = points[0];
@@ -260,7 +260,7 @@ function Board({
       }
       return null;
     },
-    [userArrows, store.game.position, distancePointToSegment]
+    [userArrows, store.game.position, distancePointToSegment, flipped]
   );
 
   // Arrow manipulation functions
@@ -306,7 +306,7 @@ function Board({
     (square: string, event: React.MouseEvent) => {
       if (event.button !== 2) return; // Only right-click
 
-      const fromPoint = squareCenter(square);
+      const fromPoint = squareCenter(square, flipped);
       if (!fromPoint) return;
 
       event.preventDefault();
@@ -322,7 +322,7 @@ function Board({
 
       setPreviewArrow(null); // Will be shown on first move
     },
-    []
+    [flipped]
   );
 
   const updateArrowPreview = useCallback(
@@ -330,7 +330,7 @@ function Board({
       const drag = arrowDragRef.current;
       if (!drag) return;
 
-      const fromPoint = squareCenter(drag.fromSquare);
+      const fromPoint = squareCenter(drag.fromSquare, flipped);
       if (!fromPoint) {
         setPreviewArrow(null);
         return;
@@ -356,7 +356,7 @@ function Board({
       );
       drag.dragDistance = Math.max(drag.dragDistance, distance);
     },
-    [pointFromClient, squareFromClient]
+    [pointFromClient, squareFromClient, flipped]
   );
 
   const finalizeArrowDrag = useCallback(
@@ -512,6 +512,11 @@ function Board({
 
   const handleSquareClick = useCallback(
     (square: string, event: React.MouseEvent) => {
+      // Block all moves if game is over
+      if (store.game.isGameOver) {
+        return;
+      }
+
       // Left-click arrow removal (matching legacy)
       if (event.button === 0) {
         const pointer = pointFromClient(event.clientX, event.clientY);
@@ -638,6 +643,12 @@ function Board({
     e: React.DragEvent<HTMLImageElement>,
     square: string
   ) => {
+    // Block drag if game is over
+    if (store.game.isGameOver) {
+      e.preventDefault();
+      return;
+    }
+
     const piece = store.game.position[square];
     const isPiece =
       piece && typeof piece === 'object' && 'type' in piece && 'color' in piece;
@@ -675,6 +686,11 @@ function Board({
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    // Block drop if game is over
+    if (store.game.isGameOver) {
+      e.dataTransfer.dropEffect = 'none';
+      return;
+    }
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
@@ -684,6 +700,12 @@ function Board({
     targetSquare: string
   ) => {
     e.preventDefault();
+
+    // Block drop if game is over
+    if (store.game.isGameOver) {
+      clearDragState();
+      return;
+    }
 
     // Get source square from dataTransfer or fallback to ref
     // Note: Some browsers may clear dataTransfer.getData in certain scenarios,
@@ -887,6 +909,7 @@ function Board({
               : []
           }
           previewArrow={previewArrow}
+          flipped={flipped}
         />
 
         {/* Move Badge - Animated badge from legacy implementation */}
