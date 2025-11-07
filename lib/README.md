@@ -5,6 +5,7 @@ This directory contains utilities for monitoring and profiling performance in pu
 ## Purpose
 
 These utilities help ensure the Next.js app maintains performance parity with the legacy Vite app:
+
 - **Target**: ≥60 FPS (≤16ms frame time) during drag operations
 - **Monitoring**: Frame budget tracking, drag performance analysis
 - **Testing**: Performance assertions for automated tests
@@ -31,7 +32,7 @@ import { usePerformanceMonitor } from '@/hooks/usePerformance';
 function MyComponent() {
   const isDragging = /* ... */;
   const performance = usePerformanceMonitor(isDragging);
-  
+
   useEffect(() => {
     if (!isDragging) {
       const stats = performance.getStats();
@@ -48,12 +49,12 @@ import { useDragPerformance } from '@/hooks/usePerformance';
 
 function DraggableComponent() {
   const { startDrag, stopDrag } = useDragPerformance();
-  
+
   const handleDragStart = () => {
     startDrag();
     // ... drag logic
   };
-  
+
   const handleDragEnd = () => {
     const result = stopDrag();
     console.log(result.message); // e.g., "✓ Excellent performance: 61.2 FPS"

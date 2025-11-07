@@ -37,6 +37,7 @@ The Next.js migration skeleton and core features are fully implemented:
 **All Phase X Features Complete:**
 
 Phase X achieved complete feature parity with no outstanding gaps:
+
 - ✅ Arrow drawing system implemented (issues #80, #81)
 - ✅ EvaluationBar component fully integrated (issue #50)
 - ✅ All 14 workstreams validated
@@ -64,12 +65,14 @@ Phase 4 focuses on improving test infrastructure, adding CI/CD automation, and p
 #### 1. Test Infrastructure Improvements (HIGH)
 
 **Fix Test Failures:**
+
 - Address 13 drag-and-drop test failures (DOM testing library limitations)
 - Fix 4 engine overlay integration tests
 - Resolve 1 game reset edge case test failure
 - TODO: Create Phase 4 issue
 
 **Test Coverage:**
+
 - Increase overall coverage to >90%
 - Add missing edge case tests
 - Improve test reliability and speed
@@ -77,6 +80,7 @@ Phase 4 focuses on improving test infrastructure, adding CI/CD automation, and p
 #### 2. CI/CD Pipeline (HIGH)
 
 **GitHub Actions Workflows:**
+
 - Add comprehensive build/lint/test workflow
 - Deploy preview builds for PRs
 - Automated dependency updates (Dependabot/Renovate)
@@ -87,6 +91,7 @@ Phase 4 focuses on improving test infrastructure, adding CI/CD automation, and p
 #### 3. Accessibility Enhancements (MEDIUM)
 
 **WCAG 2.1 AA Compliance:**
+
 - Arrow key navigation for piece selection/movement
 - ARIA live regions for game state announcements
 - axe-core audit and violation fixes
@@ -97,6 +102,7 @@ Phase 4 focuses on improving test infrastructure, adding CI/CD automation, and p
 #### 4. Performance Optimizations (LOW)
 
 **Address Build Warnings:**
+
 - Optimize React Hook dependencies (useCallback warning)
 - Migrate `<img>` to Next.js `<Image>` component
 - Bundle size optimization
@@ -106,6 +112,7 @@ Phase 4 focuses on improving test infrastructure, adding CI/CD automation, and p
 #### 5. Legacy Code Removal (LOW)
 
 **Archive Legacy App:**
+
 - Remove `src/` directory (legacy Vite app)
 - Remove Vite-related dependencies and config
 - Update all documentation references

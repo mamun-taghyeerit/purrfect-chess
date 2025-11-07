@@ -50,7 +50,6 @@ describe('Board Arrow Drawing', () => {
 
   describe('Right-click Arrow Creation', () => {
     it('should create an arrow on right-click drag', async () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
       const e4Square = container.querySelector('[data-square="e4"]');
@@ -82,7 +81,6 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should not create arrow for small drags (below threshold)', () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
@@ -108,7 +106,6 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should not create arrow when dragging to same square', () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
@@ -131,7 +128,6 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should prevent context menu during right-click', () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
@@ -149,7 +145,6 @@ describe('Board Arrow Drawing', () => {
 
   describe('Arrow Toggle Behavior', () => {
     it('should remove arrow when drawing duplicate', async () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
       const e4Square = container.querySelector('[data-square="e4"]');
@@ -190,7 +185,6 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should support multiple different arrows simultaneously', async () => {
-
       const { container } = renderBoard();
 
       // Create first arrow e2-e4
@@ -226,7 +220,6 @@ describe('Board Arrow Drawing', () => {
 
   describe('Arrow Removal', () => {
     it('should remove arrow on left-click (hit detection)', async () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
@@ -262,20 +255,17 @@ describe('Board Arrow Drawing', () => {
       // TODO: This test needs to be rewritten to work with MobX store
       // instead of the removed useGame hook.
       // Should test that arrows are cleared when moves are made through the store.
-
     });
 
     it.skip('should clear arrows on game reset', async () => {
       // TODO: This test needs to be rewritten to work with MobX store
       // instead of the removed useGame hook.
       // Should test that arrows are cleared when the game is reset through the store.
-
     });
   });
 
   describe('Arrow Preview', () => {
     it('should show preview arrow during drag', async () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
@@ -305,7 +295,6 @@ describe('Board Arrow Drawing', () => {
     });
 
     it('should cancel drag if right mouse button is released', () => {
-
       const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
 
@@ -333,7 +322,6 @@ describe('Board Arrow Drawing', () => {
         { from: 'd2', to: 'd4', rank: 1 },
         { from: 'e2', to: 'e4', rank: 2 },
       ];
-
 
       const { container } = render(
         <RootStoreProvider>
@@ -367,7 +355,6 @@ describe('Board Arrow Drawing', () => {
       // TODO: This test needs to be rewritten to work with MobX store
       // instead of the removed useGame hook.
       // Should test that engine arrows remain when user arrows are cleared.
-
     });
   });
 });

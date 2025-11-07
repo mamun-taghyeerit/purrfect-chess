@@ -19,17 +19,17 @@ describe('Board Axe Accessibility Tests', () => {
   it('should have no accessibility violations in default state', async () => {
     const { container } = renderBoard();
     const results = await axe(container);
-    
+
     expect(results).toHaveNoViolations();
   });
 
   it('should have no accessibility violations with selected piece', async () => {
     const { container, getByLabelText } = renderBoard();
-    
+
     // Select a piece
     const e2Square = getByLabelText(/e2.*White.*pawn/);
     e2Square.click();
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -41,7 +41,7 @@ describe('Board Axe Accessibility Tests', () => {
         { from: 'd2', to: 'd4', rank: 2 },
       ],
     });
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -53,7 +53,7 @@ describe('Board Axe Accessibility Tests', () => {
         { from: 'd2', to: 'd4', rank: 2 },
       ],
     });
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });

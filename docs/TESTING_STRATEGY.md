@@ -23,6 +23,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Tools**: Vitest, Testing Library
 
 **Examples**:
+
 - Hook behavior (useEngine, useNotification, useEasterEgg)
 - Utility functions (performance utilities)
 - Store models (root-store logic)
@@ -38,6 +39,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Tools**: Vitest, Testing Library, happy-dom
 
 **Examples**:
+
 - Board rendering and interactions
 - EnginePanel display and controls
 - AppearanceControls slider changes
@@ -46,6 +48,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Coverage Target**: >85% for user-facing components
 
 **Best Practices**:
+
 - Test user behavior, not implementation details
 - Use accessible queries (getByRole, getByLabelText)
 - Mock external dependencies (Web Workers, stores when needed)
@@ -60,6 +63,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Tools**: Vitest, Testing Library
 
 **Examples**:
+
 - Error handling workflows across components
 - Engine overlays integration with board
 - Complete user flows (make move → update clock → check game over)
@@ -75,12 +79,14 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Status**: Some tests are currently failing or marked as todo
 
 **Examples**:
+
 - Game state consistency between implementations
 - Move legality and SAN generation
 - Time controls behavior
 - Engine analysis display
 
 **Notes**:
+
 - These tests validate migration correctness
 - Can be deprecated once migration is fully validated
 - Some tests may need updates to reflect intentional changes
@@ -94,6 +100,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Tools**: vitest-axe
 
 **Examples**:
+
 - Board has no accessibility violations
 - Proper ARIA labels and roles
 - Keyboard navigation support
@@ -107,6 +114,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 **Location**: `docs/runbooks/`
 
 **When to Use**:
+
 - Visual design changes
 - Complex drag-and-drop interactions
 - Performance testing
@@ -114,6 +122,7 @@ This document outlines the comprehensive testing strategy for the Purrfect Chess
 - Mobile responsiveness
 
 **Examples**:
+
 - Arrow drawing system (see `docs/runbooks/arrow-drawing-manual-tests.md`)
 - Side-by-side legacy vs. Next.js comparison
 - Easter egg activation ("gmmamun")
@@ -194,7 +203,7 @@ it('should render component', () => {
       <MyComponent />
     </RootStoreProvider>
   );
-  
+
   expect(screen.getByText('Expected Text')).toBeInTheDocument();
 });
 ```
@@ -211,9 +220,9 @@ it('should use hook correctly', () => {
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <RootStoreProvider>{children}</RootStoreProvider>
   );
-  
+
   const { result } = renderHook(() => useMyHook(), { wrapper });
-  
+
   expect(result.current.someValue).toBe(expected);
 });
 ```
@@ -227,7 +236,7 @@ import { waitFor } from '@testing-library/react';
 
 it('should update async state', async () => {
   render(<AsyncComponent />);
-  
+
   await waitFor(() => {
     expect(screen.getByText('Loaded')).toBeInTheDocument();
   }, { timeout: 1000 });
@@ -239,11 +248,11 @@ it('should update async state', async () => {
 ```typescript
 class MockWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
-  
+
   postMessage(data: any) {
     // Simulate worker behavior
   }
-  
+
   terminate() {}
 }
 
@@ -252,12 +261,12 @@ vi.stubGlobal('Worker', MockWorker);
 
 ## Coverage Targets
 
-| Code Type | Target | Current |
-|-----------|--------|---------|
-| Hooks | >90% | ~85% |
-| Components | >85% | ~80% |
-| Utilities | >90% | ~90% |
-| Integration | >70% | ~60% |
+| Code Type   | Target   | Current  |
+| ----------- | -------- | -------- |
+| Hooks       | >90%     | ~85%     |
+| Components  | >85%     | ~80%     |
+| Utilities   | >90%     | ~90%     |
+| Integration | >70%     | ~60%     |
 | **Overall** | **>85%** | **~80%** |
 
 ## Continuous Integration
@@ -317,6 +326,7 @@ jobs:
 ### Failing Parity Tests
 
 Multiple parity test files are failing:
+
 - `engine-analysis-parity.test.ts`
 - `error-handling-parity.test.ts`
 - `fenpgn.roundtrip.test.ts`
@@ -407,5 +417,5 @@ This testing strategy provides a comprehensive approach to ensuring the quality 
 
 ---
 
-*Last Updated: 2025-01-06*
-*Next Review: After completing Phase 4 (Testing & Cleanup)*
+_Last Updated: 2025-01-06_
+_Next Review: After completing Phase 4 (Testing & Cleanup)_

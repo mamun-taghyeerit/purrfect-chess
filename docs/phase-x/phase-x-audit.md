@@ -3,6 +3,7 @@
 **Date:** 2025-11-05  
 **Phase:** Phase X - Functional + Visual Parity Development  
 **Related Issues:**
+
 - Parent: [#40 - Phase X: Next.js Functional + Visual Parity Development](https://github.com/purrfectsoft/purrfect-chess/issues/40)
 - This PR: [#91 - Phase X Final Audit, QA:Eng, and Documentation Refresh](https://github.com/purrfectsoft/purrfect-chess/issues/91)
 
@@ -13,6 +14,7 @@
 Phase X has successfully achieved **functional and visual parity** between the legacy Vite app (`src/`) and the Next.js app. This audit confirms that all 14 workstreams defined in [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) have been implemented and validated.
 
 **Key Achievements:**
+
 - ✅ Complete feature parity with legacy application
 - ✅ Comprehensive test coverage (366 passing tests)
 - ✅ Visual consistency across breakpoints and DPR
@@ -20,6 +22,7 @@ Phase X has successfully achieved **functional and visual parity** between the l
 - ✅ Production build successful with zero errors
 
 **Acceptance Coverage:**
+
 - All 14 workstreams from [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) completed
 - Parity validated with 27 FEN fixtures and 10 PGN fixtures
 - Side-by-side manual validation performed
@@ -32,6 +35,7 @@ Phase X has successfully achieved **functional and visual parity** between the l
 ### Purpose
 
 This audit provides a formal assessment of Phase X completion, documenting:
+
 1. Parity verification methodology and results
 2. Visual, interaction, functional, and performance validation
 3. Evidence locations for review and reproducibility
@@ -40,6 +44,7 @@ This audit provides a formal assessment of Phase X completion, documenting:
 ### Scope
 
 Phase X focused on achieving 1:1 parity between:
+
 - **Legacy app:** Vite + vanilla TypeScript (`src/` directory)
 - **Next.js app:** Next.js 14 + React 18 + TypeScript (`app/`, `components/`, `hooks/`)
 
@@ -55,6 +60,7 @@ Parity was verified through:
 4. **Build Validation:** Production builds confirmed clean with zero errors
 
 Reference documentation:
+
 - [Phase X Parity Master Doc](../phase-x-parity.md)
 - [Side-by-Side Validation Runbook](../runbooks/side-by-side.md)
 - [Contributor Guide](../contributing-phase-x.md)
@@ -66,6 +72,7 @@ Reference documentation:
 ### Methodology
 
 Visual parity validated through:
+
 - Side-by-side browser comparison (legacy vs Next.js)
 - Breakpoint testing at 3 standard widths: 320px (mobile), 768px (tablet), 1280px (desktop)
 - DPR testing at 1x and 2x pixel densities
@@ -73,35 +80,35 @@ Visual parity validated through:
 
 ### Breakpoints Tested
 
-| Breakpoint | Width  | Device Class | Result |
-|------------|--------|--------------|--------|
+| Breakpoint | Width  | Device Class | Result  |
+| ---------- | ------ | ------------ | ------- |
 | Mobile     | 320px  | Small phone  | ✅ Pass |
 | Tablet     | 768px  | Tablet       | ✅ Pass |
 | Desktop    | 1280px | Desktop      | ✅ Pass |
 
 ### DPR Testing
 
-| DPR | Display Type        | Result |
-|-----|---------------------|--------|
+| DPR | Display Type        | Result  |
+| --- | ------------------- | ------- |
 | 1x  | Standard resolution | ✅ Pass |
-| 2x  | Retina/HiDPI       | ✅ Pass |
+| 2x  | Retina/HiDPI        | ✅ Pass |
 
 ### Component Validation
 
-| Component              | Visual Parity | Notes |
-|------------------------|---------------|-------|
-| Board (8x8 grid)       | ✅ Pass       | Pixel-perfect square alignment |
-| Piece rendering        | ✅ Pass       | PNG images identical |
-| Move highlighting      | ✅ Pass       | Legal moves, last move, selection |
-| Clocks                 | ✅ Pass       | MM:SS format, active player indicator |
-| Time control selector  | ✅ Pass       | 8 presets, grid layout |
-| Game controls          | ✅ Pass       | Reset, FEN/PGN buttons |
-| Move history           | ✅ Pass       | SAN notation, scrollable |
-| Engine panel           | ✅ Pass       | Multi-PV display, depth, scores |
-| Appearance controls    | ✅ Pass       | Piece/square sliders |
-| Evaluation bar         | ✅ Pass       | Integrated with engine analysis (issue #50) |
-| Arrow drawing          | ✅ Pass       | Right-click drag drawing (issues #80, #81) |
-| Match card metadata    | ✅ Pass       | PGN headers, date formatting |
+| Component             | Visual Parity | Notes                                       |
+| --------------------- | ------------- | ------------------------------------------- |
+| Board (8x8 grid)      | ✅ Pass       | Pixel-perfect square alignment              |
+| Piece rendering       | ✅ Pass       | PNG images identical                        |
+| Move highlighting     | ✅ Pass       | Legal moves, last move, selection           |
+| Clocks                | ✅ Pass       | MM:SS format, active player indicator       |
+| Time control selector | ✅ Pass       | 8 presets, grid layout                      |
+| Game controls         | ✅ Pass       | Reset, FEN/PGN buttons                      |
+| Move history          | ✅ Pass       | SAN notation, scrollable                    |
+| Engine panel          | ✅ Pass       | Multi-PV display, depth, scores             |
+| Appearance controls   | ✅ Pass       | Piece/square sliders                        |
+| Evaluation bar        | ✅ Pass       | Integrated with engine analysis (issue #50) |
+| Arrow drawing         | ✅ Pass       | Right-click drag drawing (issues #80, #81)  |
+| Match card metadata   | ✅ Pass       | PGN headers, date formatting                |
 
 **Status:** Complete visual parity achieved for all components, including arrow drawing and evaluation bar integration.
 
@@ -111,38 +118,38 @@ Visual parity validated through:
 
 ### Click Interaction
 
-| Interaction               | Legacy Behavior | Next.js Behavior | Result |
-|---------------------------|-----------------|------------------|--------|
-| Click to select piece     | Highlights piece, shows legal moves | Identical | ✅ Pass |
-| Click to move             | Executes move to legal square | Identical | ✅ Pass |
-| Click to deselect         | Clears selection | Identical | ✅ Pass |
-| Click invalid square      | No action | Identical | ✅ Pass |
-| Click during game over    | No action | Identical | ✅ Pass |
+| Interaction            | Legacy Behavior                     | Next.js Behavior | Result  |
+| ---------------------- | ----------------------------------- | ---------------- | ------- |
+| Click to select piece  | Highlights piece, shows legal moves | Identical        | ✅ Pass |
+| Click to move          | Executes move to legal square       | Identical        | ✅ Pass |
+| Click to deselect      | Clears selection                    | Identical        | ✅ Pass |
+| Click invalid square   | No action                           | Identical        | ✅ Pass |
+| Click during game over | No action                           | Identical        | ✅ Pass |
 
 ### Drag-and-Drop Interaction
 
-| Interaction               | Legacy Behavior | Next.js Behavior | Result |
-|---------------------------|-----------------|------------------|--------|
-| Drag piece                | Shows ghost image, highlights legal squares | Identical | ✅ Pass |
-| Drop on legal square      | Executes move | Identical | ✅ Pass |
-| Drop on illegal square    | Cancels drag, piece returns | Identical | ✅ Pass |
-| ESC during drag           | Cancels drag | Identical | ✅ Pass |
-| Window blur during drag   | Cancels drag | Identical | ✅ Pass |
+| Interaction             | Legacy Behavior                             | Next.js Behavior | Result  |
+| ----------------------- | ------------------------------------------- | ---------------- | ------- |
+| Drag piece              | Shows ghost image, highlights legal squares | Identical        | ✅ Pass |
+| Drop on legal square    | Executes move                               | Identical        | ✅ Pass |
+| Drop on illegal square  | Cancels drag, piece returns                 | Identical        | ✅ Pass |
+| ESC during drag         | Cancels drag                                | Identical        | ✅ Pass |
+| Window blur during drag | Cancels drag                                | Identical        | ✅ Pass |
 
 ### Right-Click Interaction
 
-| Feature                   | Legacy | Next.js | Result |
-|---------------------------|--------|---------|--------|
-| Arrow drawing (right-drag)| ✅ Implemented | ✅ Implemented | ✅ Pass (issues #80, #81) |
+| Feature                    | Legacy         | Next.js        | Result                    |
+| -------------------------- | -------------- | -------------- | ------------------------- |
+| Arrow drawing (right-drag) | ✅ Implemented | ✅ Implemented | ✅ Pass (issues #80, #81) |
 
 **Note:** Arrow drawing was implemented during Phase X through issues #80 and #81, achieving full parity with the legacy implementation.
 
 ### Keyboard Navigation
 
-| Feature                   | Legacy | Next.js | Result |
-|---------------------------|--------|---------|--------|
-| Easter egg ("gmmamun")    | ✅ Text selection + typing | ✅ Identical | ✅ Pass |
-| ESC key (cancel drag)     | ✅ Cancels drag | ✅ Identical | ✅ Pass |
+| Feature                | Legacy                     | Next.js      | Result  |
+| ---------------------- | -------------------------- | ------------ | ------- |
+| Easter egg ("gmmamun") | ✅ Text selection + typing | ✅ Identical | ✅ Pass |
+| ESC key (cancel drag)  | ✅ Cancels drag            | ✅ Identical | ✅ Pass |
 
 **Status:** All implemented interactions match legacy behavior exactly.
 
@@ -156,6 +163,7 @@ Visual parity validated through:
 **Documentation:** [`docs/parity/move-legality-game-state-validation.md`](../parity/move-legality-game-state-validation.md)
 
 **Results:**
+
 - ✅ 53 comprehensive tests passing
 - ✅ All chess rules validated (castling, en passant, promotion)
 - ✅ Checkmate detection identical (3 test cases)
@@ -168,14 +176,14 @@ Both legacy (`src/game.ts`) and Next.js (`hooks/useGame.ts`) use the same underl
 
 ### Time Controls and Clocks
 
-| Feature                   | Legacy | Next.js | Result |
-|---------------------------|--------|---------|--------|
-| Preset time controls      | 8 presets (1+0, 3+0, 3+2, 5+0, 5+1, 10+0, 15+10, 30+0) | Identical | ✅ Pass |
-| Clock format (MM:SS)      | ✅ | ✅ | ✅ Pass |
-| Increment logic           | Add increment after move | Identical | ✅ Pass |
-| Timeout detection         | Flag fall ends game | Identical | ✅ Pass |
-| Timer starts on first move| ✅ | ✅ | ✅ Pass |
-| Active player highlight   | Blue ring on active clock | Identical | ✅ Pass |
+| Feature                    | Legacy                                                 | Next.js   | Result  |
+| -------------------------- | ------------------------------------------------------ | --------- | ------- |
+| Preset time controls       | 8 presets (1+0, 3+0, 3+2, 5+0, 5+1, 10+0, 15+10, 30+0) | Identical | ✅ Pass |
+| Clock format (MM:SS)       | ✅                                                     | ✅        | ✅ Pass |
+| Increment logic            | Add increment after move                               | Identical | ✅ Pass |
+| Timeout detection          | Flag fall ends game                                    | Identical | ✅ Pass |
+| Timer starts on first move | ✅                                                     | ✅        | ✅ Pass |
+| Active player highlight    | Blue ring on active clock                              | Identical | ✅ Pass |
 
 **Test Coverage:** Time control logic validated through integration tests.
 
@@ -185,6 +193,7 @@ Both legacy (`src/game.ts`) and Next.js (`hooks/useGame.ts`) use the same underl
 **Documentation:** [`docs/parity/engine-integration-parity-summary.md`](../parity/engine-integration-parity-summary.md)
 
 **Results:**
+
 - ✅ 21 engine integration tests passing
 - ✅ UCI parser parity confirmed (8 tests)
 - ✅ Multi-PV analysis identical (top 3 lines)
@@ -192,30 +201,31 @@ Both legacy (`src/game.ts`) and Next.js (`hooks/useGame.ts`) use the same underl
 - ✅ Real Stockfish integration tests (3 tests with actual engine)
 
 **Key Findings:**
+
 - UCI parsers (`src/engine/uci-parser.ts` vs `lib/uci-parser.ts`) are byte-for-byte identical
 - Command sequences match exactly (uci, isready, position, go, stop)
 - Architectural difference: legacy uses Promises, Next.js uses React state (intentional, both correct)
 
 ### FEN/PGN Import/Export
 
-| Feature                   | Legacy | Next.js | Result |
-|---------------------------|--------|---------|--------|
-| FEN import                | Parse and load position | Identical | ✅ Pass |
-| FEN export                | Generate FEN string | Identical | ✅ Pass |
-| PGN import                | Parse and replay game | Identical | ✅ Pass |
-| PGN export                | Generate PGN with headers | Identical | ✅ Pass |
-| PGN header format         | Standard 7-tag roster | Identical | ✅ Pass |
-| Move notation (SAN)       | Algebraic notation | Identical | ✅ Pass |
+| Feature             | Legacy                    | Next.js   | Result  |
+| ------------------- | ------------------------- | --------- | ------- |
+| FEN import          | Parse and load position   | Identical | ✅ Pass |
+| FEN export          | Generate FEN string       | Identical | ✅ Pass |
+| PGN import          | Parse and replay game     | Identical | ✅ Pass |
+| PGN export          | Generate PGN with headers | Identical | ✅ Pass |
+| PGN header format   | Standard 7-tag roster     | Identical | ✅ Pass |
+| Move notation (SAN) | Algebraic notation        | Identical | ✅ Pass |
 
 **Test Coverage:** Validated with 27 FEN fixtures and 10 PGN fixtures.
 
 ### Easter Egg ("gmmamun")
 
-| Feature                   | Legacy | Next.js | Result |
-|---------------------------|--------|---------|--------|
-| Detection trigger         | Text selection + typing "gmmamun" | Identical | ✅ Pass |
-| Engine panel reveal       | Shows depth slider + controls | Identical | ✅ Pass |
-| Multi-PV display          | Top 3 moves with scores | Identical | ✅ Pass |
+| Feature             | Legacy                            | Next.js   | Result  |
+| ------------------- | --------------------------------- | --------- | ------- |
+| Detection trigger   | Text selection + typing "gmmamun" | Identical | ✅ Pass |
+| Engine panel reveal | Shows depth slider + controls     | Identical | ✅ Pass |
+| Multi-PV display    | Top 3 moves with scores           | Identical | ✅ Pass |
 
 **Implementation:** [`lib/easter-egg.ts`](../../lib/easter-egg.ts) + [`hooks/useEasterEgg.ts`](../../hooks/useEasterEgg.ts)
 
@@ -229,15 +239,16 @@ Both legacy (`src/game.ts`) and Next.js (`hooks/useGame.ts`) use the same underl
 
 Based on [Issue #40](https://github.com/purrfectsoft/purrfect-chess/issues/40) performance criteria:
 
-| Metric                    | Target      | Legacy | Next.js | Result |
-|---------------------------|-------------|--------|---------|--------|
-| Board rendering FPS       | ≥60 FPS     | ~60 FPS| ~60 FPS | ✅ Pass |
-| Drag-and-drop frame time  | <16ms avg   | ~10ms  | ~10ms   | ✅ Pass |
-| Engine startup time       | <2s         | ~1.5s  | ~1.5s   | ✅ Pass |
-| Build time (production)   | -           | ~8s    | ~18s    | ℹ️ Acceptable (Next.js overhead) |
-| Initial load time         | -           | ~500ms | ~800ms  | ℹ️ Acceptable (React hydration) |
+| Metric                   | Target    | Legacy  | Next.js | Result                           |
+| ------------------------ | --------- | ------- | ------- | -------------------------------- |
+| Board rendering FPS      | ≥60 FPS   | ~60 FPS | ~60 FPS | ✅ Pass                          |
+| Drag-and-drop frame time | <16ms avg | ~10ms   | ~10ms   | ✅ Pass                          |
+| Engine startup time      | <2s       | ~1.5s   | ~1.5s   | ✅ Pass                          |
+| Build time (production)  | -         | ~8s     | ~18s    | ℹ️ Acceptable (Next.js overhead) |
+| Initial load time        | -         | ~500ms  | ~800ms  | ℹ️ Acceptable (React hydration)  |
 
 **Methodology:**
+
 - FPS measured with browser DevTools Performance tab
 - Frame time averaged over 100 drag operations
 - Engine startup measured from worker creation to "readyok"
@@ -253,6 +264,7 @@ yarn next:build
 ```
 
 **Output:**
+
 - ✅ Compiled successfully
 - ✅ Zero errors
 - ⚠️ 2 warnings (non-blocking):
@@ -273,6 +285,7 @@ yarn next:build
 **Count:** 27 FEN positions
 
 **Categories:**
+
 - Basic positions (3): starting position, after e4, empty board
 - Castling scenarios (4): all rights, no rights, partial, ready position
 - Checkmate positions (3): back-rank, fool's mate, scholar's mate
@@ -282,6 +295,7 @@ yarn next:build
 - Special moves (5): en passant (2), promotion (2), pin scenarios
 
 **Validation Results:**
+
 - ✅ All 27 FENs import correctly in both apps
 - ✅ Game state detection identical for all positions
 - ✅ Move legality identical for all positions
@@ -293,10 +307,12 @@ yarn next:build
 **Count:** 10 PGN games
 
 **Categories:**
+
 - Short games (3): fool's mate, scholar's mate, draw
 - Standard openings (7): Sicilian, Ruy Lopez, Italian, French, Caro-Kann, King's Indian, Queen's Gambit
 
 **Validation Results:**
+
 - ✅ All 10 PGNs import and replay correctly in both apps
 - ✅ Move history generation identical
 - ✅ PGN export format matches exactly (including headers)
@@ -307,6 +323,7 @@ yarn next:build
 **Method:** Automated fixture validation in test suite
 
 **Results:**
+
 - ✅ FEN round-trip: import → export → import produces identical position
 - ✅ PGN round-trip: import → replay → export produces identical game
 - ✅ Move history equivalence: same game produces same SAN notation
@@ -320,21 +337,22 @@ yarn next:build
 
 All test results and evidence are committed to the repository:
 
-| Evidence Type              | Location | Notes |
-|----------------------------|----------|-------|
-| Test suite results         | `tests/` directory | 366 passing tests (see Test Coverage below) |
-| Parity validation docs     | `docs/parity/` | Detailed validation summaries |
-| FEN fixtures               | `docs/fixtures/fen/` | 27 positions for validation |
-| PGN fixtures               | `docs/fixtures/pgn/` | 10 games for validation |
-| Phase X documentation      | `docs/phase-x-parity.md` | Master parity tracking doc |
-| Side-by-side runbook       | `docs/runbooks/side-by-side.md` | Manual validation steps |
-| ADR                        | `docs/adr/0001-phase-x-parity-approach.md` | Architectural decisions |
+| Evidence Type          | Location                                   | Notes                                       |
+| ---------------------- | ------------------------------------------ | ------------------------------------------- |
+| Test suite results     | `tests/` directory                         | 366 passing tests (see Test Coverage below) |
+| Parity validation docs | `docs/parity/`                             | Detailed validation summaries               |
+| FEN fixtures           | `docs/fixtures/fen/`                       | 27 positions for validation                 |
+| PGN fixtures           | `docs/fixtures/pgn/`                       | 10 games for validation                     |
+| Phase X documentation  | `docs/phase-x-parity.md`                   | Master parity tracking doc                  |
+| Side-by-side runbook   | `docs/runbooks/side-by-side.md`            | Manual validation steps                     |
+| ADR                    | `docs/adr/0001-phase-x-parity-approach.md` | Architectural decisions                     |
 
 ### Test Coverage
 
 **Total:** 366 passing tests (with 12 intentional TODOs for Phase 4)
 
 **By Category:**
+
 - Parity tests: 53 tests
   - Move legality: 15 tests
   - Game state: 19 tests
@@ -345,6 +363,7 @@ All test results and evidence are committed to the repository:
 - Integration tests: ~40 tests
 
 **Known Test Failures:**
+
 - ⚠️ 13 test failures in drag-and-drop tests (DOM testing library limitation - does not affect production)
 - ⚠️ 4 test failures in engine overlay tests (Phase 4 integration work)
 - ⚠️ 1 test failure in game reset (edge case - Phase 4 follow-up)
@@ -354,6 +373,7 @@ All test results and evidence are committed to the repository:
 ### Build Artifacts
 
 Production build logs available in test runs:
+
 - ✅ Next.js build: zero errors, 2 warnings (non-blocking)
 - ✅ ESLint: 2 warnings (performance optimizations)
 - ✅ TypeScript: no type errors
@@ -362,12 +382,12 @@ Production build logs available in test runs:
 
 **Placeholders for visual evidence:**
 
-| Screenshot | Description | Path |
-|------------|-------------|------|
-| Desktop layout | Side-by-side comparison at 1280px | TODO: Add to `docs/phase-x/evidence/desktop-comparison.png` |
-| Mobile layout | Side-by-side comparison at 320px | TODO: Add to `docs/phase-x/evidence/mobile-comparison.png` |
-| Engine panel | Multi-PV analysis display | TODO: Add to `docs/phase-x/evidence/engine-panel.png` |
-| Appearance sliders | Piece/square customization | TODO: Add to `docs/phase-x/evidence/appearance-controls.png` |
+| Screenshot         | Description                       | Path                                                         |
+| ------------------ | --------------------------------- | ------------------------------------------------------------ |
+| Desktop layout     | Side-by-side comparison at 1280px | TODO: Add to `docs/phase-x/evidence/desktop-comparison.png`  |
+| Mobile layout      | Side-by-side comparison at 320px  | TODO: Add to `docs/phase-x/evidence/mobile-comparison.png`   |
+| Engine panel       | Multi-PV analysis display         | TODO: Add to `docs/phase-x/evidence/engine-panel.png`        |
+| Appearance sliders | Piece/square customization        | TODO: Add to `docs/phase-x/evidence/appearance-controls.png` |
 
 **Note:** Visual screenshots can be captured manually using the side-by-side runbook. Binary assets are not committed to avoid repo bloat. Reference images can be added to a shared location (e.g., issue comments, wiki, or external image host).
 
@@ -378,11 +398,13 @@ Production build logs available in test runs:
 ### Production Build Quality
 
 **Build Command:**
+
 ```bash
 yarn next:build
 ```
 
 **Results:**
+
 - ✅ **Errors:** 0
 - ⚠️ **Warnings:** 2 (non-blocking, performance optimizations)
   - React Hook useCallback unnecessary dependency
@@ -392,6 +414,7 @@ yarn next:build
 - ⚠️ **Lint Warnings:** 2 (same as build warnings)
 
 **Bundle Analysis:**
+
 - First Load JS: 168 kB (acceptable for chess app with engine)
 - Static pages: 4/4 prerendered (optimal for SEO and performance)
 - Code splitting: Automatic via Next.js
@@ -399,12 +422,14 @@ yarn next:build
 ### Accessibility (a11y) Notes
 
 **Current State:**
+
 - ✅ Semantic HTML used throughout
 - ✅ ARIA labels on interactive elements
 - ⚠️ Keyboard navigation for board: partially implemented (click-based only, no arrow key support)
 - ⚠️ Screen reader support: minimal (no game state announcements)
 
 **Recommendations for Phase 4:**
+
 - Add arrow key navigation for piece selection and movement
 - Add live region announcements for game state changes
 - Run axe-core audit and address violations
@@ -413,6 +438,7 @@ yarn next:build
 ### Security Notes
 
 **No security vulnerabilities identified during Phase X:**
+
 - ✅ Dependencies up to date (Stockfish 17.1, chess.js 1.0.0)
 - ✅ No external API calls (all processing local)
 - ✅ No user data storage (only localStorage for game state)
@@ -422,6 +448,7 @@ yarn next:build
 ### Performance Profiling
 
 **Chrome DevTools Performance Profile (sample run):**
+
 - First Contentful Paint (FCP): ~800ms
 - Time to Interactive (TTI): ~1200ms
 - Total Blocking Time (TBT): ~150ms
@@ -506,6 +533,7 @@ Phase X has successfully achieved its goal of **functional and visual parity** b
 **Phase X Status:** ✅ **COMPLETE**
 
 The Next.js app is now ready for Phase 4 (Testing & Cleanup), which will focus on:
+
 1. Improving test infrastructure
 2. Adding CI/CD automation
 3. Enhancing accessibility

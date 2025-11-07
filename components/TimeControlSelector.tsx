@@ -12,7 +12,7 @@ import type { TimeControl } from '@/lib/types';
  * Features:
  * - Preset time controls (3+0, 5+1, 10+0, etc.)
  * - Visual indication of selected preset
- * 
+ *
  * Performance Optimizations:
  * - Uses MobX observer for fine-grained reactivity
  * - Direct store access for time control state and actions

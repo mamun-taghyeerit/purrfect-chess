@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useImperativeHandle,
+  forwardRef,
+} from 'react';
 
 /**
  * Appearance Controls Component
@@ -200,10 +206,10 @@ export interface AppearanceControlsHandle {
   reset: () => void;
 }
 
-const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceControlsProps>(function AppearanceControls({
-  groups,
-  showGlobalReset,
-}, ref) {
+const AppearanceControls = forwardRef<
+  AppearanceControlsHandle,
+  AppearanceControlsProps
+>(function AppearanceControls({ groups, showGlobalReset }, ref) {
   const [appearance, setAppearance] =
     useState<AppearanceState>(appearanceDefaults);
 
@@ -294,24 +300,25 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
   }, [groups]);
 
   // Expose reset method via ref
-  useImperativeHandle(ref, () => ({
-    reset: handleFilteredReset,
-  }), [handleFilteredReset]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      reset: handleFilteredReset,
+    }),
+    [handleFilteredReset]
+  );
 
   return (
     <div className="flex flex-col gap-3">
       {shouldShowGlobalReset && (
-        <div 
+        <div
           className="flex justify-between items-center mb-1"
           style={{
             borderBottom: '1px solid #5f5f5f',
-            paddingBottom: '10px'
+            paddingBottom: '10px',
           }}
         >
-          <h3 
-            className="text-lg font-semibold"
-            style={{ color: '#f0f0f0' }}
-          >
+          <h3 className="text-lg font-semibold" style={{ color: '#f0f0f0' }}>
             Appearance
           </h3>
           <button
@@ -321,10 +328,14 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
               background: '#555',
               color: '#fff',
               border: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-            onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.filter = 'brightness(1.05)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.filter = 'brightness(1)')
+            }
             title="Reset all appearance settings"
           >
             <span>↻</span>
@@ -339,7 +350,7 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
           className="rounded-lg p-3"
           style={{
             background: '#3a3a3a',
-            border: '1px solid #565656'
+            border: '1px solid #565656',
           }}
         >
           <div className="flex justify-between items-center mb-3">
@@ -353,7 +364,7 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
                 background: 'none',
                 border: 'none',
                 color: '#9198e5',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#e66465')}
               onMouseLeave={(e) => (e.currentTarget.style.color = '#9198e5')}
@@ -367,8 +378,8 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
             {group.sliders.map((slider) => {
               const value = appearance[group.key][slider.key] as number;
               return (
-                <label 
-                  key={slider.key} 
+                <label
+                  key={slider.key}
                   className="flex flex-col gap-1.5 text-sm"
                   style={{ color: '#e0e0e0' }}
                 >
@@ -398,7 +409,7 @@ const AppearanceControls = forwardRef<AppearanceControlsHandle, AppearanceContro
                       background: '#666',
                       WebkitAppearance: 'none',
                       appearance: 'none',
-                      opacity: 0.85
+                      opacity: 0.85,
                     }}
                   />
                 </label>

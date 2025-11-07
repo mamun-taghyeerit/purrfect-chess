@@ -9,11 +9,13 @@ This document outlines a comprehensive plan for refactoring the Purrfect Chess a
 ### Layout Shift Root Cause
 
 **Measured Impact:**
+
 - **Before first move**: Board X: 313px, Right Panel: 273px wide
 - **After first move**: Board X: 305.5px (shifted LEFT by 7.5px), Right Panel: 288px wide (+15px)
 - **Effect**: Entire layout shifts left because the flex container rebalances when right panel expands
 
 **Why It Happens:**
+
 1. The right panel (Black Controls) contains the Move History component
 2. When the first move is made, Move History changes from "No moves yet" to displaying "1. e4"
 3. The Move History component's content is not properly constrained
@@ -35,6 +37,7 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 **File**: `app/page.tsx` (703 lines)
 
 **Issues:**
+
 - **Too many responsibilities**: Game state, UI state, engine management, appearance controls, time controls, move history, PGN/FEN handling
 - **Deep nesting**: 10+ levels of div nesting make layout debugging extremely difficult
 - **Mixed concerns**: Business logic, presentation, and styling all intermingled
@@ -43,25 +46,42 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 - **Hard to maintain**: Changes in one section can unexpectedly affect others
 
 **Example of problematic structure:**
+
 ```tsx
 <main>
-  <div> {/* Container */}
-    <div> {/* Max-width wrapper */}
-      <div className="flex"> {/* Flex container */}
-        <div> {/* Left Panel - White Controls */}
-          <div> {/* Rounded container */}
+  <div>
+    {' '}
+    {/* Container */}
+    <div>
+      {' '}
+      {/* Max-width wrapper */}
+      <div className="flex">
+        {' '}
+        {/* Flex container */}
+        <div>
+          {' '}
+          {/* Left Panel - White Controls */}
+          <div>
+            {' '}
+            {/* Rounded container */}
             {/* Appearance Controls */}
             {/* Time Presets */}
             {/* Custom Time */}
           </div>
         </div>
-        <div> {/* Center Panel - Board */}
+        <div>
+          {' '}
+          {/* Center Panel - Board */}
           {/* Board + Eval Bar */}
           {/* Game Controls */}
           {/* Match Card */}
         </div>
-        <div> {/* Right Panel - Black Controls */}
-          <div> {/* Rounded container */}
+        <div>
+          {' '}
+          {/* Right Panel - Black Controls */}
+          <div>
+            {' '}
+            {/* Rounded container */}
             {/* Appearance Controls */}
             {/* Move History - UNCONSTRAINED! */}
             {/* PGN/FEN Controls */}
@@ -78,6 +98,7 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 **Problem**: No dedicated layout components to enforce consistent structure
 
 **Missing abstractions:**
+
 - `<MainLayout>` - Root layout with proper constraints
 - `<GameLayout>` - Three-column game layout (White Controls | Board | Black Controls)
 - `<ControlPanel>` - Reusable panel with fixed width
@@ -86,12 +107,14 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 ### 3. **Inconsistent Width Constraints**
 
 **Evidence from measurements:**
+
 - Left Panel: 273px (sometimes)
 - Right Panel: 273px → 288px (grows!)
 - TimeControlSelector: `minWidth: '233px'` (PR #101 fix)
 - MoveHistory: `max-w-md` (responsive, not fixed)
 
 **Problems:**
+
 - Mix of fixed widths, max-widths, and flex-grow
 - No consistent constraint strategy
 - Flex containers allow unexpected growth
@@ -100,6 +123,7 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 ### 4. **Component Coupling**
 
 **Examples:**
+
 - `page.tsx` directly imports and renders 12+ components
 - Components access `useRootStore()` directly (good for MobX, but creates coupling)
 - No composition boundaries or prop interfaces
@@ -107,6 +131,7 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 ### 5. **Inline Styles and Tailwind Mix**
 
 **Issues:**
+
 - Inconsistent styling approach (mix of Tailwind classes and inline styles)
 - Hard to audit layout-affecting properties
 - Difficult to establish global layout constants
@@ -118,6 +143,7 @@ PR #101 added `minWidth: '233px'` to the TimeControlSelector grid container, whi
 **Goal**: Create reusable layout components with fixed constraints
 
 #### 1.1 Create `components/layout/MainLayout.tsx`
+
 ```tsx
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -125,9 +151,14 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   return (
-    <main className="flex min-h-screen flex-col items-center p-5" 
-          style={{ backgroundColor: '#333' }}>
-      <div className="z-10 w-full" style={{ maxWidth: '1260px', margin: '0 auto' }}>
+    <main
+      className="flex min-h-screen flex-col items-center p-5"
+      style={{ backgroundColor: '#333' }}
+    >
+      <div
+        className="z-10 w-full"
+        style={{ maxWidth: '1260px', margin: '0 auto' }}
+      >
         {children}
       </div>
     </main>
@@ -136,6 +167,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 ```
 
 #### 1.2 Create `components/layout/GameLayout.tsx`
+
 ```tsx
 interface GameLayoutProps {
   leftPanel: React.ReactNode;
@@ -162,11 +194,13 @@ export function GameLayout({ leftPanel, centerPanel, rightPanel }: GameLayoutPro
 ```
 
 **Key fixes:**
+
 - Use `xl:w-[320px]` for exact width
 - Add `xl:flex-shrink-0` to prevent shrinking
 - Remove `xl:flex-1` which allows growth
 
 #### 1.3 Create `components/layout/ControlPanel.tsx`
+
 ```tsx
 interface ControlPanelProps {
   title: string;
@@ -175,20 +209,20 @@ interface ControlPanelProps {
 
 export function ControlPanel({ title, children }: ControlPanelProps) {
   return (
-    <div 
+    <div
       className="rounded-xl p-5 w-full"
       style={{
         backgroundColor: '#444',
         boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.35)',
-        minWidth: '320px',  // Prevent shrinking
-        maxWidth: '320px',  // Prevent growing
+        minWidth: '320px', // Prevent shrinking
+        maxWidth: '320px', // Prevent growing
       }}
     >
-      <h2 
+      <h2
         className="text-2xl font-semibold text-center mb-5 pb-2.5"
-        style={{ 
+        style={{
           borderBottom: '2px solid #555',
-          color: '#f0f0f0'
+          color: '#f0f0f0',
         }}
       >
         {title}
@@ -204,15 +238,17 @@ export function ControlPanel({ title, children }: ControlPanelProps) {
 #### 2.1 Player Controls Components
 
 **Create**: `components/features/PlayerControls.tsx`
+
 ```tsx
 interface PlayerControlsProps {
   player: 'w' | 'b';
-  showTimePresets?: boolean;  // Only for white
-  showMoveHistory?: boolean;  // Only for black
+  showTimePresets?: boolean; // Only for white
+  showMoveHistory?: boolean; // Only for black
 }
 ```
 
 **Responsibilities:**
+
 - Clock display
 - Appearance controls
 - Conditional sections (time presets OR move history)
@@ -221,6 +257,7 @@ interface PlayerControlsProps {
 #### 2.2 Board Section Components
 
 **Create**: `components/features/BoardSection.tsx`
+
 ```tsx
 interface BoardSectionProps {
   // ... props for board, controls, match card
@@ -228,6 +265,7 @@ interface BoardSectionProps {
 ```
 
 **Responsibilities:**
+
 - Board with eval bar
 - Game controls
 - Match card
@@ -240,11 +278,13 @@ interface BoardSectionProps {
 **Pattern**: Container components manage state, presentational components render UI
 
 **Examples:**
+
 - `TimePresetSelector` (container) → `TimePresetButtons` (presentational)
 - `MoveHistory` (container) → `MoveHistoryList` (presentational)
 - `AppearanceControls` (container) → `AppearanceSliders` (presentational)
 
 #### 3.2 Benefits
+
 - Easier testing (presentational components are pure)
 - Better reusability
 - Clearer separation of concerns
@@ -253,6 +293,7 @@ interface BoardSectionProps {
 ### Phase 4: Establish Layout Constants (Medium-term)
 
 **Create**: `lib/layout-constants.ts`
+
 ```typescript
 export const LAYOUT = {
   PANEL_WIDTH: 320,
@@ -266,6 +307,7 @@ export const LAYOUT = {
 ```
 
 **Usage**: Reference constants instead of magic numbers
+
 ```tsx
 style={{ width: `${LAYOUT.PANEL_WIDTH}px` }}
 ```
@@ -275,20 +317,21 @@ style={{ width: `${LAYOUT.PANEL_WIDTH}px` }}
 #### 5.1 Add Playwright Visual Regression Tests
 
 **Create**: `tests/layout/board-stability.spec.ts`
+
 ```typescript
 test('board position remains stable after first move', async ({ page }) => {
   await page.goto('/');
-  
+
   // Measure board position before move
   const boardBefore = await page.locator('[role="application"]').boundingBox();
-  
+
   // Make first move
   await page.click('[aria-label="e2, White pawn"]');
   await page.click('[aria-label="e4, empty, legal move"]');
-  
+
   // Measure board position after move
   const boardAfter = await page.locator('[role="application"]').boundingBox();
-  
+
   // Assert no horizontal shift
   expect(boardAfter.x).toBe(boardBefore.x);
   expect(boardAfter.y).toBe(boardBefore.y);
@@ -300,16 +343,16 @@ test('board position remains stable after first move', async ({ page }) => {
 ```typescript
 test('control panels maintain fixed width', async ({ page }) => {
   await page.goto('/');
-  
+
   const leftPanel = await page.locator('.left-panel').boundingBox();
   const rightPanel = await page.locator('.right-panel').boundingBox();
-  
+
   // Make several moves
   // ... make moves ...
-  
+
   const leftPanelAfter = await page.locator('.left-panel').boundingBox();
   const rightPanelAfter = await page.locator('.right-panel').boundingBox();
-  
+
   expect(leftPanelAfter.width).toBe(leftPanel.width);
   expect(rightPanelAfter.width).toBe(rightPanel.width);
 });
@@ -370,17 +413,20 @@ While the full refactoring is planned, here's the immediate fix:
 ## Long-term Benefits
 
 ### Developer Experience
+
 - **Faster debugging**: Layout components are isolated and testable
 - **Easier maintenance**: Changes are localized to specific components
 - **Better onboarding**: Clear component hierarchy and responsibilities
 - **Safer refactoring**: Layout tests catch regressions immediately
 
 ### User Experience
+
 - **No layout shifts**: Fixed widths prevent content-based layout changes
 - **Consistent feel**: Uniform panel sizing across all screen sizes
 - **Smooth interactions**: Predictable board position for piece movements
 
 ### Code Quality
+
 - **Lower complexity**: Smaller, focused components
 - **Higher testability**: Isolated units with clear interfaces
 - **Better reusability**: Layout components work across pages
@@ -389,15 +435,19 @@ While the full refactoring is planned, here's the immediate fix:
 ## Risks and Mitigations
 
 ### Risk 1: Breaking Existing Functionality
+
 **Mitigation**: Incremental changes with extensive visual testing
 
 ### Risk 2: Responsive Layout Issues
+
 **Mitigation**: Test across breakpoints (mobile, tablet, desktop, xl)
 
 ### Risk 3: Performance Regression
+
 **Mitigation**: Use React.memo and MobX observer strategically
 
 ### Risk 4: Over-engineering
+
 **Mitigation**: Start simple, add complexity only when needed
 
 ## Success Metrics

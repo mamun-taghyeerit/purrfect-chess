@@ -79,6 +79,7 @@ src/                      # Legacy (REFERENCE - Phase 4 removal) ⚠️
 ```
 
 **Key Changes from Legacy:**
+
 - **State Management:** MobX + MST with persistent storage (was module-level state)
 - **UI Framework:** React 18 + Next.js 14 (was vanilla TypeScript + Vite)
 - **Routing:** Next.js App Router (was single-page Vite app)
@@ -90,6 +91,7 @@ src/                      # Legacy (REFERENCE - Phase 4 removal) ⚠️
 The legacy Vite implementation has been removed from the develop branch and preserved on the [`legacy`](https://github.com/purrfectsoft/purrfect-chess/tree/legacy) branch.
 
 **Legacy Architecture (Archived on `legacy` branch):**
+
 ```
 src/
 ├── main.ts                    # Application entry point
@@ -110,6 +112,7 @@ src/
 ```
 
 To access the legacy implementation:
+
 ```bash
 git checkout legacy
 yarn install
@@ -122,28 +125,28 @@ yarn dev  # Vite development server
 
 Complete mapping from legacy vanilla TypeScript modules to Next.js React architecture:
 
-| Legacy Module                | Next.js Equivalent                                          | Status      | Notes |
-|------------------------------|-------------------------------------------------------------|-------------|-------|
-| `src/main.ts`                | `app/page.tsx`                                              | ✅ Complete | Main entry point, now React component |
-| `src/board.ts`               | `components/Board.tsx`                                      | ✅ Complete | Board rendering with React state |
-| `src/game.ts`                | `stores/root-store.ts` (game slice)                         | ✅ Complete | Game state now in MobX store |
-| `src/game/time-controls.ts`  | `stores/root-store.ts` (game slice) + `hooks/useGameTimer.ts` | ✅ Complete | Timer logic in hook |
-| `src/game/move-validator.ts` | `chess.js` library (reused)                                 | ✅ Complete | Both use same chess.js |
-| `src/game/position-utils.ts` | `chess.js` library (reused)                                 | ✅ Complete | Both use same chess.js |
-| `src/engine.ts`              | `hooks/useEngine.ts` + `workers/stockfish.worker.ts`        | ✅ Complete | Worker + React hook pattern |
-| `src/engine/uci-parser.ts`   | `lib/uci-parser.ts`                                         | ✅ Complete | Byte-for-byte identical |
-| `src/ui.ts`                  | Multiple components:                                         | ✅ Complete | Split into focused components |
-|                              | - `components/GameControls.tsx`                             | ✅ Complete | Reset, FEN/PGN controls |
-|                              | - `components/TimeControlSelector.tsx`                      | ✅ Complete | Time preset selector |
-|                              | - `components/Clock.tsx`                                    | ✅ Complete | Chess clock display |
-|                              | - `components/MoveHistory.tsx`                              | ✅ Complete | Move list display |
-|                              | - `components/AppearanceControls.tsx`                       | ✅ Complete | Appearance sliders |
-|                              | - `components/EnginePanel.tsx`                              | ✅ Complete | Engine analysis panel |
-|                              | - `components/EvaluationBar.tsx`                            | 📝 Stub     | Phase 4 integration |
-|                              | - `stores/root-store.ts` (ui slice)                         | ✅ Complete | UI state in MobX |
-| `src/ui/easter-egg.ts`       | `lib/easter-egg.ts` + `hooks/useEasterEgg.ts`               | ✅ Complete | Easter egg detection |
-| `src/types.ts`               | `lib/types.ts`                                              | ✅ Complete | Shared types, reusable |
-| `src/styles.css`             | `app/globals.css` + Tailwind utilities                      | ✅ Complete | Migrated to Tailwind |
+| Legacy Module                | Next.js Equivalent                                            | Status      | Notes                                 |
+| ---------------------------- | ------------------------------------------------------------- | ----------- | ------------------------------------- |
+| `src/main.ts`                | `app/page.tsx`                                                | ✅ Complete | Main entry point, now React component |
+| `src/board.ts`               | `components/Board.tsx`                                        | ✅ Complete | Board rendering with React state      |
+| `src/game.ts`                | `stores/root-store.ts` (game slice)                           | ✅ Complete | Game state now in MobX store          |
+| `src/game/time-controls.ts`  | `stores/root-store.ts` (game slice) + `hooks/useGameTimer.ts` | ✅ Complete | Timer logic in hook                   |
+| `src/game/move-validator.ts` | `chess.js` library (reused)                                   | ✅ Complete | Both use same chess.js                |
+| `src/game/position-utils.ts` | `chess.js` library (reused)                                   | ✅ Complete | Both use same chess.js                |
+| `src/engine.ts`              | `hooks/useEngine.ts` + `workers/stockfish.worker.ts`          | ✅ Complete | Worker + React hook pattern           |
+| `src/engine/uci-parser.ts`   | `lib/uci-parser.ts`                                           | ✅ Complete | Byte-for-byte identical               |
+| `src/ui.ts`                  | Multiple components:                                          | ✅ Complete | Split into focused components         |
+|                              | - `components/GameControls.tsx`                               | ✅ Complete | Reset, FEN/PGN controls               |
+|                              | - `components/TimeControlSelector.tsx`                        | ✅ Complete | Time preset selector                  |
+|                              | - `components/Clock.tsx`                                      | ✅ Complete | Chess clock display                   |
+|                              | - `components/MoveHistory.tsx`                                | ✅ Complete | Move list display                     |
+|                              | - `components/AppearanceControls.tsx`                         | ✅ Complete | Appearance sliders                    |
+|                              | - `components/EnginePanel.tsx`                                | ✅ Complete | Engine analysis panel                 |
+|                              | - `components/EvaluationBar.tsx`                              | 📝 Stub     | Phase 4 integration                   |
+|                              | - `stores/root-store.ts` (ui slice)                           | ✅ Complete | UI state in MobX                      |
+| `src/ui/easter-egg.ts`       | `lib/easter-egg.ts` + `hooks/useEasterEgg.ts`                 | ✅ Complete | Easter egg detection                  |
+| `src/types.ts`               | `lib/types.ts`                                                | ✅ Complete | Shared types, reusable                |
+| `src/styles.css`             | `app/globals.css` + Tailwind utilities                        | ✅ Complete | Migrated to Tailwind                  |
 
 **Architecture Changes:**
 
@@ -170,7 +173,6 @@ Complete mapping from legacy vanilla TypeScript modules to Next.js React archite
 ## Phase 4 Remaining Work
 
 Items to complete before legacy code removal:
-
 
 1. **Arrow Drawing System** (not in Next.js yet)
    - Legacy: `src/board.ts` has SVG arrow drawing
@@ -209,29 +211,34 @@ Below is the original modularization strategy documentation, preserved for histo
 The legacy app underwent these modularization phases:
 
 **Phase 1: Engine Module** ✅
+
 - Extracted UCI parser to `src/engine/uci-parser.ts`
 - Extracted worker manager
 - Maintained façade pattern in `src/engine.ts`
 
 **Phase 2: Board Module** ✅
+
 - Extracted rendering logic
 - Extracted coordinate utilities
 - Extracted piece management
 - Maintained façade in `src/board.ts`
 
 **Phase 3: Game Module** ✅
+
 - Extracted state management
 - Extracted time controls to `src/game/time-controls.ts`
 - Extracted move validation
 - Maintained façade in `src/game.ts`
 
 **Phase 4: UI Module** ✅
+
 - Extracted control handlers
 - Extracted appearance logic
 - Extracted easter egg to `src/ui/easter-egg.ts`
 - Maintained façade in `src/ui.ts`
 
 **Phase 5: TypeScript Migration** ✅
+
 - Added TypeScript dev dependencies
 - Created shared types in `src/types.ts`
 - Converted all modules to TypeScript
@@ -240,21 +247,25 @@ The legacy app underwent these modularization phases:
 ### Migration Principles (Applied Successfully)
 
 **Façade Pattern:**
+
 - Preserved existing module APIs during refactoring
 - Original files re-export from submodules
 - Zero breaking changes for consumers
 
 **Tests-First Approach:**
+
 - Comprehensive unit tests before extraction
 - Tests cover normal operation, edge cases, errors
 - Behavioral equivalence verified
 
 **Incremental Refactoring:**
+
 - One module at a time
 - Each extraction: separate PR, tests, docs
 - No functional changes during extraction
 
 **TypeScript Readiness:**
+
 - Clear input/output contracts
 - Minimal dynamic types
 - Explicit error handling
@@ -281,4 +292,3 @@ See [`docs/phase-x/phase-x-audit.md`](./docs/phase-x/phase-x-audit.md) for compl
 **Last Updated:** 2025-11-05 (Phase X completion)  
 **Current Status:** Phase X Complete ✅ | Phase 4 Ready to Begin  
 **Documentation:** Complete migration from vanilla TypeScript to Next.js + React achieved
-

@@ -7,6 +7,7 @@ This document outlines a recommended strategy for integrating Playwright-driven 
 ## Why Playwright for Visual Regression Testing?
 
 Playwright is an excellent choice for visual regression testing because it:
+
 - Provides cross-browser testing (Chromium, Firefox, WebKit)
 - Has built-in screenshot capabilities with pixel-perfect comparison
 - Supports headless mode for CI/CD integration
@@ -92,42 +93,50 @@ import { test, expect } from '@playwright/test';
 test.describe('MoveHistory Component Visual Regression', () => {
   test('should maintain layout stability on first move', async ({ page }) => {
     await page.goto('/');
-    
+
     // Take screenshot before first move
     const moveHistoryBefore = await page.locator('[class*="bg-gray"]').first();
     await expect(moveHistoryBefore).toHaveScreenshot('move-history-empty.png');
-    
+
     // Make first move
     await page.getByRole('button', { name: /e2.*White pawn/ }).click();
     await page.getByRole('button', { name: /e4.*empty.*legal move/ }).click();
-    
+
     // Take screenshot after first move
-    await expect(moveHistoryBefore).toHaveScreenshot('move-history-with-move.png');
-    
+    await expect(moveHistoryBefore).toHaveScreenshot(
+      'move-history-with-move.png'
+    );
+
     // Verify height consistency
-    const heightBefore = await moveHistoryBefore.evaluate(el => el.getBoundingClientRect().height);
-    const heightAfter = await moveHistoryBefore.evaluate(el => el.getBoundingClientRect().height);
+    const heightBefore = await moveHistoryBefore.evaluate(
+      (el) => el.getBoundingClientRect().height
+    );
+    const heightAfter = await moveHistoryBefore.evaluate(
+      (el) => el.getBoundingClientRect().height
+    );
     expect(heightBefore).toBe(heightAfter);
   });
 
   test('should display moves correctly', async ({ page }) => {
     await page.goto('/');
-    
+
     // Play several moves
     const moves = [
       { from: 'e2', to: 'e4' },
       { from: 'e7', to: 'e5' },
       { from: 'g1', to: 'f3' },
     ];
-    
+
     for (const move of moves) {
       await page.getByRole('button', { name: new RegExp(move.from) }).click();
       await page.getByRole('button', { name: new RegExp(move.to) }).click();
     }
-    
+
     // Verify move history appearance
     const moveHistory = await page.locator('[class*="bg-gray"]').first();
-    await expect(moveHistory).toHaveScreenshot('move-history-multiple-moves.png');
+    await expect(moveHistory).toHaveScreenshot(
+      'move-history-multiple-moves.png'
+    );
   });
 });
 ```
@@ -149,11 +158,11 @@ test.describe('Home Page Visual Regression', () => {
 
   test('board after first move', async ({ page }) => {
     await page.goto('/');
-    
+
     // Make first move
     await page.getByRole('button', { name: /e2.*White pawn/ }).click();
     await page.getByRole('button', { name: /e4.*empty.*legal move/ }).click();
-    
+
     // Full page screenshot
     await expect(page).toHaveScreenshot('homepage-after-first-move.png', {
       fullPage: true,
@@ -162,11 +171,11 @@ test.describe('Home Page Visual Regression', () => {
 
   test('appearance controls visibility', async ({ page }) => {
     await page.goto('/');
-    
+
     // Screenshot with appearance controls visible
     const whiteControls = page.locator('text=White Controls').locator('..');
     await expect(whiteControls).toHaveScreenshot('white-controls.png');
-    
+
     const blackControls = page.locator('text=Black Controls').locator('..');
     await expect(blackControls).toHaveScreenshot('black-controls.png');
   });
@@ -183,18 +192,18 @@ import { test, expect } from '@playwright/test';
 test.describe('Layout Stability', () => {
   test('no layout shift on first move', async ({ page }) => {
     await page.goto('/');
-    
+
     // Get initial board position
     const board = page.locator('[role="application"]').first();
     const initialPosition = await board.boundingBox();
-    
+
     // Make first move
     await page.getByRole('button', { name: /e2.*White pawn/ }).click();
     await page.getByRole('button', { name: /e4.*empty.*legal move/ }).click();
-    
+
     // Get board position after move
     const finalPosition = await board.boundingBox();
-    
+
     // Verify no shift occurred
     expect(initialPosition?.x).toBe(finalPosition?.x);
     expect(initialPosition?.y).toBe(finalPosition?.y);
@@ -204,20 +213,27 @@ test.describe('Layout Stability', () => {
 
   test('sidebar width consistency', async ({ page }) => {
     await page.goto('/');
-    
+
     const rightSidebar = page.locator('text=Black Controls').locator('..');
-    const initialWidth = await rightSidebar.evaluate(el => el.getBoundingClientRect().width);
-    
+    const initialWidth = await rightSidebar.evaluate(
+      (el) => el.getBoundingClientRect().width
+    );
+
     // Make several moves
     for (let i = 0; i < 5; i++) {
-      const pawns = await page.locator('[role="button"]').filter({ hasText: /pawn/ }).all();
+      const pawns = await page
+        .locator('[role="button"]')
+        .filter({ hasText: /pawn/ })
+        .all();
       if (pawns.length > 0) {
         await pawns[0].click();
         await page.waitForTimeout(100);
       }
     }
-    
-    const finalWidth = await rightSidebar.evaluate(el => el.getBoundingClientRect().width);
+
+    const finalWidth = await rightSidebar.evaluate(
+      (el) => el.getBoundingClientRect().width
+    );
     expect(initialWidth).toBe(finalWidth);
   });
 });
@@ -241,22 +257,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
-      
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
-      
+
       - name: Run Playwright tests
         run: npx playwright test
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
@@ -264,7 +280,7 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-      
+
       - name: Upload screenshots
         if: failure()
         uses: actions/upload-artifact@v3
@@ -277,21 +293,25 @@ jobs:
 ### 8. Best Practices
 
 #### a. Screenshot Management
+
 - Store baseline screenshots in version control: `tests/visual/__screenshots__/`
 - Update baselines when intentional UI changes occur: `npx playwright test --update-snapshots`
 - Review screenshot diffs carefully in CI failures
 
 #### b. Test Stability
+
 - Use `await page.waitForLoadState('networkidle')` before taking screenshots
 - Add explicit waits for animations: `await page.waitForTimeout(300)`
 - Use stable selectors (roles, labels, test IDs) instead of CSS classes
 
 #### c. Performance
+
 - Run visual tests separately from unit tests
 - Use parallel execution in CI
 - Only test critical user paths at page level
 
 #### d. Maintenance
+
 - Group related visual tests together
 - Use descriptive screenshot names
 - Document visual changes in PR descriptions
@@ -300,17 +320,20 @@ jobs:
 ### 9. Testing Strategy for Purrfect Chess
 
 #### Component Level
+
 - **Board Component**: Verify piece rendering, square colors, move highlights
 - **MoveHistory Component**: Verify layout stability, move formatting
 - **Controls Components**: Verify slider positions, button states
 - **Timer Component**: Verify time display formatting
 
 #### Page Level
+
 - **Home Page**: Verify overall layout, responsive breakpoints
 - **Game States**: Verify check, checkmate, stalemate displays
 - **Theme Variations**: Verify custom piece/square colors
 
 #### Interaction Flows
+
 - **First Move Regression**: Verify no layout shift (this issue)
 - **Game Reset**: Verify UI returns to initial state
 - **Board Flip**: Verify coordinate labels update correctly
@@ -319,21 +342,25 @@ jobs:
 ### 10. Implementation Timeline
 
 **Phase 1: Foundation (Week 1)**
+
 - Install Playwright and configure
 - Set up basic test structure
 - Write layout stability tests (including first move test)
 
 **Phase 2: Component Coverage (Week 2-3)**
+
 - Add visual tests for MoveHistory
 - Add visual tests for Board
 - Add visual tests for Controls
 
 **Phase 3: Page Coverage (Week 4)**
+
 - Add full-page visual tests
 - Add responsive breakpoint tests
 - Add theme variation tests
 
 **Phase 4: CI/CD Integration (Week 5)**
+
 - Set up GitHub Actions workflow
 - Configure artifact storage
 - Document review process
@@ -343,11 +370,13 @@ jobs:
 The fix for the layout shift issue demonstrates the value of Playwright testing:
 
 **Before Fix:**
+
 - MoveHistory container had no minimum height
 - Height changed from ~20px (empty) to ~52px (with moves)
 - This caused the entire sidebar to resize
 
 **After Fix:**
+
 - Added `minHeight: '52px'` to the container
 - Container maintains consistent height
 - No layout shift occurs
@@ -357,22 +386,22 @@ The fix for the layout shift issue demonstrates the value of Playwright testing:
 ```typescript
 test('MoveHistory maintains minimum height', async ({ page }) => {
   await page.goto('/');
-  
+
   const container = page.locator('.bg-gray-100').first();
-  const emptyHeight = await container.evaluate(el => 
-    window.getComputedStyle(el).minHeight
+  const emptyHeight = await container.evaluate(
+    (el) => window.getComputedStyle(el).minHeight
   );
-  
+
   expect(emptyHeight).toBe('52px');
-  
+
   // Make move
   await page.getByRole('button', { name: /e2.*White pawn/ }).click();
   await page.getByRole('button', { name: /e4/ }).click();
-  
-  const filledHeight = await container.evaluate(el => 
-    window.getComputedStyle(el).minHeight
+
+  const filledHeight = await container.evaluate(
+    (el) => window.getComputedStyle(el).minHeight
   );
-  
+
   expect(filledHeight).toBe('52px');
 });
 ```
@@ -380,6 +409,7 @@ test('MoveHistory maintains minimum height', async ({ page }) => {
 ## Conclusion
 
 Implementing Playwright visual regression testing will:
+
 1. Catch layout shifts and visual bugs early
 2. Provide confidence when refactoring UI components
 3. Document visual behavior through screenshots

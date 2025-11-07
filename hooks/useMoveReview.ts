@@ -4,10 +4,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
  * Move Review Hook - Enhanced with status tracking
- * 
+ *
  * This is a stub implementation that randomly classifies moves.
  * The actual move quality detection logic will be refined later.
- * 
+ *
  * Features:
  * - Random classification from 11 available types
  * - Badge display with animation
@@ -68,13 +68,13 @@ export function useMoveReview() {
   const [isReviewing, setIsReviewing] = useState(false);
   const [currentBadge, setCurrentBadge] = useState<MoveBadge | null>(null);
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
-  
+
   const timeoutRefs = useRef<{
     analysis?: NodeJS.Timeout;
     badge?: NodeJS.Timeout;
     statusInterval?: NodeJS.Timeout;
   }>({});
-  
+
   const statusDataRef = useRef<{
     startTime: number;
     currentDepth: number;
@@ -104,7 +104,7 @@ export function useMoveReview() {
   const updateStatus = useCallback(() => {
     const elapsed = Date.now() - statusDataRef.current.startTime;
     const remaining = Math.max(0, MOVE_REVIEW_ANALYSIS_TIME - elapsed);
-    
+
     setReviewStatus({
       remainingTime: remaining,
       totalTime: MOVE_REVIEW_ANALYSIS_TIME,
@@ -117,73 +117,79 @@ export function useMoveReview() {
    * Stub implementation: randomly selects a classification
    * Returns the classification type for displaying in a toast
    */
-  const reviewLastMove = useCallback((lastMove: LastMove, onComplete?: (classification: MoveClassification) => void) => {
-    if (!lastMove) {
-      return null;
-    }
+  const reviewLastMove = useCallback(
+    (
+      lastMove: LastMove,
+      onComplete?: (classification: MoveClassification) => void
+    ) => {
+      if (!lastMove) {
+        return null;
+      }
 
-    setIsReviewing(true);
+      setIsReviewing(true);
 
-    // Clear any existing timeouts
-    if (timeoutRefs.current.analysis) {
-      clearTimeout(timeoutRefs.current.analysis);
-    }
-    if (timeoutRefs.current.badge) {
-      clearTimeout(timeoutRefs.current.badge);
-    }
-    if (timeoutRefs.current.statusInterval) {
-      clearInterval(timeoutRefs.current.statusInterval);
-    }
-
-    // Initialize status tracking
-    statusDataRef.current.startTime = Date.now();
-    statusDataRef.current.currentDepth = 0;
-
-    // Start status update interval
-    updateStatus(); // Update immediately
-    timeoutRefs.current.statusInterval = setInterval(() => {
-      // Simulate depth increasing over time
-      statusDataRef.current.currentDepth = Math.min(
-        22,
-        Math.floor((Date.now() - statusDataRef.current.startTime) / 300)
-      );
-      updateStatus();
-    }, MOVE_REVIEW_UPDATE_INTERVAL);
-
-    // Simulate analysis delay (matching legacy)
-    timeoutRefs.current.analysis = setTimeout(() => {
-      // Clear status interval
+      // Clear any existing timeouts
+      if (timeoutRefs.current.analysis) {
+        clearTimeout(timeoutRefs.current.analysis);
+      }
+      if (timeoutRefs.current.badge) {
+        clearTimeout(timeoutRefs.current.badge);
+      }
       if (timeoutRefs.current.statusInterval) {
         clearInterval(timeoutRefs.current.statusInterval);
-        timeoutRefs.current.statusInterval = undefined;
       }
 
-      // Hide status
-      setReviewStatus(null);
+      // Initialize status tracking
+      statusDataRef.current.startTime = Date.now();
+      statusDataRef.current.currentDepth = 0;
 
-      // Stub: Random classification
-      const randomIndex = Math.floor(Math.random() * MOVE_TYPES.length);
-      const classification = MOVE_TYPES[randomIndex];
+      // Start status update interval
+      updateStatus(); // Update immediately
+      timeoutRefs.current.statusInterval = setInterval(() => {
+        // Simulate depth increasing over time
+        statusDataRef.current.currentDepth = Math.min(
+          22,
+          Math.floor((Date.now() - statusDataRef.current.startTime) / 300)
+        );
+        updateStatus();
+      }, MOVE_REVIEW_UPDATE_INTERVAL);
 
-      const badge: MoveBadge = {
-        type: classification,
-        square: lastMove.to,
-      };
+      // Simulate analysis delay (matching legacy)
+      timeoutRefs.current.analysis = setTimeout(() => {
+        // Clear status interval
+        if (timeoutRefs.current.statusInterval) {
+          clearInterval(timeoutRefs.current.statusInterval);
+          timeoutRefs.current.statusInterval = undefined;
+        }
 
-      setCurrentBadge(badge);
-      setIsReviewing(false);
+        // Hide status
+        setReviewStatus(null);
 
-      // Call completion callback with classification
-      if (onComplete) {
-        onComplete(classification);
-      }
+        // Stub: Random classification
+        const randomIndex = Math.floor(Math.random() * MOVE_TYPES.length);
+        const classification = MOVE_TYPES[randomIndex];
 
-      // Auto-clear badge after display time
-      timeoutRefs.current.badge = setTimeout(() => {
-        setCurrentBadge(null);
-      }, BADGE_DISPLAY_TIME);
-    }, MOVE_REVIEW_ANALYSIS_TIME);
-  }, [updateStatus]);
+        const badge: MoveBadge = {
+          type: classification,
+          square: lastMove.to,
+        };
+
+        setCurrentBadge(badge);
+        setIsReviewing(false);
+
+        // Call completion callback with classification
+        if (onComplete) {
+          onComplete(classification);
+        }
+
+        // Auto-clear badge after display time
+        timeoutRefs.current.badge = setTimeout(() => {
+          setCurrentBadge(null);
+        }, BADGE_DISPLAY_TIME);
+      }, MOVE_REVIEW_ANALYSIS_TIME);
+    },
+    [updateStatus]
+  );
 
   const clearBadge = useCallback(() => {
     setCurrentBadge(null);

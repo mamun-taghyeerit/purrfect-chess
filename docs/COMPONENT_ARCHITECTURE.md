@@ -5,6 +5,7 @@ This document describes the refactored component architecture implemented to add
 ## Overview
 
 The monolithic `app/page.tsx` (previously 703 lines) has been refactored into a modular architecture with:
+
 - **Layout components** for structural consistency
 - **Feature components** for logical separation
 - **Constants** for centralized styling and dimensions
@@ -18,6 +19,7 @@ This refactoring reduces the main page component to 175 lines (75% reduction) wh
 Reusable layout components that provide consistent structure across the application:
 
 #### MainLayout
+
 - **Purpose**: Root layout wrapper with consistent max-width and spacing
 - **Usage**: Wraps all page content
 - **Key Features**:
@@ -26,6 +28,7 @@ Reusable layout components that provide consistent structure across the applicat
   - Consistent background color
 
 #### GameLayout
+
 - **Purpose**: Three-column responsive layout for the chess game
 - **Layout**:
   - Left Panel: White player controls (320px fixed on xl screens)
@@ -37,6 +40,7 @@ Reusable layout components that provide consistent structure across the applicat
   - Responsive: stacks vertically on mobile
 
 #### ControlPanel
+
 - **Purpose**: Reusable panel container with consistent styling
 - **Usage**: Used for both White and Black control panels
 - **Key Features**:
@@ -49,6 +53,7 @@ Reusable layout components that provide consistent structure across the applicat
 Logical groupings of related functionality:
 
 #### PlayerControls
+
 - **Purpose**: Player-specific controls (White or Black)
 - **Conditional Features**:
   - **White**: Time presets, custom time controls
@@ -59,6 +64,7 @@ Logical groupings of related functionality:
   - Reset button
 
 #### BoardSection
+
 - **Purpose**: Central game area containing all board-related elements
 - **Features**:
   - Chess board with engine overlays
@@ -93,13 +99,17 @@ export const COLORS = {
 ## Critical Bug Fix: Layout Shift
 
 ### Problem
+
 Before refactoring:
+
 - **Before first move**: Board X: 313px, Right Panel: 273px
 - **After first move**: Board X: 305.5px (shifted LEFT by 7.5px), Right Panel: 288px (+15px)
 - **Cause**: Unconstrained flex containers allowed content-based width changes
 
 ### Solution
+
 After refactoring:
+
 - Fixed panel widths: 320px (min and max)
 - `flex-shrink-0` on panels prevents compression
 - Centralized constants ensure consistency
@@ -138,13 +148,17 @@ e2e/
 ## Testing
 
 ### Unit Tests
+
 All existing tests pass (185 tests):
+
 ```bash
 yarn test
 ```
 
 ### E2E Tests (Playwright)
+
 Layout stability tests verify:
+
 - Board position remains stable after moves
 - Panel widths stay at 320px
 - No layout shift across multiple moves
@@ -160,18 +174,21 @@ yarn test:e2e:headed   # Run in headed mode
 ## Benefits
 
 ### Developer Experience
+
 - **Faster debugging**: Components are isolated and testable
 - **Easier maintenance**: Changes localized to specific components
 - **Better onboarding**: Clear hierarchy and responsibilities
 - **Safer refactoring**: Layout tests catch regressions
 
 ### Code Quality
+
 - **75% reduction** in main page component size (703 → 175 lines)
 - **Separation of concerns**: Layout, features, presentation
 - **No magic numbers**: Centralized constants
 - **Type safety**: TypeScript interfaces for all components
 
 ### User Experience
+
 - **No layout shifts**: Fixed widths prevent content-based layout changes
 - **Consistent feel**: Uniform panel sizing across screens
 - **Smooth interactions**: Predictable board position
@@ -179,6 +196,7 @@ yarn test:e2e:headed   # Run in headed mode
 ## Migration Notes
 
 The refactoring maintains 100% functional parity with the previous implementation:
+
 - All features work identically
 - No visual changes (except fixing the layout shift bug)
 - All tests pass

@@ -13,7 +13,7 @@ import { useRootStore } from '@/stores/store-setup';
  * - Highlight active player's clock
  * - Format time as MM:SS
  * - Fixed-width layout to prevent layout shift on time changes
- * 
+ *
  * Performance Optimizations:
  * - Uses MobX observer for fine-grained reactivity
  * - Only re-renders when accessed store properties change
@@ -53,8 +53,8 @@ const Clock = observer(function Clock({ player }: ClockProps) {
         borderRadius: '14px',
         background: '#1f1f1f',
         border: isActive ? '2px solid #9198e5' : '2px solid #555',
-        boxShadow: isActive 
-          ? '0 0 18px rgba(145, 152, 229, 0.7)' 
+        boxShadow: isActive
+          ? '0 0 18px rgba(145, 152, 229, 0.7)'
           : 'inset 0 0 12px rgba(0, 0, 0, 0.5)',
         transform: isActive ? 'translateY(-2px)' : 'none',
         color: '#f0f0f0',
@@ -63,10 +63,12 @@ const Clock = observer(function Clock({ player }: ClockProps) {
         width: '100%',
         // Prevent text wrapping
         whiteSpace: 'nowrap',
-        overflow: 'hidden'
+        overflow: 'hidden',
       }}
     >
-      {formatClockTime(player === 'w' ? store.game.whiteTime : store.game.blackTime)}
+      {formatClockTime(
+        player === 'w' ? store.game.whiteTime : store.game.blackTime
+      )}
     </div>
   );
 });

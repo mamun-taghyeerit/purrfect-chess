@@ -12,7 +12,7 @@ import type { Move } from '@/lib/types';
  * Features:
  * - Display moves in algebraic notation
  * - Grouped by move number (White & Black)
- * 
+ *
  * Performance Optimizations:
  * - Uses MobX observer for fine-grained reactivity
  * - Only re-renders when store.game.history changes

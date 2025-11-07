@@ -11,7 +11,7 @@ import { useRootStore } from '@/stores/store-setup';
  * Displays Stockfish engine analysis with multi-PV support
  * Shows top engine lines with evaluations and principal variations
  * Matches legacy appearance from src/ui.ts
- * 
+ *
  * Uses MobX observer for efficient reactivity - MobX automatically optimizes
  * re-renders via proxies, no manual throttling needed
  */
@@ -27,8 +27,8 @@ interface EngineLineProps {
 
 // Lineage colors matching legacy (blue, green, purple/pink) - memoized outside component
 const LINEAGE_COLORS = [
-  { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.6)' },  // blue for #1
-  { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.6)' },  // green for #2
+  { bg: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.6)' }, // blue for #1
+  { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.6)' }, // green for #2
   { bg: 'rgba(244, 114, 182, 0.15)', border: 'rgba(244, 114, 182, 0.6)' }, // pink for #3
 ];
 
@@ -36,12 +36,12 @@ const EngineLine = observer(function EngineLine({ multipv }: EngineLineProps) {
   // Access store as late as possible - single source of truth
   const store = useRootStore();
   const engine = store.engine;
-  
+
   // Find the analysis line for this multipv
-  const analysis = engine.analysis.find(a => a.multipv === multipv);
-  
+  const analysis = engine.analysis.find((a) => a.multipv === multipv);
+
   if (!analysis) return null;
-  
+
   const formatScore = (score: number, scoreType: string) => {
     if (scoreType === 'mate') {
       return score > 0 ? `+M${score}` : `-M${Math.abs(score)}`;
@@ -58,18 +58,24 @@ const EngineLine = observer(function EngineLine({ multipv }: EngineLineProps) {
 
   // multipv is 1-based, array index is 0-based
   const index = multipv - 1;
-  const colors = LINEAGE_COLORS[index] || { bg: 'rgba(100, 100, 100, 0.1)', border: 'rgba(100, 100, 100, 0.4)' };
+  const colors = LINEAGE_COLORS[index] || {
+    bg: 'rgba(100, 100, 100, 0.1)',
+    border: 'rgba(100, 100, 100, 0.4)',
+  };
 
   return (
-    <div 
+    <div
       className="rounded-lg p-3 flex flex-col gap-1.5"
       style={{
         background: colors.bg,
         border: `2px solid ${colors.border}`,
-        boxShadow: 'inset 0 2px 5px rgba(0, 0, 0, 0.45)'
+        boxShadow: 'inset 0 2px 5px rgba(0, 0, 0, 0.45)',
       }}
     >
-      <div className="flex items-center justify-between text-xs uppercase tracking-wider" style={{ color: '#c8c8c8' }}>
+      <div
+        className="flex items-center justify-between text-xs uppercase tracking-wider"
+        style={{ color: '#c8c8c8' }}
+      >
         <span>#{multipv}</span>
         <span>depth {analysis.depth}</span>
       </div>
@@ -103,12 +109,8 @@ const EnginePanel = observer(function EnginePanel() {
   const game = store.game;
   const engine = store.engine;
 
-  const {
-    isEngineReady,
-    isAnalyzing,
-    startAnalysis,
-    stopAnalysis,
-  } = useEngine();
+  const { isEngineReady, isAnalyzing, startAnalysis, stopAnalysis } =
+    useEngine();
 
   const [depth, setDepth] = useState(18);
 

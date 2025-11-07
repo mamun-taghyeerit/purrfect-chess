@@ -41,9 +41,16 @@ interface BoardSectionProps {
   isAnalyzing: boolean;
   currentDepth: number;
   onShowMessage: (type: 'info' | 'success' | 'error', message: string) => void;
-  onReviewLastMove: (lastMove: any, callback: (classification: string) => void) => void;
+  onReviewLastMove: (
+    lastMove: any,
+    callback: (classification: string) => void
+  ) => void;
   isReviewing: boolean;
-  reviewStatus: { depth: number; remainingTime: number; totalTime: number } | null;
+  reviewStatus: {
+    depth: number;
+    remainingTime: number;
+    totalTime: number;
+  } | null;
   currentBadge: MoveBadge | null;
   clearBadge: () => void;
   setTargetElement: (element: HTMLElement | null) => void;
@@ -71,7 +78,8 @@ export function BoardSection({
 
   // Extract eval score and mate
   const evalScore = bestEval ? bestEval.score : null;
-  const evalMate = bestEval && bestEval.scoreType === 'mate' ? bestEval.score : null;
+  const evalMate =
+    bestEval && bestEval.scoreType === 'mate' ? bestEval.score : null;
 
   return (
     <>
@@ -86,7 +94,9 @@ export function BoardSection({
               ? engineHighlights
               : []
           }
-          showEvalBarOverlay={store.ui.isEvalBarVisible && !store.ui.isEnginePanelVisible}
+          showEvalBarOverlay={
+            store.ui.isEvalBarVisible && !store.ui.isEnginePanelVisible
+          }
           moveBadge={currentBadge}
           onBadgeComplete={clearBadge}
           onError={onError}
@@ -148,7 +158,10 @@ export function BoardSection({
           boxShadow: COLORS.shadow.inset,
         }}
       >
-        <h3 className="text-xl font-semibold text-center mb-3" style={{ color: '#f5f5f5' }}>
+        <h3
+          className="text-xl font-semibold text-center mb-3"
+          style={{ color: '#f5f5f5' }}
+        >
           Purrfect Chess Arena
         </h3>
         <div className="flex flex-col gap-2">
@@ -162,7 +175,8 @@ export function BoardSection({
             <span
               className="font-mono text-right"
               style={{
-                fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                fontFamily:
+                  "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
                 color: COLORS.text.code,
               }}
             >
@@ -180,7 +194,8 @@ export function BoardSection({
             <span
               className="font-mono text-right"
               style={{
-                fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                fontFamily:
+                  "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
                 color: COLORS.text.code,
               }}
             >
@@ -197,11 +212,13 @@ export function BoardSection({
             <span
               className="font-mono text-right"
               style={{
-                fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                fontFamily:
+                  "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
                 color: COLORS.text.code,
               }}
             >
-              {store.game.timeControl.minutes} + {store.game.timeControl.increment}
+              {store.game.timeControl.minutes} +{' '}
+              {store.game.timeControl.increment}
             </span>
           </div>
           <div className="flex justify-between items-center py-1.5">
@@ -211,7 +228,8 @@ export function BoardSection({
             <span
               className="font-mono text-right"
               style={{
-                fontFamily: "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
+                fontFamily:
+                  "'Fira Code', 'JetBrains Mono', 'Source Code Pro', monospace",
                 color: COLORS.text.code,
               }}
             >
@@ -233,7 +251,10 @@ export function BoardSection({
 
       {/* Engine Panel (conditionally rendered below board) */}
       {store.ui.isEnginePanelVisible && (
-        <div className="w-full" style={{ maxWidth: `${LAYOUT.BOARD_MAX_SIZE}px` }}>
+        <div
+          className="w-full"
+          style={{ maxWidth: `${LAYOUT.BOARD_MAX_SIZE}px` }}
+        >
           <EnginePanel />
         </div>
       )}

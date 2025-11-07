@@ -95,7 +95,10 @@ export function PlayerControls({
             paddingBottom: '10px',
           }}
         >
-          <h3 className="text-lg font-semibold" style={{ color: COLORS.text.primary }}>
+          <h3
+            className="text-lg font-semibold"
+            style={{ color: COLORS.text.primary }}
+          >
             Appearance
           </h3>
           <button
@@ -109,8 +112,12 @@ export function PlayerControls({
               border: 'none',
               cursor: 'pointer',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.05)')}
-            onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.filter = 'brightness(1.05)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.filter = 'brightness(1)')
+            }
             title={`Reset ${playerName.toLowerCase()} appearance settings`}
           >
             <span>↻</span>
@@ -119,7 +126,14 @@ export function PlayerControls({
         </div>
         <AppearanceControls
           ref={appearanceRef}
-          groups={appearanceGroups as ('light' | 'dark' | 'whitePieces' | 'blackPieces')[]}
+          groups={
+            appearanceGroups as (
+              | 'light'
+              | 'dark'
+              | 'whitePieces'
+              | 'blackPieces'
+            )[]
+          }
           showGlobalReset={false}
         />
       </div>
@@ -153,7 +167,10 @@ export function PlayerControls({
             </h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm" style={{ color: COLORS.text.secondary }}>
+                <label
+                  className="text-sm"
+                  style={{ color: COLORS.text.secondary }}
+                >
                   Minutes
                 </label>
                 <input
@@ -172,7 +189,10 @@ export function PlayerControls({
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm" style={{ color: COLORS.text.secondary }}>
+                <label
+                  className="text-sm"
+                  style={{ color: COLORS.text.secondary }}
+                >
                   Increment (s)
                 </label>
                 <input
@@ -200,8 +220,12 @@ export function PlayerControls({
                   color: '#fff',
                   border: 'none',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.border.primary)}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = '#666')
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = COLORS.border.primary)
+                }
               >
                 Apply
               </button>
@@ -257,8 +281,12 @@ export function PlayerControls({
                     color: '#fff',
                     border: 'none',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.border.primary)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = '#666')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = COLORS.border.primary)
+                  }
                 >
                   Copy PGN
                 </button>
@@ -274,7 +302,10 @@ export function PlayerControls({
                         setPgnInput?.(''); // Clear input after successful load
                       }
                     } else {
-                      onShowMessage?.('info', 'Enter a PGN in the text box below.');
+                      onShowMessage?.(
+                        'info',
+                        'Enter a PGN in the text box below.'
+                      );
                     }
                   }}
                   className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
@@ -283,8 +314,12 @@ export function PlayerControls({
                     color: '#fff',
                     border: 'none',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.border.primary)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = '#666')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = COLORS.border.primary)
+                  }
                 >
                   Load PGN
                 </button>
@@ -332,8 +367,12 @@ export function PlayerControls({
                     color: '#fff',
                     border: 'none',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.border.primary)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = '#666')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = COLORS.border.primary)
+                  }
                 >
                   Copy FEN
                 </button>
@@ -349,7 +388,10 @@ export function PlayerControls({
                         setFenInput?.(''); // Clear input after successful load
                       }
                     } else {
-                      onShowMessage?.('info', 'Enter a FEN in the text box below.');
+                      onShowMessage?.(
+                        'info',
+                        'Enter a FEN in the text box below.'
+                      );
                     }
                   }}
                   className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
@@ -358,8 +400,12 @@ export function PlayerControls({
                     color: '#fff',
                     border: 'none',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#666')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.border.primary)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = '#666')
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = COLORS.border.primary)
+                  }
                 >
                   Load FEN
                 </button>

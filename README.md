@@ -51,6 +51,7 @@ This script will:
 - ✅ Install Yarn Classic (v1.22.22) globally
 - ✅ Install all project dependencies via `yarn install --frozen-lockfile`
 - ✅ Vendor Stockfish binaries to `public/libs/`
+- ✅ Install Playwright browsers for e2e testing
 
 After setup, run the app:
 
@@ -63,7 +64,9 @@ yarn dev   # Next.js development server (http://localhost:3000)
 - `yarn lint` - ESLint code quality checks with Next.js rules
 - `yarn lint:fix` - Auto-fix linting issues
 - `yarn format` / `yarn format:check` - Prettier formatting
-- `yarn test` / `yarn test:watch` - Vitest test runner
+- `yarn test` / `yarn test:watch` - Vitest unit/integration test runner
+- `yarn test:e2e` - Playwright e2e tests (requires `yarn playwright install` first)
+- `yarn test:e2e:ui` - Playwright e2e tests in UI mode
 - `yarn build` - Production build
 - `yarn start` - Start production server
 
@@ -72,11 +75,14 @@ yarn dev   # Next.js development server (http://localhost:3000)
 If you already have the correct Node version and Yarn classic installed:
 
 ```bash
-yarn install
-yarn dev
+yarn install                  # Install dependencies
+yarn playwright install       # Install Playwright browsers (first time only)
+yarn dev                      # Start development server
 ```
 
 **Note**: The `postinstall` script automatically vendors Stockfish binaries from the `stockfish` npm package to `public/libs/`.
+
+**First-time setup**: Run `yarn playwright install` to download the browser binaries needed for e2e tests. This is a one-time step (unless you upgrade Playwright or switch machines).
 
 The app uses Next.js, React, TypeScript, Tailwind CSS, MobX, and chess.js. Stockfish is loaded from `/public/libs/stockfish-lite-single.js` and `/public/libs/stockfish-lite-single.wasm`. The engine binaries are auto-vendored instead of pulled from a package registry so the worker URL remains stable across dev/production builds.
 
@@ -233,10 +239,10 @@ yarn format
 **Current State:** Limited CI workflow exists (`.github/workflows/copilot-setup-steps.yml`) for environment setup only.
 
 **Phase 4 Goal:** Add comprehensive CI workflow with:
+
 - Automated build/lint/test on all PRs
 - Deploy preview environments
 - Status badges in README
 - Automated dependency updates
 
 See [Phase 4 tasks in NEXT_STEPS_ISSUE.md](./NEXT_STEPS_ISSUE.md#phase-4-testing--cleanup-next) for CI/CD implementation plan.
-

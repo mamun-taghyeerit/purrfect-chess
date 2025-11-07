@@ -13,12 +13,14 @@ This document describes the error handling patterns implemented in the Next.js a
 ### Components
 
 **`hooks/useNotification.ts`**
+
 - Manages notification state
 - Provides `showMessage(type, message, duration?)` API
 - Auto-dismissal after configurable duration (default: 3000ms)
 - Manual dismissal via `dismissNotification(id)`
 
 **`components/NotificationContainer.tsx`**
+
 - Toast-style notifications positioned at top-center
 - Visual styling matches legacy message box
 - Color-coded by type (error, success, info)
@@ -46,6 +48,7 @@ showMessage('info', 'Engine analysis started.');
 ### useGame Hook
 
 **Error Callback Pattern:**
+
 ```typescript
 const { loadFen, loadPgn, movePiece, ... } = useGame({
   onError: (error: string) => {
@@ -55,6 +58,7 @@ const { loadFen, loadPgn, movePiece, ... } = useGame({
 ```
 
 **Error Messages:**
+
 - `"Enter a FEN string to load."` - Empty FEN input
 - `"Invalid FEN string."` - Malformed FEN
 - `"Enter a PGN string to load."` - Empty PGN input
@@ -62,6 +66,7 @@ const { loadFen, loadPgn, movePiece, ... } = useGame({
 - `"Illegal move."` - Invalid move attempt
 
 **Return Values:**
+
 - `loadFen(fen): boolean` - Returns `true` on success, `false` on failure
 - `loadPgn(pgn): boolean` - Returns `true` on success, `false` on failure
 - `movePiece(from, to, promotion?): boolean` - Returns `true` on success, `false` on failure
@@ -69,6 +74,7 @@ const { loadFen, loadPgn, movePiece, ... } = useGame({
 ### useEngine Hook
 
 **Error Callback Pattern:**
+
 ```typescript
 const { startAnalysis, stopAnalysis, isEngineReady, ... } = useEngine({
   onError: (error: string) => {
@@ -78,6 +84,7 @@ const { startAnalysis, stopAnalysis, isEngineReady, ... } = useEngine({
 ```
 
 **Error Messages:**
+
 - `"Unable to initialize Stockfish."` - Engine initialization failed
 - `"Engine worker error occurred"` - Worker runtime error
 - `"Engine is not ready yet."` - Analysis started before engine ready
@@ -89,24 +96,28 @@ const { startAnalysis, stopAnalysis, isEngineReady, ... } = useEngine({
 ### FEN Import Errors
 
 **Scenario 1: Empty Input**
+
 ```typescript
 loadFen(''); // Returns false
 // onError called with: "Enter a FEN string to load."
 ```
 
 **Scenario 2: Whitespace Only**
+
 ```typescript
 loadFen('   '); // Returns false
 // onError called with: "Enter a FEN string to load."
 ```
 
 **Scenario 3: Invalid FEN**
+
 ```typescript
 loadFen('invalid fen string'); // Returns false
 // onError called with: "Invalid FEN string."
 ```
 
 **Scenario 4: Valid FEN**
+
 ```typescript
 loadFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'); // Returns true
 // No error, can show success: "FEN loaded successfully."
@@ -115,18 +126,21 @@ loadFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'); // Returns 
 ### PGN Import Errors
 
 **Scenario 1: Empty Input**
+
 ```typescript
 loadPgn(''); // Returns false
 // onError called with: "Enter a PGN string to load."
 ```
 
 **Scenario 2: Invalid PGN**
+
 ```typescript
 loadPgn('not a valid pgn'); // Returns false
 // onError called with: "Invalid PGN data."
 ```
 
 **Scenario 3: Valid PGN**
+
 ```typescript
 loadPgn('1. e4 e5 2. Nf3'); // Returns true
 // No error, can show success: "PGN loaded successfully."
@@ -135,12 +149,14 @@ loadPgn('1. e4 e5 2. Nf3'); // Returns true
 ### Move Errors
 
 **Scenario: Illegal Move**
+
 ```typescript
 movePiece('e2', 'e5'); // Returns false (pawn can't move 3 squares)
 // onError called with: "Illegal move."
 ```
 
 **Scenario: Legal Move**
+
 ```typescript
 movePiece('e2', 'e4'); // Returns true
 // No error, game state updated
@@ -149,6 +165,7 @@ movePiece('e2', 'e4'); // Returns true
 ### Engine Errors
 
 **Scenario 1: Analysis Before Ready**
+
 ```typescript
 // Engine not ready yet
 startAnalysis(fen);
@@ -156,6 +173,7 @@ startAnalysis(fen);
 ```
 
 **Scenario 2: Analysis When Ready**
+
 ```typescript
 // Wait for isEngineReady === true
 startAnalysis(fen);
@@ -163,6 +181,7 @@ startAnalysis(fen);
 ```
 
 **Scenario 3: Worker Error**
+
 ```typescript
 // If worker fails during initialization
 // onError called with: "Unable to initialize Stockfish."
@@ -171,6 +190,7 @@ startAnalysis(fen);
 ## Clipboard Operations
 
 ### Success Pattern
+
 ```typescript
 try {
   await navigator.clipboard.writeText(fen);
@@ -181,6 +201,7 @@ try {
 ```
 
 ### Error Pattern
+
 - `"Unable to copy FEN."` - Clipboard write failed
 - `"Unable to copy PGN."` - Clipboard write failed
 
@@ -193,6 +214,7 @@ All error paths must surface to the user. Every operation that can fail:
 3. **Logs to console** for debugging
 
 Example validation:
+
 ```typescript
 // BAD - Silent failure
 loadFen(fen); // Returns false but no user notification
@@ -208,6 +230,7 @@ if (!result) {
 ## Mid-Analysis Recovery
 
 **Scenario: Reset During Analysis**
+
 ```typescript
 startAnalysis(fen);
 // User clicks reset
@@ -216,6 +239,7 @@ resetGame();
 ```
 
 **Scenario: New Analysis During Analysis**
+
 ```typescript
 startAnalysis(fen1);
 // Analysis in progress
@@ -225,6 +249,7 @@ startAnalysis(fen2);
 ```
 
 **Scenario: Stop Analysis**
+
 ```typescript
 startAnalysis(fen);
 stopAnalysis();
@@ -236,11 +261,13 @@ stopAnalysis();
 ### Test Coverage
 
 **Notification System:** 9 tests
+
 - Display, dismissal, auto-dismiss
 - Multiple notifications
 - Empty message handling
 
 **Error Handling Parity:** 19 tests
+
 - FEN/PGN import errors
 - Invalid moves
 - Engine errors
@@ -248,10 +275,12 @@ stopAnalysis();
 - Mid-analysis state management
 
 **Integration Tests:** 2 tests
+
 - Complete error workflow
 - Recovery patterns
 
 **Component Tests:** 7 tests
+
 - NotificationContainer rendering
 - Notification styling
 - Dismissal interaction

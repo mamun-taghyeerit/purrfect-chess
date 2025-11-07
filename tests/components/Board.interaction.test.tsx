@@ -25,7 +25,7 @@ describe('Board Interaction Semantics', () => {
     }, []);
     return <Board />;
   };
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Clear localStorage to reset store state
@@ -142,7 +142,7 @@ describe('Board Interaction Semantics', () => {
     });
 
     it('should execute move on drop', () => {
-      const { container} = renderBoard();
+      const { container } = renderBoard();
       const e2Square = container.querySelector('[data-square="e2"]');
       const e4Square = container.querySelector('[data-square="e4"]');
       const e2Image = e2Square?.querySelector('img');
