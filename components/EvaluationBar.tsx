@@ -65,6 +65,12 @@ const EvaluationBar = observer(function EvaluationBar({
 }: EvaluationBarProps) {
   const store = useRootStore();
   const isVisible = store.ui.isEvalBarVisible;
+  const isFlipped = store.ui.isBoardFlipped;
+  
+  // Use engine's current depth when engine panel is open and analyzing,
+  // otherwise use the passed depth (for auto-evaluation mode)
+  const shouldUseEngineDepth = store.ui.isEnginePanelVisible && store.engine.isAnalyzing;
+  const displayDepth = shouldUseEngineDepth ? store.engine.currentDepth : currentDepth;
 
   // Calculate bar fill percentage based on score
   // Map -500 to +500 centipawns to 0% to 100%
@@ -124,7 +130,7 @@ const EvaluationBar = observer(function EvaluationBar({
 
   return (
     <div
-      className={`eval-bar ${!isVisible ? 'eval-bar-concealed' : ''} ${className}`}
+      className={`eval-bar ${!isVisible ? 'eval-bar-concealed' : ''} ${isFlipped ? 'eval-bar-flipped' : ''} ${className}`}
     >
       <div className={`eval-bar-track ${advantageClass} ${analyzingClass}`}>
         <div
@@ -135,9 +141,9 @@ const EvaluationBar = observer(function EvaluationBar({
       <div className={`eval-bar-score ${advantageClass}`}>{scoreDisplay}</div>
 
       {/* Depth info (optional, shown when analyzing) */}
-      {isVisible && isAnalyzing && currentDepth > 0 && (
+      {isVisible && isAnalyzing && displayDepth > 0 && (
         <div className="eval-bar-depth-info">
-          <span>d{currentDepth}</span>
+          <span>d{displayDepth}</span>
           {maxDepth > 0 && <span>/{maxDepth}</span>}
         </div>
       )}

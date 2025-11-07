@@ -18,6 +18,8 @@
  */
 
 import React, { memo } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 
 // Arrow constants (matching legacy)
 const ARROW_THICKNESS = 0.16;
@@ -25,6 +27,7 @@ const ARROW_HEAD_ID = 'board-arrow-head';
 const ARROW_HEAD_SIZE = 0.35;
 const ARROW_HEAD_LENGTH = 0.1;
 const ARROW_TAIL_OFFSET = 0.32;
+const BOARD_SIZE = 8; // Chess board is 8x8
 
 // Arrow colors (matching legacy)
 const ARROW_STROKE = 'rgba(145, 152, 229, 0.85)'; // User arrow color
@@ -67,14 +70,19 @@ function parseSquare(square: string): { file: number; rank: number } | null {
 
 /**
  * Get center point of square in SVG coordinates (0-8 range)
+ * Takes board flip into account for proper arrow positioning
  */
-function squareCenter(square: string): { x: number; y: number } | null {
+function squareCenter(square: string, flipped: boolean = false): { x: number; y: number } | null {
   const coords = parseSquare(square);
   if (!coords) return null;
-  return {
-    x: coords.file + 0.5,
-    y: coords.rank + 0.5,
-  };
+  
+  // Apply flip transformation if board is flipped
+  // When flipped: file a->h becomes h->a, rank 1->8 becomes 8->1
+  const maxIndex = BOARD_SIZE - 1;
+  const x = flipped ? (maxIndex - coords.file) + 0.5 : coords.file + 0.5;
+  const y = flipped ? (maxIndex - coords.rank) + 0.5 : coords.rank + 0.5;
+  
+  return { x, y };
 }
 
 /**
@@ -129,14 +137,15 @@ function buildPath(points: { x: number; y: number }[]): string | null {
 }
 
 /**
- * Build arrow points (with knight move handling)
+ * Build arrow points (with knight move handling and board flip support)
  */
 function buildArrowPoints(
   from: string,
-  to: string
+  to: string,
+  flipped: boolean = false
 ): { x: number; y: number }[] | null {
-  const start = squareCenter(from);
-  const end = squareCenter(to);
+  const start = squareCenter(from, flipped);
+  const end = squareCenter(to, flipped);
   if (!start || !end) return null;
 
   // Straight arrow for non-knight moves
@@ -170,8 +179,8 @@ function buildArrowPoints(
 /**
  * Build arrow path string
  */
-function buildArrowPath(from: string, to: string): string | null {
-  const points = buildArrowPoints(from, to);
+function buildArrowPath(from: string, to: string, flipped: boolean = false): string | null {
+  const points = buildArrowPoints(from, to, flipped);
   if (!points) return null;
   return buildPath(points);
 }
@@ -189,14 +198,18 @@ function buildPreviewPath(
 }
 
 /**
- * ArrowOverlay component with memoization for performance
- * Only re-renders when arrows actually change
+ * ArrowOverlay component - Uses MobX observer for reactivity
+ * Reads board flip state directly from the root store
  */
-const ArrowOverlay = memo(function ArrowOverlay({
+const ArrowOverlay = observer(function ArrowOverlay({
   userArrows = [],
   engineArrows = [],
   previewArrow = null,
 }: ArrowOverlayProps) {
+  // Read flipped state from store for reactivity
+  const store = useRootStore();
+  const flipped = store.ui.isBoardFlipped;
+
   // Don't render if no arrows or preview
   if (userArrows.length === 0 && engineArrows.length === 0 && !previewArrow) {
     return null;
@@ -237,7 +250,7 @@ const ArrowOverlay = memo(function ArrowOverlay({
 
       {/* Render engine arrows (drawn first, under user arrows) */}
       {engineArrows.map((arrow, index) => {
-        const pathData = buildArrowPath(arrow.from, arrow.to);
+        const pathData = buildArrowPath(arrow.from, arrow.to, flipped);
         if (!pathData) return null;
 
         // Rank 0 = eval bar overlay (transparent blue)
@@ -265,7 +278,7 @@ const ArrowOverlay = memo(function ArrowOverlay({
 
       {/* Render user arrows (drawn over engine arrows) */}
       {userArrows.map((arrow, index) => {
-        const pathData = buildArrowPath(arrow.from, arrow.to);
+        const pathData = buildArrowPath(arrow.from, arrow.to, flipped);
         if (!pathData) return null;
 
         return (
@@ -291,12 +304,17 @@ const ArrowOverlay = memo(function ArrowOverlay({
 
           if (previewArrow.to) {
             // Preview to a specific square
-            pathData = buildArrowPath(previewArrow.from, previewArrow.to);
+            pathData = buildArrowPath(previewArrow.from, previewArrow.to, flipped);
           } else if (previewArrow.toPoint) {
-            // Preview to an arbitrary point
-            const fromPoint = squareCenter(previewArrow.from);
+            // Preview to an arbitrary point - transform point if flipped
+            const fromPoint = squareCenter(previewArrow.from, flipped);
             if (fromPoint) {
-              pathData = buildPreviewPath(fromPoint, previewArrow.toPoint);
+              // Transform the toPoint if board is flipped
+              const maxCoord = BOARD_SIZE;
+              const toPoint = flipped 
+                ? { x: maxCoord - previewArrow.toPoint.x, y: maxCoord - previewArrow.toPoint.y }
+                : previewArrow.toPoint;
+              pathData = buildPreviewPath(fromPoint, toPoint);
             }
           }
 
@@ -319,74 +337,6 @@ const ArrowOverlay = memo(function ArrowOverlay({
         })()}
     </svg>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders when arrows haven't changed
-  // Note: Could use lodash.isEqual for simpler implementation, but avoiding
-  // external dependencies for this isolated comparison
-  
-  // Quick reference check - if arrays are same object, no need to deep compare
-  if (prevProps.userArrows === nextProps.userArrows &&
-      prevProps.engineArrows === nextProps.engineArrows &&
-      prevProps.previewArrow === nextProps.previewArrow) {
-    return true;
-  }
-  
-  // Compare user arrows
-  if (prevProps.userArrows.length !== nextProps.userArrows.length) {
-    return false;
-  }
-  for (let i = 0; i < prevProps.userArrows.length; i++) {
-    if (
-      prevProps.userArrows[i].from !== nextProps.userArrows[i].from ||
-      prevProps.userArrows[i].to !== nextProps.userArrows[i].to
-    ) {
-      return false;
-    }
-  }
-  
-  // Compare engine arrows
-  if (prevProps.engineArrows.length !== nextProps.engineArrows.length) {
-    return false;
-  }
-  for (let i = 0; i < prevProps.engineArrows.length; i++) {
-    if (
-      prevProps.engineArrows[i].from !== nextProps.engineArrows[i].from ||
-      prevProps.engineArrows[i].to !== nextProps.engineArrows[i].to ||
-      prevProps.engineArrows[i].rank !== nextProps.engineArrows[i].rank
-    ) {
-      return false;
-    }
-  }
-  
-  // Compare preview arrow - simplified comparison
-  if (prevProps.previewArrow !== nextProps.previewArrow) {
-    // Both null/undefined - equal
-    if (!prevProps.previewArrow && !nextProps.previewArrow) {
-      return true;
-    }
-    // One is null - not equal
-    if (!prevProps.previewArrow || !nextProps.previewArrow) {
-      return false;
-    }
-    // Compare preview arrow properties
-    if (prevProps.previewArrow.from !== nextProps.previewArrow.from ||
-        prevProps.previewArrow.to !== nextProps.previewArrow.to) {
-      return false;
-    }
-    // Compare toPoint if present
-    const prevPoint = prevProps.previewArrow.toPoint;
-    const nextPoint = nextProps.previewArrow.toPoint;
-    if (prevPoint || nextPoint) {
-      if (!prevPoint || !nextPoint ||
-          prevPoint.x !== nextPoint.x ||
-          prevPoint.y !== nextPoint.y) {
-        return false;
-      }
-    }
-  }
-  
-  // Props are equal
-  return true;
 });
 
 export default ArrowOverlay;

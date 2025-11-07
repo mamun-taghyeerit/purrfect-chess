@@ -365,6 +365,17 @@ body {
   pointer-events: none;
 }
 
+/* Flip eval bar when board is flipped (black on bottom) */
+.eval-bar.eval-bar-flipped {
+  transform: scaleY(-1);
+}
+
+/* Flip the content back so text is readable */
+.eval-bar.eval-bar-flipped .eval-bar-score,
+.eval-bar.eval-bar-flipped .eval-bar-depth-info {
+  transform: scaleY(-1);
+}
+
 .eval-bar-track {
   position: relative;
   width: 18px;
