@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Clock from '@/components/Clock';
 import TimeControlSelector from '@/components/TimeControlSelector';
 import AppearanceControls, {
@@ -9,6 +9,7 @@ import AppearanceControls, {
 import MoveHistory from '@/components/MoveHistory';
 import { useRootStore } from '@/stores/store-setup';
 import { COLORS } from '@/lib/layout-constants';
+import { observer } from 'mobx-react-lite';
 
 /**
  * PlayerControls - Control panel content for a player (White or Black)
@@ -53,11 +54,32 @@ export function PlayerControls({
 }: PlayerControlsProps) {
   const store = useRootStore();
   const appearanceRef = useRef<AppearanceControlsHandle>(null);
+  
+  // Custom time control state
+  const [customMinutes, setCustomMinutes] = useState(store.game.timeControl.minutes);
+  const [customIncrement, setCustomIncrement] = useState(store.game.timeControl.increment);
 
   // Determine appearance control groups based on player
   const appearanceGroups =
     player === 'w' ? ['light', 'whitePieces'] : ['dark', 'blackPieces'];
   const playerName = player === 'w' ? 'White' : 'Black';
+  
+  // Handle custom time control apply
+  const handleApplyCustomTime = () => {
+    store.game.setTimeControl(customMinutes, customIncrement);
+    if (onShowMessage) {
+      onShowMessage('success', `Time control set to ${customMinutes}+${customIncrement}`);
+    }
+  };
+  
+  // Handle custom time control start
+  const handleStartCustomTime = () => {
+    store.game.setTimeControl(customMinutes, customIncrement);
+    store.game.resetGame();
+    if (onShowMessage) {
+      onShowMessage('info', `New game started with ${customMinutes}+${customIncrement}`);
+    }
+  };
 
   return (
     <>
@@ -138,7 +160,8 @@ export function PlayerControls({
                   type="number"
                   min="1"
                   max="180"
-                  defaultValue={store.game.timeControl.minutes}
+                  value={customMinutes}
+                  onChange={(e) => setCustomMinutes(Number(e.target.value))}
                   className="rounded-lg px-2.5 py-2"
                   style={{
                     background: COLORS.background.input,
@@ -156,7 +179,8 @@ export function PlayerControls({
                   type="number"
                   min="0"
                   max="60"
-                  defaultValue={store.game.timeControl.increment}
+                  value={customIncrement}
+                  onChange={(e) => setCustomIncrement(Number(e.target.value))}
                   className="rounded-lg px-2.5 py-2"
                   style={{
                     background: COLORS.background.input,
@@ -169,6 +193,7 @@ export function PlayerControls({
             </div>
             <div className="flex gap-2">
               <button
+                onClick={handleApplyCustomTime}
                 className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold transition-all"
                 style={{
                   background: COLORS.border.primary,
@@ -181,6 +206,7 @@ export function PlayerControls({
                 Apply
               </button>
               <button
+                onClick={handleStartCustomTime}
                 className="flex-1 px-3 py-2 text-sm rounded-lg font-semibold"
                 style={{
                   background: COLORS.gradient.primary,

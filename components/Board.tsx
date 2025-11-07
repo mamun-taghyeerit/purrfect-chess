@@ -909,7 +909,6 @@ function Board({
               : []
           }
           previewArrow={previewArrow}
-          flipped={flipped}
         />
 
         {/* Move Badge - Animated badge from legacy implementation */}

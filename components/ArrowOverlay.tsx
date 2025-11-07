@@ -18,6 +18,8 @@
  */
 
 import React, { memo } from 'react';
+import { observer } from 'mobx-react-lite';
+import { useRootStore } from '@/stores/store-setup';
 
 // Arrow constants (matching legacy)
 const ARROW_THICKNESS = 0.16;
@@ -50,8 +52,6 @@ export interface ArrowOverlayProps {
   engineArrows?: Arrow[];
   /** Preview arrow during drag */
   previewArrow?: PreviewArrow | null;
-  /** Whether the board is flipped (black on bottom) */
-  flipped?: boolean;
 }
 
 /**
@@ -198,15 +198,18 @@ function buildPreviewPath(
 }
 
 /**
- * ArrowOverlay component with memoization for performance
- * Only re-renders when arrows actually change
+ * ArrowOverlay component - Uses MobX observer for reactivity
+ * Reads board flip state directly from the root store
  */
-const ArrowOverlay = memo(function ArrowOverlay({
+const ArrowOverlay = observer(function ArrowOverlay({
   userArrows = [],
   engineArrows = [],
   previewArrow = null,
-  flipped = false,
 }: ArrowOverlayProps) {
+  // Read flipped state from store for reactivity
+  const store = useRootStore();
+  const flipped = store.ui.isBoardFlipped;
+
   // Don't render if no arrows or preview
   if (userArrows.length === 0 && engineArrows.length === 0 && !previewArrow) {
     return null;
@@ -334,75 +337,6 @@ const ArrowOverlay = memo(function ArrowOverlay({
         })()}
     </svg>
   );
-}, (prevProps, nextProps) => {
-  // Custom comparison to prevent re-renders when arrows haven't changed
-  // Note: Could use lodash.isEqual for simpler implementation, but avoiding
-  // external dependencies for this isolated comparison
-  
-  // Quick reference check - if arrays are same object, no need to deep compare
-  if (prevProps.userArrows === nextProps.userArrows &&
-      prevProps.engineArrows === nextProps.engineArrows &&
-      prevProps.previewArrow === nextProps.previewArrow &&
-      prevProps.flipped === nextProps.flipped) {
-    return true;
-  }
-  
-  // Compare user arrows
-  if (prevProps.userArrows.length !== nextProps.userArrows.length) {
-    return false;
-  }
-  for (let i = 0; i < prevProps.userArrows.length; i++) {
-    if (
-      prevProps.userArrows[i].from !== nextProps.userArrows[i].from ||
-      prevProps.userArrows[i].to !== nextProps.userArrows[i].to
-    ) {
-      return false;
-    }
-  }
-  
-  // Compare engine arrows
-  if (prevProps.engineArrows.length !== nextProps.engineArrows.length) {
-    return false;
-  }
-  for (let i = 0; i < prevProps.engineArrows.length; i++) {
-    if (
-      prevProps.engineArrows[i].from !== nextProps.engineArrows[i].from ||
-      prevProps.engineArrows[i].to !== nextProps.engineArrows[i].to ||
-      prevProps.engineArrows[i].rank !== nextProps.engineArrows[i].rank
-    ) {
-      return false;
-    }
-  }
-  
-  // Compare preview arrow - simplified comparison
-  if (prevProps.previewArrow !== nextProps.previewArrow) {
-    // Both null/undefined - equal
-    if (!prevProps.previewArrow && !nextProps.previewArrow) {
-      return true;
-    }
-    // One is null - not equal
-    if (!prevProps.previewArrow || !nextProps.previewArrow) {
-      return false;
-    }
-    // Compare preview arrow properties
-    if (prevProps.previewArrow.from !== nextProps.previewArrow.from ||
-        prevProps.previewArrow.to !== nextProps.previewArrow.to) {
-      return false;
-    }
-    // Compare toPoint if present
-    const prevPoint = prevProps.previewArrow.toPoint;
-    const nextPoint = nextProps.previewArrow.toPoint;
-    if (prevPoint || nextPoint) {
-      if (!prevPoint || !nextPoint ||
-          prevPoint.x !== nextPoint.x ||
-          prevPoint.y !== nextPoint.y) {
-        return false;
-      }
-    }
-  }
-  
-  // Props are equal
-  return true;
 });
 
 export default ArrowOverlay;

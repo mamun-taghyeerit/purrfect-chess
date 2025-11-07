@@ -122,7 +122,11 @@ describe('Engine Overlays Integration', () => {
         { from: 'g1', to: 'f3', rank: 3 },
       ];
 
-      const { container } = render(<ArrowOverlay engineArrows={arrows} />);
+      const { container } = render(
+        <RootStoreProvider>
+          <ArrowOverlay engineArrows={arrows} />
+        </RootStoreProvider>
+      );
 
       const arrow1 = container.querySelector('.engine-arrow-1');
       const arrow2 = container.querySelector('.engine-arrow-2');
@@ -134,7 +138,11 @@ describe('Engine Overlays Integration', () => {
     });
 
     it('should render nothing when no arrows provided', () => {
-      const { container } = render(<ArrowOverlay />);
+      const { container } = render(
+        <RootStoreProvider>
+          <ArrowOverlay />
+        </RootStoreProvider>
+      );
       const svg = container.querySelector('svg');
       expect(svg).toBeFalsy();
     });
@@ -145,7 +153,11 @@ describe('Engine Overlays Integration', () => {
         { from: 'd2', to: 'd4', rank: 5 }, // Should become 3 (max)
       ];
 
-      const { container } = render(<ArrowOverlay engineArrows={arrows} />);
+      const { container } = render(
+        <RootStoreProvider>
+          <ArrowOverlay engineArrows={arrows} />
+        </RootStoreProvider>
+      );
 
       // Rank -1 should be clamped to 0
       const arrow0 = container.querySelector('.engine-arrow-0');

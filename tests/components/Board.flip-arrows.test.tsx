@@ -66,14 +66,15 @@ describe('Board Arrow Flipping', () => {
     });
   });
 
-  describe('ArrowOverlay with flipped prop', () => {
+  describe('ArrowOverlay component', () => {
     it('should render arrows with flipped coordinates', () => {
       const { container } = render(
-        <ArrowOverlay
-          userArrows={[{ from: 'e2', to: 'e4' }]}
-          engineArrows={[]}
-          flipped={true}
-        />
+        <RootStoreProvider>
+          <ArrowOverlay
+            userArrows={[{ from: 'e2', to: 'e4' }]}
+            engineArrows={[]}
+          />
+        </RootStoreProvider>
       );
 
       const svg = container.querySelector('svg');
@@ -86,11 +87,12 @@ describe('Board Arrow Flipping', () => {
 
     it('should render engine arrows with flipped coordinates', () => {
       const { container } = render(
-        <ArrowOverlay
-          userArrows={[]}
-          engineArrows={[{ from: 'e2', to: 'e4', rank: 1 }]}
-          flipped={true}
-        />
+        <RootStoreProvider>
+          <ArrowOverlay
+            userArrows={[]}
+            engineArrows={[{ from: 'e2', to: 'e4', rank: 1 }]}
+          />
+        </RootStoreProvider>
       );
 
       const engineArrow = container.querySelector('path.engine-arrow');
@@ -99,11 +101,12 @@ describe('Board Arrow Flipping', () => {
 
     it('should not render when no arrows and no preview', () => {
       const { container } = render(
-        <ArrowOverlay
-          userArrows={[]}
-          engineArrows={[]}
-          flipped={true}
-        />
+        <RootStoreProvider>
+          <ArrowOverlay
+            userArrows={[]}
+            engineArrows={[]}
+          />
+        </RootStoreProvider>
       );
 
       const svg = container.querySelector('svg');
@@ -139,11 +142,12 @@ describe('Arrow Flipping Regression Tests', () => {
     ];
 
     const { container } = render(
-      <ArrowOverlay
-        userArrows={arrows}
-        engineArrows={[]}
-        flipped={true}
-      />
+      <RootStoreProvider>
+        <ArrowOverlay
+          userArrows={arrows}
+          engineArrows={[]}
+        />
+      </RootStoreProvider>
     );
 
     const arrowElements = container.querySelectorAll('path.board-arrow');
@@ -162,12 +166,13 @@ describe('Arrow Flipping Regression Tests', () => {
 
   it('should handle preview arrows with flipped board', () => {
     const { container } = render(
-      <ArrowOverlay
-        userArrows={[]}
-        engineArrows={[]}
-        previewArrow={{ from: 'e2', to: 'e4' }}
-        flipped={true}
-      />
+      <RootStoreProvider>
+        <ArrowOverlay
+          userArrows={[]}
+          engineArrows={[]}
+          previewArrow={{ from: 'e2', to: 'e4' }}
+        />
+      </RootStoreProvider>
     );
 
     const previewArrow = container.querySelector('path.board-arrow-preview');
