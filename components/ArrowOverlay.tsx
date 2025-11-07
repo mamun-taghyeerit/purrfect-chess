@@ -25,6 +25,7 @@ const ARROW_HEAD_ID = 'board-arrow-head';
 const ARROW_HEAD_SIZE = 0.35;
 const ARROW_HEAD_LENGTH = 0.1;
 const ARROW_TAIL_OFFSET = 0.32;
+const BOARD_SIZE = 8; // Chess board is 8x8
 
 // Arrow colors (matching legacy)
 const ARROW_STROKE = 'rgba(145, 152, 229, 0.85)'; // User arrow color
@@ -76,9 +77,10 @@ function squareCenter(square: string, flipped: boolean = false): { x: number; y:
   if (!coords) return null;
   
   // Apply flip transformation if board is flipped
-  // When flipped: file a->h becomes h->a (7-file), rank 1->8 becomes 8->1 (7-rank)
-  const x = flipped ? (7 - coords.file) + 0.5 : coords.file + 0.5;
-  const y = flipped ? (7 - coords.rank) + 0.5 : coords.rank + 0.5;
+  // When flipped: file a->h becomes h->a, rank 1->8 becomes 8->1
+  const maxIndex = BOARD_SIZE - 1;
+  const x = flipped ? (maxIndex - coords.file) + 0.5 : coords.file + 0.5;
+  const y = flipped ? (maxIndex - coords.rank) + 0.5 : coords.rank + 0.5;
   
   return { x, y };
 }
@@ -305,8 +307,9 @@ const ArrowOverlay = memo(function ArrowOverlay({
             const fromPoint = squareCenter(previewArrow.from, flipped);
             if (fromPoint) {
               // Transform the toPoint if board is flipped
+              const maxCoord = BOARD_SIZE;
               const toPoint = flipped 
-                ? { x: 8 - previewArrow.toPoint.x, y: 8 - previewArrow.toPoint.y }
+                ? { x: maxCoord - previewArrow.toPoint.x, y: maxCoord - previewArrow.toPoint.y }
                 : previewArrow.toPoint;
               pathData = buildPreviewPath(fromPoint, toPoint);
             }
@@ -342,11 +345,6 @@ const ArrowOverlay = memo(function ArrowOverlay({
       prevProps.previewArrow === nextProps.previewArrow &&
       prevProps.flipped === nextProps.flipped) {
     return true;
-  }
-  
-  // Check if flipped changed
-  if (prevProps.flipped !== nextProps.flipped) {
-    return false;
   }
   
   // Compare user arrows

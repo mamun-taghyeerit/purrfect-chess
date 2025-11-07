@@ -112,10 +112,6 @@ describe('Board Arrow Flipping', () => {
   });
 
   describe('Board component arrow integration', () => {
-    beforeEach(() => {
-      // Reset any stored state between tests
-    });
-
     it('should pass flipped prop to ArrowOverlay when board is flipped', () => {
       const { container } = render(
         <RootStoreProvider>
