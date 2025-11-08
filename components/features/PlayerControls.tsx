@@ -54,30 +54,40 @@ export function PlayerControls({
 }: PlayerControlsProps) {
   const store = useRootStore();
   const appearanceRef = useRef<AppearanceControlsHandle>(null);
-  
+
   // Custom time control state
-  const [customMinutes, setCustomMinutes] = useState(store.game.timeControl.minutes);
-  const [customIncrement, setCustomIncrement] = useState(store.game.timeControl.increment);
+  const [customMinutes, setCustomMinutes] = useState(
+    store.game.timeControl.minutes
+  );
+  const [customIncrement, setCustomIncrement] = useState(
+    store.game.timeControl.increment
+  );
 
   // Determine appearance control groups based on player
   const appearanceGroups =
     player === 'w' ? ['light', 'whitePieces'] : ['dark', 'blackPieces'];
   const playerName = player === 'w' ? 'White' : 'Black';
-  
+
   // Handle custom time control apply
   const handleApplyCustomTime = () => {
     store.game.setTimeControl(customMinutes, customIncrement);
     if (onShowMessage) {
-      onShowMessage('success', `Time control set to ${customMinutes}+${customIncrement}`);
+      onShowMessage(
+        'success',
+        `Time control set to ${customMinutes}+${customIncrement}`
+      );
     }
   };
-  
+
   // Handle custom time control start
   const handleStartCustomTime = () => {
     store.game.setTimeControl(customMinutes, customIncrement);
     store.game.resetGame();
     if (onShowMessage) {
-      onShowMessage('info', `New game started with ${customMinutes}+${customIncrement}`);
+      onShowMessage(
+        'info',
+        `New game started with ${customMinutes}+${customIncrement}`
+      );
     }
   };
 

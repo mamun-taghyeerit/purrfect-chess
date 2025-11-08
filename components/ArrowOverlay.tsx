@@ -11,7 +11,7 @@
  * - User arrows (blue) and engine arrows (rank-based colors)
  * - Arrow preview during right-click drag
  * - Positioned absolutely over board
- * 
+ *
  * Performance Optimizations:
  * - Memoized to prevent unnecessary re-renders
  * - Shallow comparison of arrow arrays for prop equality
@@ -72,16 +72,19 @@ function parseSquare(square: string): { file: number; rank: number } | null {
  * Get center point of square in SVG coordinates (0-8 range)
  * Takes board flip into account for proper arrow positioning
  */
-function squareCenter(square: string, flipped: boolean = false): { x: number; y: number } | null {
+function squareCenter(
+  square: string,
+  flipped: boolean = false
+): { x: number; y: number } | null {
   const coords = parseSquare(square);
   if (!coords) return null;
-  
+
   // Apply flip transformation if board is flipped
   // When flipped: file a->h becomes h->a, rank 1->8 becomes 8->1
   const maxIndex = BOARD_SIZE - 1;
-  const x = flipped ? (maxIndex - coords.file) + 0.5 : coords.file + 0.5;
-  const y = flipped ? (maxIndex - coords.rank) + 0.5 : coords.rank + 0.5;
-  
+  const x = flipped ? maxIndex - coords.file + 0.5 : coords.file + 0.5;
+  const y = flipped ? maxIndex - coords.rank + 0.5 : coords.rank + 0.5;
+
   return { x, y };
 }
 
@@ -179,7 +182,11 @@ function buildArrowPoints(
 /**
  * Build arrow path string
  */
-function buildArrowPath(from: string, to: string, flipped: boolean = false): string | null {
+function buildArrowPath(
+  from: string,
+  to: string,
+  flipped: boolean = false
+): string | null {
   const points = buildArrowPoints(from, to, flipped);
   if (!points) return null;
   return buildPath(points);
@@ -257,7 +264,7 @@ const ArrowOverlay = observer(function ArrowOverlay({
         // Rank 1-3 = engine panel overlays (normal multi-PV colors)
         const rank = arrow.rank ?? 1;
         const isEvalBarArrow = rank === 0;
-        
+
         // Clamp rank to 0-3 for CSS class
         const clampedRank = Math.min(Math.max(rank, 0), 3);
 
@@ -304,15 +311,22 @@ const ArrowOverlay = observer(function ArrowOverlay({
 
           if (previewArrow.to) {
             // Preview to a specific square
-            pathData = buildArrowPath(previewArrow.from, previewArrow.to, flipped);
+            pathData = buildArrowPath(
+              previewArrow.from,
+              previewArrow.to,
+              flipped
+            );
           } else if (previewArrow.toPoint) {
             // Preview to an arbitrary point - transform point if flipped
             const fromPoint = squareCenter(previewArrow.from, flipped);
             if (fromPoint) {
               // Transform the toPoint if board is flipped
               const maxCoord = BOARD_SIZE;
-              const toPoint = flipped 
-                ? { x: maxCoord - previewArrow.toPoint.x, y: maxCoord - previewArrow.toPoint.y }
+              const toPoint = flipped
+                ? {
+                    x: maxCoord - previewArrow.toPoint.x,
+                    y: maxCoord - previewArrow.toPoint.y,
+                  }
                 : previewArrow.toPoint;
               pathData = buildPreviewPath(fromPoint, toPoint);
             }
