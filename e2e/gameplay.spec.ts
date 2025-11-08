@@ -85,15 +85,18 @@ test.describe('Gameplay Functionality', () => {
     // Look for time control buttons/selectors
     // This depends on the UI implementation - checking for common patterns
     const timeControlSelect = page.locator('select').first();
-    
+
     if (await timeControlSelect.isVisible()) {
       // Get initial time
-      const initialTime = await page.locator('text=/\\d+:\\d+/').first().textContent();
-      
+      const initialTime = await page
+        .locator('text=/\\d+:\\d+/')
+        .first()
+        .textContent();
+
       // Try to change time control
       await timeControlSelect.selectOption({ index: 1 });
       await page.waitForTimeout(300);
-      
+
       // Time should potentially change or at least the control should work
       // The exact assertion depends on implementation
       expect(await timeControlSelect.isVisible()).toBeTruthy();
@@ -111,17 +114,17 @@ test.describe('Gameplay Functionality', () => {
     // Get initial white time
     const whiteTimeElement = page.locator('text=/\\d+:\\d+/').first();
     await expect(whiteTimeElement).toBeVisible();
-    
+
     const initialTime = await whiteTimeElement.textContent();
-    
+
     // Make a move
     await page.click('[aria-label="e2, White pawn"]');
     await page.waitForTimeout(100);
     await page.click('[aria-label="e4, empty, legal move"]');
-    
+
     // Wait a bit for time to potentially tick
     await page.waitForTimeout(1000);
-    
+
     // Time system should be active (exact behavior depends on time control settings)
     const currentTime = await whiteTimeElement.textContent();
     expect(currentTime).toBeDefined();
@@ -182,7 +185,7 @@ test.describe('Gameplay Functionality', () => {
   test('should highlight selected square', async ({ page }) => {
     // Get the square element
     const e2Square = page.locator('[aria-label="e2, White pawn"]');
-    
+
     // Click to select
     await e2Square.click();
     await page.waitForTimeout(100);
@@ -190,7 +193,7 @@ test.describe('Gameplay Functionality', () => {
     // The selected square should have some visual indication
     // This is implementation-specific, but we can verify the square is still accessible
     await expect(e2Square).toBeVisible();
-    
+
     // Take screenshot for manual verification
     await page.screenshot({ path: 'test-results/selected-square.png' });
   });

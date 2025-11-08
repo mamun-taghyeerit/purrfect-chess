@@ -22,10 +22,12 @@ test.describe('Game Conditions', () => {
     await page.waitForSelector('[role="application"]', { state: 'visible' });
   });
 
-  test('should handle en passant capture (white captures black)', async ({ page }) => {
+  test('should handle en passant capture (white captures black)', async ({
+    page,
+  }) => {
     // Set up position: white pawn on e5, black pawn moves f7-f5
     // Need to get to the en passant position
-    
+
     // 1. e4
     await page.click('[aria-label="e2, White pawn"]');
     await page.waitForTimeout(100);
@@ -53,11 +55,13 @@ test.describe('Game Conditions', () => {
     // Now white can capture en passant: exf6
     await page.click('[aria-label="e5, White pawn"]');
     await page.waitForTimeout(100);
-    
+
     // En passant capture should be available at f6
-    const enPassantMove = page.locator('[aria-label*="f6"][aria-label*="legal move"]');
+    const enPassantMove = page.locator(
+      '[aria-label*="f6"][aria-label*="legal move"]'
+    );
     await expect(enPassantMove).toBeVisible();
-    
+
     await enPassantMove.click();
     await page.waitForTimeout(200);
 
@@ -77,17 +81,17 @@ test.describe('Game Conditions', () => {
     // Load FEN into the app (this depends on having a FEN import feature)
     // For now, we'll test if the promotion UI appears when reaching 8th rank
     // This is a simplified test that may need adjustment based on UI
-    
+
     // Note: If the app doesn't have easy FEN loading in UI, we'll need to play a full game
     // For this test, we'll document the expected behavior
-    
+
     // Skip actual implementation for now and just verify the position is valid
     expect(promotionFEN).toContain('P7'); // White pawn on 7th rank
   });
 
   test('should detect check condition', async ({ page }) => {
     // Set up a position where black king is in check
-    
+
     // Scholar's mate setup but stop before checkmate
     // 1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6
     const moves = [
@@ -115,13 +119,15 @@ test.describe('Game Conditions', () => {
 
     // Look for check indicator (implementation specific - might be text, icon, or style)
     // Common patterns: "Check", "+", highlighted king, etc.
-    const checkIndicator = page.locator('text=/[Cc]heck/').or(page.locator('text=/\\+/'));
-    
+    const checkIndicator = page
+      .locator('text=/[Cc]heck/')
+      .or(page.locator('text=/\\+/'));
+
     // At minimum, verify the move was made
     await expect(page.locator('[aria-label="f7, White queen"]')).toBeVisible();
   });
 
-  test('should detect checkmate (Scholar\'s Mate)', async ({ page }) => {
+  test("should detect checkmate (Scholar's Mate)", async ({ page }) => {
     // Play Scholar's Mate: 1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7#
     const moves = [
       { from: 'e2, White pawn', to: 'e4, empty, legal move' },
@@ -141,14 +147,18 @@ test.describe('Game Conditions', () => {
     }
 
     // Look for checkmate indicator
-    const checkmateIndicator = page.locator('text=/[Cc]heckmate/').or(page.locator('text=/#/'));
-    
+    const checkmateIndicator = page
+      .locator('text=/[Cc]heckmate/')
+      .or(page.locator('text=/#/'));
+
     // Should show game over state
-    const gameOverMessage = page.locator('text=/[Gg]ame [Oo]ver/').or(page.locator('text=/[Ww]hite [Ww]ins/'));
-    
+    const gameOverMessage = page
+      .locator('text=/[Gg]ame [Oo]ver/')
+      .or(page.locator('text=/[Ww]hite [Ww]ins/'));
+
     // Wait for game over state
     await page.waitForTimeout(500);
-    
+
     // At minimum, no more moves should be possible (black turn but can't move)
     // Try to click a black piece - should not be able to move
     const blackPiece = page.locator('[aria-label*="Black"]').first();
@@ -162,35 +172,41 @@ test.describe('Game Conditions', () => {
   test('should detect stalemate (corner position)', async ({ page }) => {
     // Note: Setting up stalemate requires specific position
     // We'll test with FEN if available: 7k/8/6Q1/8/8/8/8/K7 b - - 0 1
-    
+
     // For e2e testing, we document that stalemate detection should work
     // This would require either FEN loading or a very long game sequence
-    
+
     // Verify we can at least load the app
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
-    
+
     // Skip detailed implementation - would need FEN import feature
     test.skip();
   });
 
-  test('should detect draw by insufficient material (K vs K)', async ({ page }) => {
+  test('should detect draw by insufficient material (K vs K)', async ({
+    page,
+  }) => {
     // Note: This requires getting to an endgame with only kings
     // Would need FEN loading or extensive game play
-    
+
     // Document expected behavior: app should detect when only two kings remain
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
-    
+
     // Skip detailed implementation
     test.skip();
   });
 
-  test('should detect draw by insufficient material (K+B vs K)', async ({ page }) => {
+  test('should detect draw by insufficient material (K+B vs K)', async ({
+    page,
+  }) => {
     // King and bishop vs king is insufficient material for checkmate
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
     test.skip();
   });
 
-  test('should detect draw by insufficient material (K+N vs K)', async ({ page }) => {
+  test('should detect draw by insufficient material (K+N vs K)', async ({
+    page,
+  }) => {
     // King and knight vs king is insufficient material
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
     test.skip();
@@ -199,7 +215,7 @@ test.describe('Game Conditions', () => {
   test('should detect draw by threefold repetition', async ({ page }) => {
     // Requires repeating a position 3 times
     // Classic example: knights moving back and forth
-    
+
     // 1. Nf3 Nf6 2. Ng1 Ng8 3. Nf3 Nf6 4. Ng1 Ng8 (position repeated 3 times)
     const repetitionSequence = [
       // First occurrence
@@ -229,19 +245,21 @@ test.describe('Game Conditions', () => {
     // Should be able to claim draw by repetition
     // Look for draw offer or auto-draw detection
     await page.waitForTimeout(500);
-    
+
     // The exact UI depends on implementation
     // At minimum, game should still be playable
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
   });
 
-  test('should handle pawn promotion to other pieces (knight)', async ({ page }) => {
+  test('should handle pawn promotion to other pieces (knight)', async ({
+    page,
+  }) => {
     // Similar to queen promotion but selecting knight
     // This requires reaching 8th rank and choosing piece
-    
+
     // Document expected behavior
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
-    
+
     // Skip detailed implementation - needs promotion UI testing
     test.skip();
   });
@@ -281,7 +299,7 @@ test.describe('Game Conditions', () => {
 
   test('should only allow legal moves when in check', async ({ page }) => {
     // Put king in check and verify only moves that resolve check are allowed
-    
+
     // Scholar's mate setup: 1. e4 e5 2. Bc4 Nc6 3. Qf3
     const moves = [
       { from: 'e2, White pawn', to: 'e4, empty, legal move' },
@@ -310,7 +328,7 @@ test.describe('Game Conditions', () => {
     if (await randomBlackPiece.isVisible()) {
       await randomBlackPiece.click();
       await page.waitForTimeout(100);
-      
+
       // Should either show no legal moves or only legal moves that resolve check
       // This is implementation-specific
     }
@@ -323,7 +341,7 @@ test.describe('Game Conditions', () => {
     // 50 moves without pawn move or capture
     // This would take too long to test in e2e
     // Document expected behavior
-    
+
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
     test.skip();
   });

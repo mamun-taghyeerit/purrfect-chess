@@ -253,11 +253,13 @@ yarn format
 3. **E2E Tests** - Playwright end-to-end tests
 
 All jobs run automatically on:
+
 - Push to `main` or `develop` branches
 - Pull requests to `main` or `develop`
 - Manual workflow dispatch
 
 **Test Results:** Available as workflow artifacts after each run, including:
+
 - Coverage reports (uploaded to Codecov)
 - Playwright HTML reports
 - E2E test screenshots and traces

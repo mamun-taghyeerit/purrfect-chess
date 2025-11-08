@@ -66,11 +66,14 @@ const EvaluationBar = observer(function EvaluationBar({
   const store = useRootStore();
   const isVisible = store.ui.isEvalBarVisible;
   const isFlipped = store.ui.isBoardFlipped;
-  
+
   // Use engine's current depth when engine panel is open and analyzing,
   // otherwise use the passed depth (for auto-evaluation mode)
-  const shouldUseEngineDepth = store.ui.isEnginePanelVisible && store.engine.isAnalyzing;
-  const displayDepth = shouldUseEngineDepth ? store.engine.currentDepth : currentDepth;
+  const shouldUseEngineDepth =
+    store.ui.isEnginePanelVisible && store.engine.isAnalyzing;
+  const displayDepth = shouldUseEngineDepth
+    ? store.engine.currentDepth
+    : currentDepth;
 
   // Calculate bar fill percentage based on score
   // Map -500 to +500 centipawns to 0% to 100%

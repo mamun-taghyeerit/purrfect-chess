@@ -9,7 +9,9 @@ The E2E test suite validates critical chess gameplay flows, game conditions, and
 ## Test Files
 
 ### 1. `gameplay.spec.ts` - Core Gameplay Tests
+
 Tests basic game functionality:
+
 - Starting a new game
 - Resetting the game
 - Making moves (piece selection, legal moves)
@@ -20,7 +22,9 @@ Tests basic game functionality:
 **Coverage:** 9 tests
 
 ### 2. `game-conditions.spec.ts` - Chess Rules & Conditions
+
 Tests specific chess game conditions:
+
 - **En passant capture** - Special pawn capture rule
 - **Pawn promotion** - Promoting to queen, knight, etc.
 - **Check** - King under attack
@@ -35,7 +39,9 @@ Tests specific chess game conditions:
 **Coverage:** 15 tests (some marked as skipped pending FEN loading feature)
 
 ### 3. `full-games.spec.ts` - Complete Game Replays
+
 Tests full chess games and famous tactical sequences:
+
 - **Scholar's Mate** - 4-move checkmate
 - **Fool's Mate** - Fastest checkmate (2 moves)
 - **Smothered Mate** - Knight delivers mate to trapped king
@@ -49,7 +55,9 @@ Tests full chess games and famous tactical sequences:
 **Coverage:** 10 tests
 
 ### 4. `layout-stability.spec.ts` - UI Stability Tests
+
 Tests UI layout consistency (existing test):
+
 - Board position stability during gameplay
 - Control panel width consistency
 - Responsive layout on mobile
@@ -94,6 +102,7 @@ PWDEBUG=1 yarn test:e2e
 ### CI Execution
 
 Tests run automatically on:
+
 - Push to `main` or `develop` branches
 - Pull requests to `main` or `develop`
 - Manual workflow dispatch
@@ -132,6 +141,7 @@ yarn test:e2e:ui
 ```
 
 Features:
+
 - Visual test execution
 - Time travel debugging
 - Watch mode
@@ -144,6 +154,7 @@ PWDEBUG=1 yarn test:e2e e2e/gameplay.spec.ts
 ```
 
 Features:
+
 - Step through test execution
 - Inspect page state
 - Record and generate tests
@@ -178,12 +189,12 @@ test.describe('Feature Name', () => {
 
   test('should do something', async ({ page }) => {
     // Arrange: Set up test conditions
-    
+
     // Act: Perform actions
     await page.click('[aria-label="e2, White pawn"]');
     await page.waitForTimeout(100);
     await page.click('[aria-label="e4, empty, legal move"]');
-    
+
     // Assert: Verify results
     await expect(page.locator('[aria-label="e4, White pawn"]')).toBeVisible();
   });
@@ -218,7 +229,10 @@ test.describe('Feature Name', () => {
 Create reusable helpers for common actions:
 
 ```typescript
-async function playMoves(page: any, moves: Array<{ from: string; to: string }>) {
+async function playMoves(
+  page: any,
+  moves: Array<{ from: string; to: string }>
+) {
   for (const move of moves) {
     await page.click(`[aria-label="${move.from}"]`);
     await page.waitForTimeout(100);
@@ -238,7 +252,9 @@ async function resetGame(page: any) {
 The project includes test fixtures in `docs/fixtures/`:
 
 ### FEN Fixtures (`docs/fixtures/fen/`)
+
 Predefined board positions:
+
 - `promotion-white-ready.fen` - Pawn on 7th rank
 - `checkmate-scholars-mate.fen` - Scholar's mate position
 - `stalemate-corner.fen` - Stalemate position
@@ -246,7 +262,9 @@ Predefined board positions:
 - `draw-insufficient-material-*.fen` - Various draw scenarios
 
 ### PGN Fixtures (`docs/fixtures/pgn/`)
+
 Complete game records:
+
 - `short-scholars-mate.pgn` - Quick checkmate
 - `short-fools-mate.pgn` - Fastest checkmate
 - `standard-italian-game.pgn` - Full game
@@ -264,7 +282,7 @@ test('should load FEN position', async ({ page }) => {
     join(process.cwd(), 'docs/fixtures/fen/promotion-white-ready.fen'),
     'utf-8'
   ).split('\n')[0];
-  
+
   // Load FEN into app (if feature available)
   // ...
 });
@@ -287,6 +305,7 @@ npx playwright install --with-deps chromium
 ### Test Timing
 
 Some tests use `waitForTimeout()` for UI updates. Adjust timings if tests are flaky:
+
 - Click wait: 100ms
 - Move completion: 200-300ms
 - UI updates: 500ms
@@ -294,6 +313,7 @@ Some tests use `waitForTimeout()` for UI updates. Adjust timings if tests are fl
 ### Skipped Tests
 
 Some tests are marked as `test.skip()` because they require features not yet in the UI:
+
 - FEN position loading
 - Extensive endgame scenarios (50-move rule, etc.)
 - Promotion piece selection UI
@@ -327,6 +347,7 @@ E2E tests run in the CI pipeline:
 ### Test Results
 
 After CI runs:
+
 - Test results available in workflow logs
 - HTML report uploaded as artifact
 - Screenshots of failures available
@@ -362,6 +383,7 @@ After CI runs:
 ## Support
 
 For issues or questions:
+
 1. Check [Playwright docs](https://playwright.dev/docs/intro)
 2. Review existing test examples
 3. Open an issue on GitHub

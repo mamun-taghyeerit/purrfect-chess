@@ -7,7 +7,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { RootStoreProvider } from '@/stores/store-setup';
 import Board from '@/components/Board';
-import ArrowOverlay, { squareCenter, buildArrowPoints } from '@/components/ArrowOverlay';
+import ArrowOverlay, {
+  squareCenter,
+  buildArrowPoints,
+} from '@/components/ArrowOverlay';
 
 describe('Board Arrow Flipping', () => {
   describe('Arrow coordinate transformation', () => {
@@ -102,10 +105,7 @@ describe('Board Arrow Flipping', () => {
     it('should not render when no arrows and no preview', () => {
       const { container } = render(
         <RootStoreProvider>
-          <ArrowOverlay
-            userArrows={[]}
-            engineArrows={[]}
-          />
+          <ArrowOverlay userArrows={[]} engineArrows={[]} />
         </RootStoreProvider>
       );
 
@@ -143,10 +143,7 @@ describe('Arrow Flipping Regression Tests', () => {
 
     const { container } = render(
       <RootStoreProvider>
-        <ArrowOverlay
-          userArrows={arrows}
-          engineArrows={[]}
-        />
+        <ArrowOverlay userArrows={arrows} engineArrows={[]} />
       </RootStoreProvider>
     );
 
