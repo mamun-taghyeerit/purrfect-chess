@@ -59,9 +59,9 @@ test.describe('Gameplay Functionality', () => {
     await expect(page.locator('[aria-label="e4, White pawn"]')).toBeVisible();
     await expect(page.locator('[aria-label="e5, Black pawn"]')).toBeVisible();
 
-    // Find and click the reset/new game button
-    const newGameButton = page.locator('button:has-text("New Game")');
-    await newGameButton.click();
+    // Find and click the reset game button
+    const resetGameButton = page.locator('button:has-text("Reset Game")');
+    await resetGameButton.click();
     await page.waitForTimeout(300);
 
     // Verify board is back to starting position
@@ -163,7 +163,8 @@ test.describe('Gameplay Functionality', () => {
     await expect(legalMove).toBeVisible();
 
     // Click the same square again to deselect
-    await page.click('[aria-label="e2, White pawn"]');
+    // After selection, the aria-label includes "selected"
+    await page.click('[aria-label*="e2"][aria-label*="White pawn"]');
     await page.waitForTimeout(100);
 
     // Legal moves should no longer be highlighted
@@ -176,10 +177,19 @@ test.describe('Gameplay Functionality', () => {
     await page.click('[aria-label="e7, Black pawn"]');
     await page.waitForTimeout(100);
 
-    // Should not show legal moves for black pieces
-    // Board should remain in starting position with no move made
-    await expect(page.locator('[aria-label="e2, White pawn"]')).toBeVisible();
-    await expect(page.locator('[aria-label="e7, Black pawn"]')).toBeVisible();
+    // Should not show legal moves for black pieces (no "legal move" label should appear)
+    // Verify board remains in starting position with no move made
+    const legalMoves = page.locator('[aria-label*="legal move"]');
+    const count = await legalMoves.count();
+    expect(count).toBe(0);
+
+    // Verify pieces are still in starting position
+    await expect(
+      page.locator('[aria-label*="e2"][aria-label*="White pawn"]')
+    ).toBeVisible();
+    await expect(
+      page.locator('[aria-label*="e7"][aria-label*="Black pawn"]')
+    ).toBeVisible();
   });
 
   test('should highlight selected square', async ({ page }) => {
@@ -190,9 +200,11 @@ test.describe('Gameplay Functionality', () => {
     await e2Square.click();
     await page.waitForTimeout(100);
 
-    // The selected square should have some visual indication
-    // This is implementation-specific, but we can verify the square is still accessible
-    await expect(e2Square).toBeVisible();
+    // The selected square should have "selected" in its aria-label after selection
+    const selectedSquare = page.locator(
+      '[aria-label*="e2"][aria-label*="selected"]'
+    );
+    await expect(selectedSquare).toBeVisible();
 
     // Take screenshot for manual verification
     await page.screenshot({ path: 'test-results/selected-square.png' });
