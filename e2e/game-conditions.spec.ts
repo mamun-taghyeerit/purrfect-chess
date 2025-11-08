@@ -326,12 +326,11 @@ test.describe('Game Conditions', () => {
   test('should only allow legal moves when in check', async ({ page }) => {
     // Put king in check and verify only moves that resolve check are allowed
 
-    // Scholar's mate setup: 1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7+ (check)
+    // Scholar's mate setup ecept there's no bishop development
+    // So, the quenn is free on f7 for king.
     const moves = [
       { from: 'e2, White pawn', to: 'e4, empty, legal move' },
       { from: 'e7, Black pawn', to: 'e5, empty, legal move' },
-      { from: 'f1, White bishop', to: 'c4, empty, legal move' },
-      { from: 'b8, Black knight', to: 'c6, empty, legal move' },
       { from: 'd1, White queen', to: 'h5, empty, legal move' },
       { from: 'g8, Black knight', to: 'f6, empty, legal move' },
     ];
