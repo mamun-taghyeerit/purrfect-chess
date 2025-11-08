@@ -287,12 +287,15 @@ test.describe('Game Conditions', () => {
   });
 
   test('should detect check and show king is attacked', async ({ page }) => {
-    // Simple check position
-    // 1. e4 e5 2. Qh5 (threatens Qxf7+)
+    // Simple check position using Scholar's Mate pattern
+    // 1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7+ (check)
     const moves = [
       { from: 'e2, White pawn', to: 'e4, empty, legal move' },
       { from: 'e7, Black pawn', to: 'e5, empty, legal move' },
+      { from: 'f1, White bishop', to: 'c4, empty, legal move' },
+      { from: 'b8, Black knight', to: 'c6, empty, legal move' },
       { from: 'd1, White queen', to: 'h5, empty, legal move' },
+      { from: 'g8, Black knight', to: 'f6, empty, legal move' },
     ];
 
     for (const move of moves) {
@@ -302,14 +305,7 @@ test.describe('Game Conditions', () => {
       await page.waitForTimeout(200);
     }
 
-    // Queen on h5 threatens f7 (but not yet check)
-    // Now if black plays g6, white can give check
-    await page.click('[aria-label="g7, Black pawn"]');
-    await page.waitForTimeout(100);
-    await page.click('[aria-label="g6, empty, legal move"]');
-    await page.waitForTimeout(200);
-
-    // Qxf7+ is now check
+    // Now Qxf7+ is legal (knight on f6, so f7 is not protected by king)
     await page.click('[aria-label="h5, White queen"]');
     await page.waitForTimeout(100);
 
@@ -330,13 +326,14 @@ test.describe('Game Conditions', () => {
   test('should only allow legal moves when in check', async ({ page }) => {
     // Put king in check and verify only moves that resolve check are allowed
 
-    // Scholar's mate setup: 1. e4 e5 2. Bc4 Nc6 3. Qf3
+    // Scholar's mate setup: 1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7+ (check)
     const moves = [
       { from: 'e2, White pawn', to: 'e4, empty, legal move' },
       { from: 'e7, Black pawn', to: 'e5, empty, legal move' },
       { from: 'f1, White bishop', to: 'c4, empty, legal move' },
       { from: 'b8, Black knight', to: 'c6, empty, legal move' },
-      { from: 'd1, White queen', to: 'f3, empty, legal move' },
+      { from: 'd1, White queen', to: 'h5, empty, legal move' },
+      { from: 'g8, Black knight', to: 'f6, empty, legal move' },
     ];
 
     for (const move of moves) {
@@ -347,7 +344,7 @@ test.describe('Game Conditions', () => {
     }
 
     // Now Qxf7+ gives check
-    await page.click('[aria-label="f3, White queen"]');
+    await page.click('[aria-label="h5, White queen"]');
     await page.waitForTimeout(100);
 
     // Look for f7 capture
@@ -359,19 +356,22 @@ test.describe('Game Conditions', () => {
     await page.waitForTimeout(300);
 
     // Black king is in check, must respond to check
-    // Try to make an illegal move (moving a piece that doesn't block/capture)
-    const randomBlackPiece = page.locator(
-      '[aria-label*="d7"][aria-label*="Black pawn"]'
+    // Only moves that get out of check should be legal
+    // The king can move (Kxf7 or Ke7)
+    const kingSquare = page.locator(
+      '[aria-label*="e8"][aria-label*="Black king"]'
     );
-    if (await randomBlackPiece.isVisible()) {
-      await randomBlackPiece.click();
-      await page.waitForTimeout(100);
+    await kingSquare.click();
+    await page.waitForTimeout(100);
 
-      // Should either show no legal moves or only legal moves that resolve check
-      // This is implementation-specific
-    }
+    // Should show legal moves for the king (escaping check)
+    const legalMoves = page.locator('[aria-label*="legal move"]');
+    const moveCount = await legalMoves.count();
 
-    // Verify king must move or queen must be captured
+    // King should have at least one legal move to escape check
+    expect(moveCount).toBeGreaterThan(0);
+
+    // Verify board is still functional
     expect(await page.locator('[role="application"]').isVisible()).toBe(true);
   });
 
