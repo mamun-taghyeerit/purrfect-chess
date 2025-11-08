@@ -163,13 +163,23 @@ The project uses:
 
 ### Testing
 
+#### Unit & Integration Tests (Vitest)
+
 ```bash
-yarn test              # Run all tests with Vitest
+yarn test              # Run all unit/integration tests
 yarn test:watch        # Run tests in watch mode
 yarn test:coverage     # Generate coverage report
 ```
 
-See [TESTING.md](./TESTING.md) for comprehensive testing guidelines.
+#### End-to-End Tests (Playwright)
+
+```bash
+yarn test:e2e          # Run E2E tests (headless)
+yarn test:e2e:ui       # Run E2E tests in UI mode (recommended for debugging)
+yarn test:e2e:headed   # Run E2E tests with visible browser
+```
+
+See [TESTING.md](./TESTING.md) for comprehensive testing guidelines and [e2e/README.md](./e2e/README.md) for detailed E2E testing documentation.
 
 ### Building
 
@@ -236,13 +246,22 @@ yarn format
 
 ### CI/CD Status
 
-**Current State:** Limited CI workflow exists (`.github/workflows/copilot-setup-steps.yml`) for environment setup only.
+**Current State:** Comprehensive CI workflow implemented in `.github/workflows/test.yml` with three parallel jobs:
 
-**Phase 4 Goal:** Add comprehensive CI workflow with:
+1. **Unit & Integration Tests** - Vitest tests with coverage reporting
+2. **Build Check** - Production build validation
+3. **E2E Tests** - Playwright end-to-end tests
 
-- Automated build/lint/test on all PRs
-- Deploy preview environments
-- Status badges in README
-- Automated dependency updates
+All jobs run automatically on:
+- Push to `main` or `develop` branches
+- Pull requests to `main` or `develop`
+- Manual workflow dispatch
 
-See [Phase 4 tasks in NEXT_STEPS_ISSUE.md](./NEXT_STEPS_ISSUE.md#phase-4-testing--cleanup-next) for CI/CD implementation plan.
+**Test Results:** Available as workflow artifacts after each run, including:
+- Coverage reports (uploaded to Codecov)
+- Playwright HTML reports
+- E2E test screenshots and traces
+
+**Previous Goal (Completed):** Add comprehensive CI workflow with automated build/lint/test on all PRs and deploy preview environments.
+
+See `.github/workflows/test.yml` for the complete CI configuration.
